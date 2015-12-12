@@ -7,10 +7,9 @@ import math
 ### GO file and the network without GO file. Reads in the raw data, and
 ### finds the Pearson correlation coefficient between every pair of genes,
 ### making an edge in the generated network if the coefficient exceeds a 
-### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE". Each edge
-### is written twice to create an undirected edge.
+### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE".
 
-pearson_threshold = 0.85
+pearson_threshold = 0.8
 
 def average(x):
     assert len(x) > 0
@@ -31,7 +30,6 @@ def pearsonr(x, y):
         diffprod += xdiff * ydiff
         xdiff2 += xdiff * xdiff
         ydiff2 += ydiff * ydiff
-
     return diffprod / math.sqrt(xdiff2 * ydiff2)
 
 if __name__ == '__main__':
@@ -48,10 +46,9 @@ if __name__ == '__main__':
         gene_exp_dct[gene] = exp_vals
     f.close()
 
-    i = 0
     # Calculate the correlations between each pair of genes.
     print 'Computing Pearson correlation coefficients...'
-    out = open('./data/mouse_network.txt', 'w')
+    out = open('./data/raw_network.txt', 'w')
     genes = gene_exp_dct.keys()
     for a in range(len(genes)):
         gene_a = genes[a]
@@ -59,10 +56,9 @@ if __name__ == '__main__':
         for b in range(a + 1, len(genes)):
             gene_b = genes[b]
             exp_b = gene_exp_dct[genes[b]]
-            rcc = abs(pearsonr(exp_a, exp_b))
+            pcc = abs(pearsonr(exp_a, exp_b))
             # Ignore genes that have PCC = 1.
-            if pearson_threshold < rcc < 1.0:
-                rcc = str(rcc)
-                out.write(gene_a + '\t' + gene_b + '\t' + rcc + '\n')
-                out.write(gene_b + '\t' + gene_a + '\t' + rcc + '\n')
+            if pearson_threshold < pcc < 1.0:
+                pcc = str(pcc)
+                out.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
     out.close()
