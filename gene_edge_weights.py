@@ -51,6 +51,7 @@ if __name__ == '__main__':
     out = open('./data/raw_network.txt', 'w')
     genes = gene_exp_dct.keys()
     for a in range(len(genes)):
+        print '%f%% done...' % (float(a) / len(genes) * 100)
         gene_a = genes[a]
         exp_a = gene_exp_dct[gene_a]
         for b in range(a + 1, len(genes)):
