@@ -37,14 +37,20 @@ if __name__ == '__main__':
         genes.add(gene_b)
 
     print 'Writing to network without GO labels...'
-    no_go_out = open('./data/network_no_go.txt', 'w')
+    no_go_out = open('./data/network_no_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
     no_go_out.write('0\n%d\n' % len(genes))
+    # Real network file... for cluster evaluation.
+    ng_real = open('./data/real_network_no_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    ng_real.write('Real network\n')
     for gene_a, gene_b in sampled_edges:
         weight = edge_dct[(gene_a, gene_b)]
         # Write in each edge twice to make it undirected.
         no_go_out.write('%s\t%s\t%s\n' % (gene_a, gene_b, weight))
         no_go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, weight))
+        ng_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, weight))
+        ng_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, weight))
     no_go_out.close()
+    ng_real.close()
 
     print 'Extracting GO labels...'
     go_f = open('./data/go_edges.txt', 'r')
@@ -60,7 +66,9 @@ if __name__ == '__main__':
     go_f.close()
 
     print 'Writing to network with GO labels...'
-    go_out = open('./data/network_go.txt', 'w')
+    go_out = open('./data/network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    g_real = open('./data/real_network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    g_real.write('Real network\n')
     go_out.write('0\n')
     # First count how many nodes there are after adding in GO labels.
     num_nodes = len(genes)
@@ -78,10 +86,15 @@ if __name__ == '__main__':
         for gene in go_genes:
             go_out.write('%s\t%s\t%f\n' % (gene, go, lamb))
             go_out.write('%s\t%s\t%f\n' % (go, gene, lamb))
+            g_real.write('0\t%s\t%s\t%f\n' % (gene, go, lamb))
+            g_real.write('0\t%s\t%s\t%f\n' % (go, gene, lamb))
     # Now write all of the gene-gene edges.
     for gene_a, gene_b in sampled_edges:
         weight = edge_dct[(gene_a, gene_b)]
         # Write in each edge twice to make it undirected.
         go_out.write('%s\t%s\t%s\n' % (gene_a, gene_b, weight))
         go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, weight))
+        g_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, weight))
+        g_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, weight))
     go_out.close()
+    g_real.close()
