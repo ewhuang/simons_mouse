@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     print 'Creating cluster dictionary...'
     cluster_go_dct = {}
-    f = open('./results/clusters_go_clean_0001.txt', 'r')
+    f = open('./results/clusters_go_clean_1.txt', 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     f.close()
 
     cluster_no_go_dct = {}
-    f = open('./results/clusters_no_go_0001.txt', 'r')
+    f = open('./results/clusters_no_go_1.txt', 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -66,7 +66,9 @@ if __name__ == '__main__':
     # Find GO enrichment for each cluster.
     go_p_vals = []
     go_top_labels = {}
-    for clus_id in cluster_go_dct:
+    out = open('./results/go_top_go_1.txt', 'w')
+    for i in range(len(cluster_go_dct)):
+        clus_id = str(i + 1)
         fisher_dct = {}
         clus_genes = set(cluster_go_dct[clus_id])
         for go_label in go_dct:
@@ -81,18 +83,22 @@ if __name__ == '__main__':
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
-        for label in top_go[:5]:
+        for label in sorted(top_go[:5]):
             label = label[0]
+            out.write(label + '\t')
             if label not in go_top_labels:
                 go_top_labels[label] = 1
             else:
                 go_top_labels[label] += 1
-
+        out.write('\n')
+    out.close()
     print sorted(go_top_labels.items(), key=operator.itemgetter(1), reverse=True)
 
     no_go_p_vals = []
     no_go_top_labels = {}
-    for clus_id in cluster_no_go_dct:
+    out = open('./results/go_top_no_go_1.txt', 'w')
+    for i in range(len(cluster_no_go_dct)):
+        clus_id = str(i + 1)
         fisher_dct = {}
         clus_genes = set(cluster_no_go_dct[clus_id])
         for go_label in go_dct:
@@ -107,12 +113,15 @@ if __name__ == '__main__':
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         no_go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
-        for label in top_go[:5]:
+        for label in sorted(top_go[:5]):
             label = label[0]
+            out.write(label + '\t')
             if label not in no_go_top_labels:
                 no_go_top_labels[label] = 1
             else:
                 no_go_top_labels[label] += 1
+        out.write('\n')
+    out.close()
 
     print sorted(no_go_top_labels.items(), key=operator.itemgetter(1), reverse=True)
         
