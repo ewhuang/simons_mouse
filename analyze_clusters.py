@@ -8,7 +8,7 @@
 if __name__ == '__main__':
     print 'Extracting cluster data with GO...'
     # We use the "dirty" clusters with GO to analyze gene-GO edges.
-    f = open('./results/clusters_go_1.txt', 'r')
+    f = open('./results/clusters_no_go_1.txt', 'r')
     # Dictionary for clusters with GO. Keys are cluster indexes, values are the
     # list of genes in those clusters.
     clst_go_dct = {}
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     num_genes_net = 0
     num_gg_net = 0
     num_ggo_net = 0
-    f = open('./data/network_go_1.txt', 'r')
+    f = open('./data/network_no_go_1.txt', 'r')
     edge_list_go = []
     for i, line in enumerate(f):
         print i
@@ -54,11 +54,12 @@ if __name__ == '__main__':
 
     print 'Writing out information with GO...'
     # Write out to file.
-    out = open('./results/clus_info_go_1.txt', 'w')
+    out = open('./results/clus_info_no_go_1.txt', 'w')
     out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
     out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
     out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\n')
-    for cid in clst_go_dct:
+    for i in range(len(clst_go_dct)):
+        cid = str(i + 1)
         clus = clst_go_dct[cid]
         num_genes = len(clus)
         num_go = 0
