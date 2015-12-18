@@ -83,16 +83,14 @@ if __name__ == '__main__':
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
-        for label in sorted(top_go[:5]):
-            label = label[0]
-            out.write(label + '\t')
+        for (label, p_value) in top_go[:5]:
+            out.write(str(p_value) + '\t')
             if label not in go_top_labels:
                 go_top_labels[label] = 1
             else:
                 go_top_labels[label] += 1
         out.write('\n')
     out.close()
-    print sorted(go_top_labels.items(), key=operator.itemgetter(1), reverse=True)
 
     no_go_p_vals = []
     no_go_top_labels = {}
@@ -122,8 +120,6 @@ if __name__ == '__main__':
                 no_go_top_labels[label] += 1
         out.write('\n')
     out.close()
-
-    print sorted(no_go_top_labels.items(), key=operator.itemgetter(1), reverse=True)
         
     bins = numpy.linspace(-25, 0, 100)
     plt.hist(go_p_vals, bins, alpha=0.5, label='GO')
