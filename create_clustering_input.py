@@ -13,7 +13,8 @@ import math
 ### We can sample a subgraph to speed up clustering.
 
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
-lamb = 1.5 # Tunable weight for all GO edge weights.
+lamb = 1.0 # Tunable weight for all GO edge weights.
+MIN_GO_SIZE = 5 # Minimum number of genes to consider a GO term.
 # Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
@@ -65,6 +66,14 @@ if __name__ == '__main__':
             go_dct[go] += [gene]
     go_f.close()
 
+    # Find the size of the largest GO term.
+    max_go_size = 0
+    for go in go_dct:
+        num_go_genes = len(go_dct[go])
+        if num_go_genes < MIN_GO_SIZE or num_go_genes > 0.25 * len(genes):
+            continue
+        max_go_size = max(max_go_size, num_go_genes)
+
     print 'Writing to network with GO labels...'
     go_out = open('./data/network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
     g_real = open('./data/real_network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
@@ -74,20 +83,23 @@ if __name__ == '__main__':
     num_nodes = len(genes)
     for go in go_dct:
         go_genes = go_dct[go]
-        if len(go_genes) < 5 or len(go_genes) > 0.25 * len(genes):
+        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
             continue
         num_nodes += 1
     go_out.write('%d\n' % num_nodes)
     # Now write all of the gene-GO edges.
     for go in go_dct:
         go_genes = go_dct[go]
-        if len(go_genes) < 5 or len(go_genes) > 0.25 * len(genes):
+        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
             continue
+        # Here we penalize GO terms that have many genes.
+        go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+        print go_weight, max_go_size, len(go_genes)
         for gene in go_genes:
-            go_out.write('%s\t%s\t%f\n' % (gene, go, lamb))
-            go_out.write('%s\t%s\t%f\n' % (go, gene, lamb))
-            g_real.write('0\t%s\t%s\t%f\n' % (gene, go, lamb))
-            g_real.write('0\t%s\t%s\t%f\n' % (go, gene, lamb))
+            go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
+            go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
+            g_real.write('0\t%s\t%s\t%f\n' % (gene, go, go_weight))
+            g_real.write('0\t%s\t%s\t%f\n' % (go, gene, go_weight))
     # Now write all of the gene-gene edges.
     for gene_a, gene_b in sampled_edges:
         weight = edge_dct[(gene_a, gene_b)]

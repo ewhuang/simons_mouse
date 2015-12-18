@@ -49,6 +49,10 @@ Compute GO enrichment of each of the clusterings.
 Produces a histogram of the two clusterings' p-values. These p-values are all
 of the p-values from the top 5 highest correlated GO terms, computed by
 Fisher's exact test.
+Additionally, outputs a file, called ./results/go_top_go_1.txt, which shows the
+p-values for each of the clusters to see which clusters have high p-values.
+About half of the clusters with GO terms have enrichment values much better than
+those of the clusters without GO terms.
 
 ___________________________________
 Analyze the properties of the clusterings.
