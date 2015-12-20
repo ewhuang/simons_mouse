@@ -6,8 +6,8 @@
 ### the clusters.
 
 if __name__ == '__main__':
-    f = open('./results/clusters_go_1.txt', 'r')
-    out = open('./results/clusters_go_clean_1.txt', 'w')
+    f = open('./results/clusters_go_1_001.txt', 'r')
+    out = open('./results/clusters_go_clean_1_001.txt', 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)
