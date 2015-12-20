@@ -1,6 +1,7 @@
 ### Author: Edward Huang
 
 import sys
+from scipy.stats import ranksums
 
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
