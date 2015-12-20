@@ -1,15 +1,22 @@
 ### Author: Edward Huang
 
+import sys
+
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
 ### To perform on clusters without GO, simply change the name of the input
 ### and output files.
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage:python %s run_num' % sys.argv[0]
+        exit()
+    run_num = sys.argv[1]
+
     for mode in ['go', 'no_go']:
         print 'Extracting cluster data...'
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
-        f = open('./results/clusters_%s_1.txt' % mode, 'r')
+        f = open('./results/clusters_%s_%s.txt' % (mode, run_num), 'r')
         # Dictionary for clusters with GO. Keys are cluster indexes, values are the
         # list of genes in those clusters.
         clst_go_dct = {}
@@ -30,7 +37,7 @@ if __name__ == '__main__':
         num_genes_net = 0
         num_gg_net = 0
         num_ggo_net = 0
-        f = open('./data/network_%s_1.txt' % mode, 'r')
+        f = open('./data/network_%s_%s.txt' % (mode, run_num), 'r')
         edge_list_go = []
         for i, line in enumerate(f):
             print i
@@ -55,7 +62,7 @@ if __name__ == '__main__':
 
         print 'Writing out information...'
         # Write out to file.
-        out = open('./results/clus_info_%s_1.txt' % mode, 'w')
+        out = open('./results/clus_info_%s_%s.txt' % (mode, run_num), 'w')
         out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
         out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
         out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\n')
