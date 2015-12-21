@@ -16,6 +16,11 @@ import numpy
 ### sacrificing in-density.
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage:python %s run_num' % sys.argv[0]
+        exit()
+    run_num = sys.argv[1]
+
     all_genes = set([])
 
     print 'Extracting GO labels...'
@@ -32,7 +37,7 @@ if __name__ == '__main__':
 
     print 'Creating cluster dictionary...'
     cluster_go_dct = {}
-    f = open('./results/clusters_go_clean_1.txt', 'r')
+    f = open('./results/clusters_go_clean_%s.txt' % run_num, 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -48,7 +53,7 @@ if __name__ == '__main__':
     f.close()
 
     cluster_no_go_dct = {}
-    f = open('./results/clusters_no_go_1.txt', 'r')
+    f = open('./results/clusters_no_go_%s.txt' % run_num, 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -66,7 +71,7 @@ if __name__ == '__main__':
     # Find GO enrichment for each cluster.
     go_p_vals = []
     go_top_labels = {}
-    out = open('./results/go_top_go_1.txt', 'w')
+    out = open('./results/cluster_enrichment_terms_go_%s.txt' % run_num, 'w')
     for i in range(len(cluster_go_dct)):
         clus_id = str(i + 1)
         fisher_dct = {}
@@ -83,18 +88,22 @@ if __name__ == '__main__':
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
+        out_p = []
+        out_go = []
         for (label, p_value) in top_go[:5]:
-            out.write(str(p_value) + '\t')
+            out_p += [str(p_value)]
+            out_go += [label]
             if label not in go_top_labels:
                 go_top_labels[label] = 1
             else:
                 go_top_labels[label] += 1
-        out.write('\n')
+        out.write('\t'.join(out_go) + '\n')
+        out.write('\t'.join(out_p) + '\n')
     out.close()
 
     no_go_p_vals = []
     no_go_top_labels = {}
-    out = open('./results/go_top_no_go_1.txt', 'w')
+    out = open('./results/cluster_enrichment_terms_no_go_%s.txt' % run_num, 'w')
     for i in range(len(cluster_no_go_dct)):
         clus_id = str(i + 1)
         fisher_dct = {}
@@ -111,22 +120,25 @@ if __name__ == '__main__':
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         no_go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
-        for label in sorted(top_go[:5]):
-            label = label[0]
-            out.write(label + '\t')
+        out_p = []
+        out_go = []
+        for (label, p_value) in top_go[:5]:
+            out_p += [str(p_value)]
+            out_go += [label]
             if label not in no_go_top_labels:
                 no_go_top_labels[label] = 1
             else:
                 no_go_top_labels[label] += 1
-        out.write('\n')
+        out.write('\t'.join(out_go) + '\n')
+        out.write('\t'.join(out_p) + '\n')
     out.close()
-        
+
     bins = numpy.linspace(-25, 0, 100)
     plt.hist(go_p_vals, bins, alpha=0.5, label='GO')
     plt.hist(no_go_p_vals, bins, alpha=0.5, label='no GO')
 
     plt.xlabel('log of p values')
-    plt.ylabel('number of clusters')
+    plt.ylabel('number of enrichments')
     plt.title('GO Enrichment p-values for top 5 labels of each cluster')
     plt.legend(loc='upper left')
     plt.show()
