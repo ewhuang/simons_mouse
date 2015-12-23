@@ -2,6 +2,7 @@
 
 import random
 import math
+import sys
 
 ### Creates a file for the network with the GO terms and the network without.
 ### Follows the following format:
@@ -13,11 +14,16 @@ import math
 ### We can sample a subgraph to speed up clustering.
 
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
-lamb = 1.0 # Tunable weight for all GO edge weights.
+lamb = 0.75 # Tunable weight for all GO edge weights.
 MIN_GO_SIZE = 5 # Minimum number of genes to consider a GO term.
 # Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print 'Usage:python %s run_num' % sys.argv[0]
+        exit()
+    run_num = sys.argv[1]
+
     # Keys are pairs of genes, values are the edge weights.
     edge_dct = {}
     print 'Extracting network data...'
@@ -38,10 +44,10 @@ if __name__ == '__main__':
         genes.add(gene_b)
 
     print 'Writing to network without GO labels...'
-    no_go_out = open('./data/network_no_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    no_go_out = open('./data/network_no_go_%s.txt' % (run_num), 'w')
     no_go_out.write('0\n%d\n' % len(genes))
     # Real network file... for cluster evaluation.
-    ng_real = open('./data/real_network_no_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    ng_real = open('./data/real_network_no_go_%s.txt' % (run_num), 'w')
     ng_real.write('Real network\n')
     for gene_a, gene_b in sampled_edges:
         weight = edge_dct[(gene_a, gene_b)]
@@ -75,8 +81,8 @@ if __name__ == '__main__':
         max_go_size = max(max_go_size, num_go_genes)
 
     print 'Writing to network with GO labels...'
-    go_out = open('./data/network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
-    g_real = open('./data/real_network_go_%d.txt' % (100 * SUBGRAPH_FRAC), 'w')
+    go_out = open('./data/network_go_%s.txt' % (run_num), 'w')
+    g_real = open('./data/real_network_go_%s.txt' % (run_num), 'w')
     g_real.write('Real network\n')
     go_out.write('0\n')
     # First count how many nodes there are after adding in GO labels.
