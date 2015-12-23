@@ -1,16 +1,19 @@
 Run 1:
 1% of network
 Temperature = 1
+MIN_GO_SIZE = 5
 lambda = 1.5
 
 Run 2:
 1% of network
 Temperature = 1
+MIN_GO_SIZE = 5
 lambda = max(math.log(max_go_size/current_go_size), 1)
 
 Run 3:
 1% of network
 Temperature = 1
+MIN_GO_SIZE = 10
 lambda = max(math.log(0.75 * max_go_size/current_go_size), 1)
 
 To show in-density and out-density of each cluster.

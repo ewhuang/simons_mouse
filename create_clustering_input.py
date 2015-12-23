@@ -15,7 +15,7 @@ import sys
 
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
 lamb = 0.75 # Tunable weight for all GO edge weights.
-MIN_GO_SIZE = 5 # Minimum number of genes to consider a GO term.
+MIN_GO_SIZE = 10 # Minimum number of genes to consider a GO term.
 # Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
