@@ -43,9 +43,9 @@ Remove GO nodes from cluster files before evaluating.
 Creates ./results/clusters_go_clean_RUNNUM.txt
 
 Evaluate clusters.
->>> perl evaluate_clustering.pl ./results/clusters_no_go_RUNNUM.txt ./data/real_network_no_go_RUNNUM.txt > ./data/cluster_eval_no_go_RUNNUM.txt
+>>> perl evaluate_clustering.pl ./results/clusters_no_go_RUNNUM.txt ./data/real_network_no_go_RUNNUM.txt > ./results/cluster_eval_no_go_RUNNUM.txt
 
->>> perl evaluate_clustering.pl ./results/clusters_go_clean_RUNNUM.txt ./data/real_network_go_RUNNUM.txt > ./data/cluster_eval_go_RUNNUM.txt
+>>> perl evaluate_clustering.pl ./results/clusters_go_clean_RUNNUM.txt ./data/real_network_go_RUNNUM.txt > ./results/cluster_eval_go_RUNNUM.txt
 
 __________________________________
 Compute GO enrichment of each of the clusterings.
