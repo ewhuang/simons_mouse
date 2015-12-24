@@ -16,6 +16,7 @@ import sys
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
 lamb = 0.75 # Tunable weight for all GO edge weights.
 MIN_GO_SIZE = 10 # Minimum number of genes to consider a GO term.
+MAX_GO_SIZE = 1000
 # Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
@@ -76,7 +77,8 @@ if __name__ == '__main__':
     max_go_size = 0
     for go in go_dct:
         num_go_genes = len(go_dct[go])
-        if num_go_genes < MIN_GO_SIZE or num_go_genes > 0.25 * len(genes):
+        # if num_go_genes < MIN_GO_SIZE or num_go_genes > 0.25 * len(genes):
+        if num_go_genes < MIN_GO_SIZE or num_go_genes > MAX_GO_SIZE:
             continue
         max_go_size = max(max_go_size, num_go_genes)
 
@@ -89,14 +91,16 @@ if __name__ == '__main__':
     num_nodes = len(genes)
     for go in go_dct:
         go_genes = go_dct[go]
-        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
+        # if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
+        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         num_nodes += 1
     go_out.write('%d\n' % num_nodes)
     # Now write all of the gene-GO edges.
     for go in go_dct:
         go_genes = go_dct[go]
-        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
+        # if len(go_genes) < MIN_GO_SIZE or len(go_genes) > 0.25 * len(genes):
+        if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         # Here we penalize GO terms that have many genes.
         go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
