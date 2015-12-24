@@ -1,0 +1,31 @@
+Run 1:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 5
+lambda = 1.5
+
+Run 2:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 5
+lambda = max(math.log(max_go_size/current_go_size), 1)
+
+Run 3:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+lambda = max(math.log(0.75 * max_go_size/current_go_size), 1)
+
+To show in-density and out-density of each cluster.
+clus_info_go_2.txt
+clus_info_no_go_2.txt
+
+To show how many clusters have significant p-values.
+cluster_enrichment_terms_go/no_go_2.txt
+
+Graph of p-value distributions.
+go_enrichment_2.png
+
+
+wilcoxon.py
+python wilcoxon.py2
