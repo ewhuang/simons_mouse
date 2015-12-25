@@ -64,7 +64,7 @@ if __name__ == '__main__':
         # Get the output files of the Perl script evaluate_clustering.pl and
         # find the in-density and out-density of each cluster.
         dens_dct = {}
-        f = open('./data/cluster_eval_%s_%s.txt' % (mode, run_num), 'r')
+        f = open('./results/cluster_eval_%s_%s.txt' % (mode, run_num), 'r')
         for i, line in enumerate(f):
             if line[:7] != 'Cluster':
                 continue
