@@ -60,9 +60,23 @@ those of the clusters without GO terms.
 
 ___________________________________
 Analyze the properties of the clusterings.
->>> python analyze_clusters.py
+>>> python analyze_clusters.py RUNNUM
 Outputs a file, ./results/clus_info_no_go_RUNNUM.txt
 First two lines shows number of genes in input network, number of gene-gene
 edges, and number of gene-GO edges. Then, for each cluster, shows the number of
 genes in the cluster, number of GO terms, number of gene-gene edges, and number
 of gene-GO edges.
+
+Perform the wilcoxon rank-sum test on the cluster in-densities and out-
+densities.
+>>> python wilcoxon_clusters.py RUNNUM
+Prints out the score and p-value of the test.
+
+This script looks at the output files from analyze_clusters.py. First we look at 
+clus_inf_no_go_RUNNUM.txt, and then find the median of the in-density for all of
+the clusters. We take a threshold of that median, and then look at the lusters 
+with GO that meet that threshold. We then count the number of GO terms in these 
+clusters, and print that information out.
+>>> python objective_function.py RUNNUM
+No output file, but if the numbers are bigger than 1, then we can say that the
+clusters are reasonable.

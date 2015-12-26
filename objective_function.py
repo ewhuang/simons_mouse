@@ -1,11 +1,3 @@
-# find the median of in-density for clusterings without GO terms. Take something
-# like 0.8 of that number. Look at the clusters WITH GO terms. Clusters that meet
-# our threshold will be considered. We want to have a high number of GO terms
-# for those clusters that meet that threshold. This is our "objective function".
-
-# To do this, change the lambda values for edges between gene-go edges, and redo
-# clustering.
-
 ### Author: Edward Huang
 
 import sys
@@ -13,7 +5,9 @@ import numpy as np
 
 ### This script looks at the output files from analyze_clusters.py. First we
 ### look at clus_inf_no_go_RUNNUM.txt, and then find the median of the
-### in-density for all of the clusters. 
+### in-density for all of the clusters. We take a threshold of that median,
+### and then look at the lusters with GO that meet that threshold. We then count
+### the number of GO terms in these clusters, and print that information out.
 
 THRESHOLD_MULT = 0.8
 

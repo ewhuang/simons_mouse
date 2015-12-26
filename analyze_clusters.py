@@ -5,8 +5,6 @@ from scipy.stats import ranksums
 
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
-### To perform on clusters without GO, simply change the name of the input
-### and output files.
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
