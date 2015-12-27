@@ -22,6 +22,12 @@ Temperature = 1
 MIN_GO_SIZE = 10
 lambda = 0.5
 
+Run 5:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+lambda = 0.25
+
 To show in-density and out-density of each cluster.
 clus_info_go_2.txt
 clus_info_no_go_2.txt
