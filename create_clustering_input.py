@@ -14,16 +14,16 @@ import sys
 ### We can sample a subgraph to speed up clustering.
 
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
-lamb = 0.5 # Tunable weight for all GO edge weights.
 MIN_GO_SIZE = 10 # Minimum number of genes to consider a GO term.
 MAX_GO_SIZE = 1000
 # Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage:python %s run_num' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage:python %s run_num lambda' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
+    lamb = float(sys.argv[2])
 
     # Keys are pairs of genes, values are the edge weights.
     edge_dct = {}
