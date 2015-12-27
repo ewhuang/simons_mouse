@@ -39,7 +39,7 @@ Execute clustering code on the created networks.
 >>> ./sim_anneal/bin/cs-grn 20 1 0 ./data/orth.txt 1 ./data/network_no_go_RUNNUM.txt -t 1 2> log > ./results/clusters_no_go_RUNNUM.txt
 
 Remove GO nodes from cluster files before evaluating.
->>> python post_cluster_remove_go.py
+>>> python post_cluster_remove_go.py RUNNUM
 Creates ./results/clusters_go_clean_RUNNUM.txt
 
 Evaluate clusters.
