@@ -37,6 +37,9 @@ orth.txt just needs to contain at least one gene in the network.
 Execute clustering code on the created networks.
 >>> ./sim_anneal/bin/cs-grn 20 1 0 ./data/orth.txt 1 ./data/network_go_RUNNUM.txt -t 1 2> log > ./results/clusters_go_RUNNUM.txt
 >>> ./sim_anneal/bin/cs-grn 20 1 0 ./data/orth.txt 1 ./data/network_no_go_RUNNUM.txt -t 1 2> log > ./results/clusters_no_go_RUNNUM.txt
+Only run the clustering on networks without GO only once, as it will be the
+same network for any given percentage of the raw network, since we use a random
+seed.
 
 Remove GO nodes from cluster files before evaluating.
 >>> python post_cluster_remove_go.py RUNNUM
