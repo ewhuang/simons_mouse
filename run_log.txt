@@ -2,7 +2,7 @@ Run 1:
 1% of network
 Temperature = 1
 MIN_GO_SIZE = 5
-G-GO edge weights = 1.5
+G-GO edge weights = 1.5, all weights the same
 
 Run 2:
 1% of network

@@ -36,7 +36,7 @@ if __name__ == '__main__':
         num_genes_net = 0
         num_gg_net = 0
         num_ggo_net = 0
-        f = open('./data/network_%s_1.txt' % (mode), 'r')
+        f = open('./data/network_%s_%s.txt' % (mode, run_num), 'r')
         edge_list_go = []
         for i, line in enumerate(f):
             print i
