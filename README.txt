@@ -14,9 +14,9 @@ After generating the gene-gene edges, we create files that will be sent
 to the simulated annealing code. Creates 4 files overall, a network and real
 network each for a network with and without GO labels. Two parameters to change.
 First is percentage of subgraph to randomly sample. Second is the lambda weight
-to assign to all gene-GO edges. Output files network_no_go_RUNNUM.txt, where RUNNUM
-indicates the run number. The characteristics of each run number can be found in
-run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
+to assign to all gene-GO edges. Output files network_no_go_RUNNUM.txt, where
+RUNNUM indicates the run number. The characteristics of each run number can be
+found in run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
 real_network_go_RUNNUM.txt.
 >>> python create_clustering_input.py
 Output format for network_go.txt/network_no_go_RUNNUM.txt:
