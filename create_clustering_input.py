@@ -16,7 +16,6 @@ import sys
 SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
 MIN_GO_SIZE = 10 # Minimum number of genes to consider a GO term.
 MAX_GO_SIZE = 1000
-# Maybe punish big GO nodes by inversely weighting the lambda.
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
@@ -36,6 +35,9 @@ if __name__ == '__main__':
 
     # Sample the fraction subgraph.
     num_samp_edges = int(math.ceil(SUBGRAPH_FRAC * len(edge_dct)))
+    # We seed so that networks of the same percentage of raw network will have
+    # the same non-GO edges.
+    random.seed(5191993)
     sampled_edges = random.sample(edge_dct.keys(), num_samp_edges)
 
     # Keeps track of all the unique genes in the network.
