@@ -24,20 +24,28 @@ if __name__ == '__main__':
     for i, line in enumerate(f):
         if i < 3:
             continue
-        line = line.split()
+        line = line.split('\t')
         in_dens += [float(line[0])]
     f.close()
     # The in-density threshold that clusters with GO terms must meet. 
     in_dens_threshold = THRESHOLD_MULT * np.median(in_dens)
 
+
+    print 'Clusters with GO for run number %s...' % run_num
+    print 'Median in-density for clusters without GO: %f' % in_dens_threshold
+
     # Now, check the clusters with GO terms.
+    num_go_terms_by_cluster = []
     f = open('./results/clus_info_go_%s.txt' % run_num, 'r')
     for i, line in enumerate(f):
         if i < 3:
             continue
-        line = line.split()
+        line = line.split('\t')
         # Only consider the clusters that meet the threshold
         if float(line[0]) < in_dens_threshold:
             continue
-        print line[4]
+        num_go_terms_by_cluster += [line[4]]
+
+    print 'Number of GO terms in clusters with in-density above threshold: '
+    print ', '.join(num_go_terms_by_cluster)
     f.close()

@@ -22,8 +22,9 @@ if __name__ == '__main__':
         for i, line in enumerate(f):
             if i == 0:
                 continue
-            newline = line.split()
-            gene, cluster = newline[3], newline[5]
+            newline = line.strip().split('\t')
+            gene = newline[1][len('Gene '):]
+            cluster = newline[2][len('Cluster '):]
             if cluster in clst_go_dct:
                 clst_go_dct[cluster] += [gene]
             else:
@@ -46,7 +47,7 @@ if __name__ == '__main__':
                 num_genes_net = line.strip()
                 continue
             # If not first two lines, find out if each edge is G-GO or G-G.
-            node_a, node_b, weight = line.split()
+            node_a, node_b, weight = line.strip().split('\t')
             if 'ENSMUSG' not in node_a or 'ENSMUSG' not in node_b:
                 num_ggo_net += 1
             else:
