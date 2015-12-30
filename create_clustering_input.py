@@ -13,16 +13,16 @@ import sys
 ### Each edge twice. SPECIES_INDEX should just be 0 for single species.
 ### We can sample a subgraph to speed up clustering.
 
-SUBGRAPH_FRAC = 0.01 # Fraction of graph to randomly sample.
-MIN_GO_SIZE = 10 # Minimum number of genes to consider a GO term.
+MIN_GO_SIZE = 10 # Minimum number of genes in a GO term to consider that term.
 MAX_GO_SIZE = 1000
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print 'Usage:python %s run_num lambda' % sys.argv[0]
+    if len(sys.argv) != 4:
+        print 'Usage:python %s run_num lambda subgraph_frac' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
     lamb = float(sys.argv[2])
+    subgraph_frac = float(sys.argv[3]) # Fraction of graph to randomly sample.
 
     # Keys are pairs of genes, values are the edge weights.
     edge_dct = {}
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     f.close()
 
     # Sample the fraction subgraph.
-    num_samp_edges = int(math.ceil(SUBGRAPH_FRAC * len(edge_dct)))
+    num_samp_edges = int(math.ceil(subgraph_frac * len(edge_dct)))
     # We seed so that networks of the same percentage of raw network will have
     # the same non-GO edges.
     random.seed(5191993)

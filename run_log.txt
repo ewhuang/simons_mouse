@@ -1,6 +1,8 @@
 For any gene-GO edge, the weight is computed as follows:
 go_weight = max(log(lamb * max_go_size / curr_go_size), 1.0)
 
+Runs 1-6 have identical networks and clusterings for the network without GO.
+
 Run 1:
 1% of network
 Temperature = 1
