@@ -1,7 +1,6 @@
 ### Author: Edward Huang
 
 import sys
-from scipy.stats import ranksums
 
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
@@ -12,7 +11,7 @@ if __name__ == '__main__':
         exit()
     run_num = sys.argv[1]
 
-    for mode in ['go', 'no_go']:
+    for mode in ['go']:#, 'no_go']:
         print 'Extracting cluster data...'
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
         f = open('./results/clusters_%s_%s.txt' % (mode, run_num), 'r')
@@ -25,6 +24,8 @@ if __name__ == '__main__':
             newline = line.strip().split('\t')
             gene = newline[1][len('Gene '):]
             cluster = newline[2][len('Cluster '):]
+            if cluster == '0':
+                continue
             if cluster in clst_go_dct:
                 clst_go_dct[cluster] += [gene]
             else:
@@ -79,8 +80,7 @@ if __name__ == '__main__':
         out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
         out.write('in_dens\tout_dens\tin/(in+out)\t')
         out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\n')
-        for i in range(len(clst_go_dct)):
-            cid = str(i + 1)
+        for cid in clst_go_dct:
             clus = clst_go_dct[cid]
             num_genes = len(clus)
             num_go = 0

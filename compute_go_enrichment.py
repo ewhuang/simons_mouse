@@ -42,14 +42,17 @@ if __name__ == '__main__':
     for i, line in enumerate(f):
         if i == 0:
             continue
-        line = line.strip().split()
-        clus_id = line[5]
-        gene = line[3]
+        newline = line.strip().split('\t')
+        cluster = newline[2][len('Cluster '):]
+        # Skip trashcan clusters.
+        if cluster == '0':
+            continue
+        gene = newline[1][len('Gene '):]
         all_genes.add(gene)
-        if clus_id not in cluster_go_dct:
-            cluster_go_dct[clus_id] = [gene]
+        if cluster not in cluster_go_dct:
+            cluster_go_dct[cluster] = [gene]
         else:
-            cluster_go_dct[clus_id] += [gene]
+            cluster_go_dct[cluster] += [gene]
     f.close()
 
     cluster_no_go_dct = {}
@@ -58,14 +61,17 @@ if __name__ == '__main__':
     for i, line in enumerate(f):
         if i == 0:
             continue
-        line = line.strip().split()
-        clus_id = line[5]
-        gene = line[3]
+        newline = line.strip().split('\t')
+        cluster = newline[2][len('Cluster '):]
+        # Skip trashcan clusters.
+        if cluster == '0':
+            continue
+        gene = newline[1][len('Gene '):]
         all_genes.add(gene)
-        if clus_id not in cluster_no_go_dct:
-            cluster_no_go_dct[clus_id] = [gene]
+        if cluster not in cluster_no_go_dct:
+            cluster_no_go_dct[cluster] = [gene]
         else:
-            cluster_no_go_dct[clus_id] += [gene]
+            cluster_no_go_dct[cluster] += [gene]
     f.close()
 
     # Find GO enrichment for each cluster.
@@ -84,7 +90,8 @@ if __name__ == '__main__':
             clus_not_go = len(clus_genes.difference(go_genes))
             go_not_clus = len(go_genes.difference(clus_genes))
             neither = len(all_genes) - len(go_genes.union(clus_genes))
-            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go], [go_not_clus, neither]])
+            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go],
+                [go_not_clus, neither]])
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
@@ -116,7 +123,8 @@ if __name__ == '__main__':
             clus_not_go = len(clus_genes.difference(go_genes))
             go_not_clus = len(go_genes.difference(clus_genes))
             neither = len(all_genes) - len(go_genes.union(clus_genes))
-            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go], [go_not_clus, neither]])
+            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go],
+                [go_not_clus, neither]])
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         no_go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
@@ -133,7 +141,7 @@ if __name__ == '__main__':
         out.write('\t'.join(out_p) + '\n')
     out.close()
 
-    bins = numpy.linspace(-25, 0, 100)
+    bins = numpy.linspace(-150, 0, 100)
     plt.hist(go_p_vals, bins, alpha=0.5, label='GO')
     plt.hist(no_go_p_vals, bins, alpha=0.5, label='no GO')
 
