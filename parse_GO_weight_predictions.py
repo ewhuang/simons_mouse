@@ -6,7 +6,7 @@ import bisect
 ### This script takes in the matrix created by the GO hierarchy method in order
 ### to find the edge weights between GO and genes. We take the NUM_TOP_WEIGHTS
 ### weights from the matrix and save them as edges in our network. Writes out 
-### to a file, predicted_go_edge_weights.txt.
+### to a file, predicted_go_edges.txt.
 
 NUM_TOP_WEIGHTS = int(1e06)
 if __name__ == '__main__':
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     smallest_top_weight = top_weights[0]
 
     # Run thorugh the matrix file a second time, and write out the edge weights.
-    out = open('./data/predicted_go_edge_weights.txt', 'w')
+    out = open('./data/predicted_go_edges.txt', 'w')
     # Rows are genes, columns are GO's.
     f = open('./go_hierarchy/Mouse_final_Score_matrix.txt', 'r')
     for i, line in enumerate(f):

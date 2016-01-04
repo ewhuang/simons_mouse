@@ -114,12 +114,23 @@ _____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
 Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/
 Find GO id to name mappings: http://geneontology.org/page/download-annotations
 
+1.
 >>> python gene_list.py
+
 Creates an output file, newline separated, where each line is a gene in the
 coexpression matrix. No duplicates.
 
+2.
 >>> python parse_GO_weight_predictions.py
+
 Creates an output file, predicted_go_edge_weights.txt, where each newline is
 a gene and a GO edge, same format as go_edges.txt. However, the GO terms are the
 indices in Moues_final_Score_matrix.txt, not the actual GO name.
+
+3.
+Simply add an extra keyword, the literal string 'predicted', to 
+create_clustering_input.py to adjust the network to add in the predicted GO
+edges.
+
+>>> python create_clustering_input.py RUNNUM lambda subgraph_frac "predicted"
 

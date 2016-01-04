@@ -50,3 +50,11 @@ MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 lambda = 0.5
 Number of Clusters: 20
+
+Run 7:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+All edge weights = 1.0, lambda irrelevant.
+Number of Clusters: 20
