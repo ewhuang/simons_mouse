@@ -17,12 +17,18 @@ MIN_GO_SIZE = 10 # Minimum number of genes in a GO term to consider that term.
 MAX_GO_SIZE = 1000
 
 if __name__ == '__main__':
-    if len(sys.argv) != 4:
-        print 'Usage:python %s run_num lambda subgraph_frac' % sys.argv[0]
+    if len(sys.argv) != 4 and len(sys.argv) != 5:
+        print 'Usage:python %s run_num lambda subgraph_frac preidcted?' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
     lamb = float(sys.argv[2])
     subgraph_frac = float(sys.argv[3]) # Fraction of graph to randomly sample.
+    # Prefix for go_edges file: go_edges.txt
+    predicted = ''
+    if len(sys.argv) == 5:
+        assert(sys.argv[4] == 'predicted')
+        # Prefix for the go_edges file: predicted_go_edges.txt
+        predicted = 'predicted_'
 
     # Keys are pairs of genes, values are the edge weights.
     edge_dct = {}
@@ -39,6 +45,8 @@ if __name__ == '__main__':
     # the same non-GO edges.
     random.seed(5191993)
     sampled_edges = random.sample(edge_dct.keys(), num_samp_edges)
+
+    print len(sampled_edges)
 
     # Keeps track of all the unique genes in the network.
     genes = set([])
@@ -63,7 +71,7 @@ if __name__ == '__main__':
     ng_real.close()
 
     print 'Extracting GO labels...'
-    go_f = open('./data/go_edges.txt', 'r')
+    go_f = open('./data/%sgo_edges.txt' % predicted, 'r')
     go_dct = {}
     for line in go_f:
         gene, go = line.split()
@@ -105,7 +113,10 @@ if __name__ == '__main__':
         if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         # Here we penalize GO terms that have many genes.
-        go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+        if predicted == '':
+            go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+        else:
+            go_weight = 1.0
         for gene in go_genes:
             go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
             go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
