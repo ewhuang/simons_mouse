@@ -16,16 +16,23 @@ import numpy
 ### sacrificing in-density.
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage:python %s run_num' % sys.argv[0]
+    if len(sys.argv) != 2 and len(sys.argv) != 3:
+        print 'Usage:python %s run_num predicted?' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
+
+    # Prefix for go_edges file: go_edges.txt
+    predicted = ''
+    if len(sys.argv) == 5:
+        assert(sys.argv[4] == 'predicted')
+        # Prefix for the go_edges file: predicted_go_edges.txt
+        predicted = 'predicted_'
 
     all_genes = set([])
 
     print 'Extracting GO labels...'
     go_dct = {}
-    f = open('./data/go_edges.txt', 'r')
+    f = open('./data/%sgo_edges.txt' % predicted, 'r')
     for line in f:
         gene, go_label = line.split()
         all_genes.add(gene)

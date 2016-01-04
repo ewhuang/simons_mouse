@@ -18,7 +18,7 @@ MAX_GO_SIZE = 1000
 
 if __name__ == '__main__':
     if len(sys.argv) != 4 and len(sys.argv) != 5:
-        print 'Usage:python %s run_num lambda subgraph_frac preidcted?' % sys.argv[0]
+        print 'Usage:python %s run_num lambda subgraph_frac predicted?' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
     lamb = float(sys.argv[2])
