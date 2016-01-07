@@ -133,5 +133,5 @@ Simply add an extra keyword, the literal string 'predicted', to
 create_clustering_input.py to adjust the network to add in the predicted GO
 edges.
 
->>> python create_clustering_input.py RUNNUM lambda subgraph_frac "predicted"
+>>> python create_clustering_input.py RUNNUM lambda subgraph_decimal "predicted"
 

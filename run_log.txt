@@ -51,7 +51,15 @@ MAX_GO_SIZE = 1000
 lambda = 0.5
 Number of Clusters: 20
 
-# Clustering
+PREDICTED GO TERMS_____________
+
+A. Number of GO terms in networks using database GO: 117
+B. Number of GO terms in networks using predicted GO, 1 million top edges: 1824
+C. Number of GO terms in networks using predicted GO, 200k top edges: 904
+
+Intersection(A, B) = 40
+Intersection(A, C) = 28
+
 Run 7:
 1% of network
 Temperature = 1
@@ -61,8 +69,7 @@ Top 1 million gene-GO edges in predicted_go_edges.txt
 All edge weights = 1.0, lambda irrelevant.
 Number of Clusters: 20
 
-
-# TODO
+# Clustering
 Run 8:
 1% of network
 Temperature = 1
