@@ -8,7 +8,9 @@ import bisect
 ### weights from the matrix and save them as edges in our network. Writes out 
 ### to a file, predicted_go_edges.txt.
 
-NUM_TOP_WEIGHTS = int(1e06)
+# NUM_TOP_WEIGHTS = int(1e06)
+NUM_TOP_WEIGHTS = 200000
+
 if __name__ == '__main__':
     # Initialize the dictionary with all of the genes in the coexpression
     # matrix.

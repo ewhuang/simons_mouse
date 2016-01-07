@@ -126,6 +126,7 @@ coexpression matrix. No duplicates.
 Creates an output file, predicted_go_edge_weights.txt, where each newline is
 a gene and a GO edge, same format as go_edges.txt. However, the GO terms are the
 indices in Moues_final_Score_matrix.txt, not the actual GO name.
+Specify the number of edges to keep with the variable NUM_TOP_WEIGHTS.
 
 3.
 Simply add an extra keyword, the literal string 'predicted', to 
