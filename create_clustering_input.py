@@ -113,10 +113,7 @@ if __name__ == '__main__':
         if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         # Here we penalize GO terms that have many genes.
-        if predicted == '':
-            go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
-        else:
-            go_weight = 1.0
+        go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
         for gene in go_genes:
             go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
             go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
