@@ -113,7 +113,11 @@ if __name__ == '__main__':
         if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         # Here we penalize GO terms that have many genes.
-        go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+        # Old way of calculating lambda.
+        # go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+        # New way of calculating lambda, on the outside.
+        go_weight = lamb * math.log(max_go_size / float(len(go_genes)))
+
         for gene in go_genes:
             go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
             go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
