@@ -56,7 +56,7 @@ Run 7:
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
-Top 1 million gene-GO edges in predicted_go_edges.txt
+Top 1 million gene-GO edges in predicted_go_edges_1mil.txt
 All edge weights = 1.0, lambda irrelevant.
 Number of Clusters: 20
 
@@ -85,4 +85,13 @@ MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 Top 200,000 gene-GO edges in predicted_go_edges.txt
 lambda = 0.7
+Number of Clusters: 20
+
+# New GO weights, lambda on the outside.
+Run 11:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+lambda = 1.0
 Number of Clusters: 20

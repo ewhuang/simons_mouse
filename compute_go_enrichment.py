@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     # Prefix for go_edges file: go_edges.txt
     predicted = ''
-    if len(sys.argv) == 5:
-        assert(sys.argv[4] == 'predicted')
+    if len(sys.argv) == 3:
+        assert(sys.argv[2] == 'predicted')
         # Prefix for the go_edges file: predicted_go_edges.txt
         predicted = 'predicted_'
 

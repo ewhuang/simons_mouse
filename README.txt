@@ -71,7 +71,7 @@ Compute GO enrichment of each of the clusterings.
 
 7. Compute GO enrichments for each clustering.
 
->>> python compute_go_enrichment.py RUNNUM
+>>> python compute_go_enrichment.py RUNNUM "predicted"
 
 Produces a histogram of the two clusterings' p-values. These p-values are all
 of the p-values from the top 5 highest correlated GO terms, computed by
@@ -80,6 +80,8 @@ Additionally, outputs a file, called ./results/go_top_go_RUNNUM.txt, which shows
 the p-values for each of the clusters to see which clusters have high p-values.
 About half of the clusters with GO terms have enrichment values much better than
 those of the clusters without GO terms.
+Add in the literal string "predicted" without quotes to the end if dealing with
+predicted GO edge weights.
 
 8. Analyze the properties of the clusterings.
 
