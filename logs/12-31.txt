@@ -1,0 +1,85 @@
+We have already observed that clusters from the networks with GO have much higher GO enrichments than clusters from the networks without GO. This can be seen in the attached graph.
+However, we want higher GO enrichments without sacrificing in-density/out-density
+ratio.
+
+In our last meeting, we decided that a good way to determine if the clusters with GO meet our criteria is by
+1. For clusters without GO, find the median in-density.
+2. Take 0.8 of this median.
+3. Find all clusters from the network with GO that have in-density above this median.
+4. Find out which of these clusters have GO nodes.
+
+We define the weight for each gene-GO edge as follows.
+current_go_weight = max(log(lambda * largest_go_size / current_go_size), 1.0)
+For lambda = [0.5, 0.6, 0.7, 0.8, 0.9, 1.0], I performed the experiment above.
+The results are lists of numbers, where each number corresponds to a cluster with GO, and the number means the number of GO terms in that cluster.
+
+The median in-density of the clusters without GO was 0.011886. It is the same for every network without GO.
+
+lambda = 1.0
+0, 1, 0, 0, 0, 1, 0, 5, 1, 0, 1
+
+lambda = 0.9
+1, 6, 0, 0, 0, 0, 0, 0, 0, 1, 2
+
+lambda = 0.8
+0, 1, 0, 0, 1, 0, 0, 3, 0, 0, 0
+
+lambda = 0.7
+0, 1, 0, 0, 0, 1, 0, 4, 2, 1, 10
+
+lambda = 0.6
+1, 0, 0, 0, 0, 1, 0, 13, 1, 0, 0
+
+lambda = 0.5
+0, 12, 0, 0, 0, 1, 0, 0, 0, 0
+
+PREDICTED GO TERMS
+A. Number of GO terms in networks using database GO: 117
+B. Number of GO terms in networks using predicted GO, 1 million top edges: 1824
+C. Number of GO terms in networks using predicted GO, 200k top edges: 904
+
+Intersection(A, B) = 40
+Intersection(A, C) = 28
+
+Using top 1 million edges, all weights = 1:
+15, 0, 29, 20, 0, 2, 0
+[['regulation_of_GTPase_activity', 'negative_regulation_of_protein_polymerization', 'Ras_guanyl-nucleotide_exchange_factor_activity', 'guanyl-nucleotide_exchange_factor_activity', 'Rho_guanyl-nucleotide_exchange_factor_activity', 'GTPase_regulator_activity', 'GTPase_activator_activity', 'regulation_of_protein_complex_disassembly', 'actin_filament_binding', 'actin_filament_bundle', 'regulation_of_actin_filament_depolymerization', 'myosin_complex', 'regulation_of_Rho_protein_signal_transduction'], [], ['synapsis', 'DNA-dependent_ATPase_activity', 'meiosis_I', 'double-strand_break_repair', 'DNA_duplex_unwinding', 'telomere_organization', 'ATPase_activity', 'single-stranded_DNA_binding', 'double-strand_break_repair_via_homologous_recombination', 'isotype_switching', 'ATP-dependent_helicase_activity', 'telomere_maintenance', 'DNA_geometric_change', 'DNA_biosynthetic_process', 'base-excision_repair', 'nuclease_activity', 'somatic_recombination_of_immunoglobulin_gene_segments', 'negative_regulation_of_DNA_metabolic_process', 'DNA_catabolic_process,_endonucleolytic', 'ATP-dependent_DNA_helicase_activity', 'DNA-dependent_DNA_replication', 'recombinational_repair', 'DNA_catabolic_process', 'chromosome,_telomeric_region', 'somatic_recombination_of_immunoglobulin_genes_involved_in_immune_response', 'meiotic_cell_cycle', 'condensed_nuclear_chromosome', 'nucleotide-excision_repair', 'DNA_helicase_activity'], ['Z_disc', 'heart_contraction', 'sarcoplasm', 'striated_muscle_contraction', 'intermediate_filament_cytoskeleton', 'cardiac_ventricle_morphogenesis', 'sarcomere_organization', 'muscle_organ_morphogenesis', 'muscle_contraction', 'muscle_system_process', 'musculoskeletal_movement', 'striated_muscle_thin_filament', 'actomyosin_structure_organization', 'cardiac_muscle_contraction', 'intermediate_filament', 'sarcoplasmic_reticulum', 'A_band', 'ventricular_cardiac_muscle_tissue_development', 'myofibril_assembly', 'cardiac_muscle_cell_development'], [], ['SCF_ubiquitin_ligase_complex', 'ubiquitinyl_hydrolase_activity'], []]
+
+Using top 200k edges, all weights = 1:
+16, 13, 0, 61
+[['Z_disc', 'muscle_system_process', 'contractile_fiber', 'striated_muscle_cell_development', 'muscle_contraction', 'I_band', 'cardiac_muscle_tissue_morphogenesis', 'muscle_tissue_morphogenesis', 'actomyosin_structure_organization', 'cardiac_muscle_contraction', 'myofibril_assembly', 'striated_muscle_contraction', 'sarcomere', 'ventricular_cardiac_muscle_tissue_morphogenesis', 'myofibril', 'myosin_complex'], ['proteasome_regulatory_particle', 'protein_deubiquitination', 'protein_polyubiquitination', 'proteasome_accessory_complex', 'proteasome_complex', 'ubiquitin_ligase_complex', 'transferase_complex', 'ubiquitin-dependent_protein_catabolic_process', 'ubiquitin-like_protein_transferase_activity', 'cullin-RING_ubiquitin_ligase_complex', 'protein_modification_by_small_protein_removal', 'proteasomal_protein_catabolic_process', 'proteasome-mediated_ubiquitin-dependent_protein_catabolic_process'], [], ['cartilage_development', 'bone_development', 'mesenchymal_cell_differentiation', 'BMP_signaling_pathway', 'formation_of_primary_germ_layer', 'telencephalon_development', 'epithelial_tube_morphogenesis', 'mesonephric_tubule_development', 'skeletal_system_morphogenesis', 'ureteric_bud_development', 'positive_regulation_of_ossification', 'regulation_of_Wnt_signaling_pathway', 'negative_regulation_of_transmembrane_receptor_protein_serine/threonine_kinase_signaling_pathway', 'negative_regulation_of_epithelial_cell_proliferation', 'somite_development', 'eye_morphogenesis', 'regulation_of_cellular_response_to_growth_factor_stimulus', 'embryonic_heart_tube_development', 'kidney_epithelium_development', 'digestive_system_development', 'positive_regulation_of_canonical_Wnt_signaling_pathway', 'Wnt_signaling_pathway', 'regulation_of_stem_cell_proliferation', 'regulation_of_pathway-restricted_SMAD_protein_phosphorylation', 'mesenchymal_cell_development', 'camera-type_eye_morphogenesis', 'negative_regulation_of_osteoblast_differentiation', 'developmental_growth_involved_in_morphogenesis', 'determination_of_left/right_symmetry', 'positive_regulation_of_osteoblast_differentiation', 'positive_regulation_of_Wnt_signaling_pathway', 'morphogenesis_of_a_branching_structure', 'neural_tube_development', 'digestive_tract_development', 'positive_regulation_of_biomineral_tissue_development', 'spinal_cord_development', 'inner_ear_development', 'mesoderm_development', 'embryonic_heart_tube_morphogenesis', 'cardiocyte_differentiation', 'regulation_of_osteoblast_differentiation', 'regulation_of_embryonic_development', 'stem_cell_development', 'inner_ear_morphogenesis', 'ossification', 'transforming_growth_factor_beta_receptor_signaling_pathway', 'kidney_development', 'limb_development', 'anterior/posterior_pattern_specification', 'mesonephros_development', 'urogenital_system_development', 'somitogenesis', 'gland_morphogenesis', 'positive_regulation_of_bone_mineralization', 'canonical_Wnt_signaling_pathway', 'mesonephric_epithelium_development', 'eye_development', 'regulation_of_bone_mineralization', 'mesenchyme_development', 'diencephalon_development', 'regulation_of_organ_morphogenesis']]
+
+Using top 200k edges, lambda = 1.0:
+5, 0, 16, 30
+[['UDP-glycosyltransferase_activity', 'transferase_activity,_transferring_glycosyl_groups', 'glycoprotein_biosynthetic_process', 'transferase_activity,_transferring_hexosyl_groups', 'protein_glycosylation'], [], ['Z_disc', 'muscle_system_process', 'contractile_fiber', 'striated_muscle_cell_development', 'muscle_contraction', 'I_band', 'cardiac_muscle_tissue_morphogenesis', 'muscle_tissue_morphogenesis', 'actomyosin_structure_organization', 'cardiac_muscle_contraction', 'myofibril_assembly', 'striated_muscle_contraction', 'sarcomere', 'ventricular_cardiac_muscle_tissue_morphogenesis', 'myofibril', 'myosin_complex'], ['meiosis_I', 'double-strand_break_repair', 'transferase_complex', 'DNA_replication', 'cullin-RING_ubiquitin_ligase_complex', 'double-strand_break_repair_via_homologous_recombination', 'ubiquitin_protein_ligase_activity', 'ATPase_activity,_coupled', 'protein_polyubiquitination', 'proteasome_accessory_complex', 'ubiquitin-like_protein_transferase_activity', 'meiotic_nuclear_division', 'recombinational_repair', 'proteasome_regulatory_particle', 'regulation_of_mitotic_cell_cycle', 'DNA_recombination', 'protein_deubiquitination', 'ubiquitin-dependent_protein_catabolic_process', 'proteasome-mediated_ubiquitin-dependent_protein_catabolic_process', 'DNA_catabolic_process', 'ubiquitin-protein_transferase_activity', 'regulation_of_mitotic_cell_cycle_phase_transition', 'DNA-dependent_ATPase_activity', 'meiotic_cell_cycle', 'proteasome_complex', 'ubiquitin_ligase_complex', 'regulation_of_cell_cycle_phase_transition', 'protein_modification_by_small_protein_removal', 'proteasomal_protein_catabolic_process', 'nucleotide-excision_repair']]
+
+
+Using top 200k edges, lambda = 0.7:
+0, 17, 6, 60
+[[], ['Z_disc', 'muscle_system_process', 'contractile_fiber', 'actomyosin', 'striated_muscle_cell_development', 'muscle_contraction', 'I_band', 'cardiac_muscle_tissue_morphogenesis', 'muscle_tissue_morphogenesis', 'actomyosin_structure_organization', 'cardiac_muscle_contraction', 'myofibril_assembly', 'striated_muscle_contraction', 'sarcomere', 'ventricular_cardiac_muscle_tissue_morphogenesis', 'myofibril', 'myosin_complex'], ['transferase_activity,_transferring_glycosyl_groups', 'UDP-glycosyltransferase_activity', 'transferase_activity,_transferring_hexosyl_groups', 'glycoprotein_biosynthetic_process', 'protein_glycosylation', 'acetylglucosaminyltransferase_activity'], ['cartilage_development', 'skin_development', 'bone_development', 'mesenchymal_cell_differentiation', 'BMP_signaling_pathway', 'formation_of_primary_germ_layer', 'telencephalon_development', 'epithelial_tube_morphogenesis', 'mesonephric_tubule_development', 'skeletal_system_morphogenesis', 'ureteric_bud_development', 'positive_regulation_of_ossification', 'regulation_of_Wnt_signaling_pathway', 'negative_regulation_of_transmembrane_receptor_protein_serine/threonine_kinase_signaling_pathway', 'negative_regulation_of_epithelial_cell_proliferation', 'somite_development', 'eye_morphogenesis', 'regulation_of_cellular_response_to_growth_factor_stimulus', 'embryonic_heart_tube_development', 'kidney_epithelium_development', 'digestive_system_development', 'positive_regulation_of_canonical_Wnt_signaling_pathway', 'Wnt_signaling_pathway', 'regulation_of_stem_cell_proliferation', 'regulation_of_pathway-restricted_SMAD_protein_phosphorylation', 'mesenchymal_cell_development', 'camera-type_eye_morphogenesis', 'negative_regulation_of_osteoblast_differentiation', 'developmental_growth_involved_in_morphogenesis', 'determination_of_left/right_symmetry', 'positive_regulation_of_osteoblast_differentiation', 'positive_regulation_of_Wnt_signaling_pathway', 'morphogenesis_of_a_branching_structure', 'neural_tube_development', 'digestive_tract_development', 'positive_regulation_of_biomineral_tissue_development', 'spinal_cord_development', 'inner_ear_development', 'mesoderm_development', 'embryonic_heart_tube_morphogenesis', 'cardiocyte_differentiation', 'regulation_of_osteoblast_differentiation', 'regulation_of_embryonic_development', 'inner_ear_morphogenesis', 'ossification', 'transforming_growth_factor_beta_receptor_signaling_pathway', 'kidney_development', 'limb_development', 'anterior/posterior_pattern_specification', 'mesonephros_development', 'urogenital_system_development', 'somitogenesis', 'gland_morphogenesis', 'positive_regulation_of_bone_mineralization', 'canonical_Wnt_signaling_pathway', 'mesonephric_epithelium_development', 'eye_development', 'regulation_of_bone_mineralization', 'mesenchyme_development', 'regulation_of_organ_morphogenesis']]
+
+
+CHANGING LAMBDA. Moving lambda to outside of the log function.
+lambda = 1.0
+0, 0, 5, 0, 0, 0, 0, 3, 1, 0
+[[], [], ['transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'phosphatase_activity', 'endoplasmic_reticulum'], [], [], [], [], ['transmembrane_transporter_activity', 'transmembrane_transport', 'ATPase_activity'], ['protein_binding,_bridging'], []]
+
+lambda = 0.9
+1, 0, 0, 0, 7, 0, 0, 0, 0, 0, 6
+[['peptidase_activity'], [], [], [], ['cytoskeleton-dependent_intracellular_transport', 'cell_morphogenesis', 'transcription_factor_activity,_protein_binding', 'transcription_factor_binding', 'anatomical_structure_formation_involved_in_morphogenesis', 'cilium', 'embryo_development'], [], [], [], [], [], ['nuclear_envelope', 'macromolecular_complex_assembly', 'cellular_component_assembly', 'protein_folding', 'unfolded_protein_binding', 'protein_complex_assembly']]
+
+lambda = 0.8
+0, 0, 1, 0, 6, 1, 0, 0, 0, 0, 16
+[[], [], ['phosphatase_activity'], [], ['transferase_activity,_transferring_glycosyl_groups', 'catabolic_process', 'carbohydrate_metabolic_process', 'peptidase_activity', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'nucleobase-containing_compound_catabolic_process'], ['nucleotidyltransferase_activity'], [], [], [], [], ['cell_death', 'ubiquitin-like_protein_binding', 'lipid_particle', 'signal_transducer_activity', 'nuclear_envelope', 'cytosol', 'enzyme_regulator_activity', 'enzyme_binding', 'homeostatic_process', 'kinase_activity', 'mitochondrion_organization', 'transferase_activity,_transferring_alkyl_or_aryl_(other_than_methyl)_groups', 'protein_folding', 'unfolded_protein_binding', 'transcription_factor_binding', 'nucleocytoplasmic_transport']]
+
+lambda = 0.7
+0, 0, 5, 1, 1, 0, 0, 0, 0, 0, 4
+[[], [], ['Golgi_apparatus', 'transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'phosphatase_activity'], ['nucleotidyltransferase_activity'], ['enzyme_regulator_activity'], [], [], [], [], [], ['protein_maturation', 'nuclear_envelope', 'catabolic_process', 'peptidase_activity']]
+
+lambda = 0.6
+1, 0, 0, 0, 0, 0, 6, 1, 0, 0
+[['peptidase_activity'], [], [], [], [], [], ['nuclear_envelope', 'enzyme_regulator_activity', 'enzyme_binding', 'unfolded_protein_binding', 'protein_folding', 'nucleocytoplasmic_transport'], ['phosphatase_activity'], [], []]
+
+lambda = 0.5
+0, 1, 0, 2, 4, 0, 1, 0, 1, 0, 3
+[[], ['ligase_activity'], [], ['enzyme_regulator_activity', 'enzyme_binding'], ['nuclear_envelope', 'transferase_activity,_transferring_acyl_groups', 'peptidase_activity', 'endoplasmic_reticulum'], [], ['phosphatase_activity'], [], ['transferase_activity,_transferring_alkyl_or_aryl_(other_than_methyl)_groups'], [], ['transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds']]

@@ -64,7 +64,8 @@ Output file: ./results/clusters_go_clean_RUNNUM.txt
 >>> python evaluate_clustering.py RUNNUM
 
 Outputs cluster evaluation information in ./results/cluster_eval_go/no_go_RUNNUM
-
+Make sure to copy over clusters_no_go.txt if we didn't cluster the network
+without GO.
 
 ________________________________CLUSTER ANALYSIS________________________________
 Compute GO enrichment of each of the clusterings.

@@ -11,6 +11,34 @@ if __name__ == '__main__':
         exit()
     run_num = sys.argv[1]
 
+    # Find the GO terms to GO names.
+    # Retrieved data from http://geneontology.org/page/download-annotations
+    go_id_to_name_dct = {}
+    f = open('./go_hierarchy/go_to_name.txt', 'r')
+    while True:
+        line = f.readline()
+        if line == '':
+            break
+        if line.strip() == '[Term]':
+            go_id = f.readline().split()[1]
+            go_name = '_'.join(f.readline()[len('name: '):].split())
+            go_id_to_name_dct[go_id.lower()] = go_name
+            f.readline()
+            next = f.readline()
+            while 'alt_id' in next:
+                go_id_to_name_dct[next.split()[1].lower()] = go_name
+                next = f.readline()
+    f.close()
+
+    # Keys are the GO ids, values are the indices in the edge weight matrix.
+    go_index_dct = {}
+    f = open('./go_hierarchy/noisogoHash.txt', 'r')
+    for line in f:
+        go_id, index = line.split()
+        # Subtract 1 to change to list indices.
+        go_index_dct[int(index) - 1] = go_id_to_name_dct[go_id]
+    f.close()
+
     for mode in ['go']:#, 'no_go']:
         print 'Extracting cluster data...'
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
@@ -95,10 +123,16 @@ if __name__ == '__main__':
                 if node_a in clus and node_b in clus:
                     if 'ENSMUSG' not in node_a:
                         num_ggo += 1
-                        GO_terms.add(node_a)
+                        if node_a.isdigit():
+                            GO_terms.add(go_index_dct[int(node_a)])
+                        else:
+                            GO_terms.add(node_a)
                     elif 'ENSMUSG' not in node_b:
                         num_ggo += 1
-                        GO_terms.add(node_b)
+                        if node_b.isdigit():
+                            GO_terms.add(go_index_dct[int(node_b)])
+                        else:
+                            GO_terms.add(node_b)
                     else:
                         num_gg += 1
             assert(num_gg % 2 == 0)
