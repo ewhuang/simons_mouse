@@ -29,7 +29,6 @@ if __name__ == '__main__':
                 go_id_to_name_dct[next.split()[1].lower()] = go_name
                 next = f.readline()
     f.close()
-
     # Keys are the GO ids, values are the indices in the edge weight matrix.
     go_index_dct = {}
     f = open('./go_hierarchy/noisogoHash.txt', 'r')
@@ -122,8 +121,11 @@ if __name__ == '__main__':
                 node_a, node_b = edge
                 if node_a in clus and node_b in clus:
                     if 'ENSMUSG' not in node_a:
+                        # This means we have a GO term.
                         num_ggo += 1
                         if node_a.isdigit():
+                            # This means that we need to convert the GO index
+                            # to the GO term name.
                             GO_terms.add(go_index_dct[int(node_a)])
                         else:
                             GO_terms.add(node_a)
@@ -134,9 +136,12 @@ if __name__ == '__main__':
                         else:
                             GO_terms.add(node_b)
                     else:
+                        # This means that we have a gene-gene edge.
                         num_gg += 1
             assert(num_gg % 2 == 0)
             assert(num_ggo % 2 == 0)
+            # Divide each of these values by two because each edge is written
+            # twice in the network.
             num_gg /= 2
             num_ggo /= 2
             in_dens, out_dens = dens_dct[cid]
