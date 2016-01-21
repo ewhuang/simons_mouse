@@ -38,7 +38,7 @@ if __name__ == '__main__':
         go_index_dct[int(index) - 1] = go_id_to_name_dct[go_id]
     f.close()
 
-    for mode in ['go']:#, 'no_go']:
+    for mode in ['go', 'no_go']:
         print 'Extracting cluster data...'
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
         f = open('./results/clusters_%s_%s.txt' % (mode, run_num), 'r')
@@ -68,7 +68,6 @@ if __name__ == '__main__':
         f = open('./data/network_%s_%s.txt' % (mode, run_num), 'r')
         edge_list_go = []
         for i, line in enumerate(f):
-            print i
             if i == 0:
                 continue
             if i == 1:
@@ -100,14 +99,32 @@ if __name__ == '__main__':
             dens_dct[clus_id] = (float(in_density), float(out_density))
         f.close()
 
-        print 'Writing out information...'
+        # Find the best p-value GO enrichments for each cluster.
+        best_enrichment_dct = {}
+        f = open('./results/cluster_enrichment_terms_%s_%s.txt' % (mode, run_num), 'r')
+        while True:
+            line = f.readline()
+            if line == '':
+                break
+            line = line.split()
+            if line[0] == 'Cluster':
+                cid = line[1]
+                # Skip two lines, and read in the top p-value.
+                line = f.readline()
+                line = f.readline().split()
+                best_enrichment_dct[cid] = line[0]
+        f.close()
+
+        print 'Writing out clustering summary...'
         # Write out to file.
         out = open('./results/clus_info_%s_%s.txt' % (mode, run_num), 'w')
         out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
         out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
-        out.write('in_dens\tout_dens\tin/(in+out)\t')
-        out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\n')
-        for cid in clst_go_dct:
+        out.write('cluster_number\tin_dens\tout_dens\tin/(in+out)\t')
+        out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
+        out.write('top_enrichment_p\n')
+        for i in range(len(clst_go_dct)):
+            cid = str(i + 1)
             clus = clst_go_dct[cid]
             num_genes = len(clus)
             num_go = 0
@@ -146,7 +163,8 @@ if __name__ == '__main__':
             num_ggo /= 2
             in_dens, out_dens = dens_dct[cid]
             ratio = in_dens / (in_dens + out_dens)
-            out.write('%g\t%g\t%g\t' % (in_dens, out_dens, ratio))
+            out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
             out.write('%d\t%d\t%d\t%d\t' % (num_genes, num_go, num_gg, num_ggo))
+            out.write('%s\t' % best_enrichment_dct[cid])
             out.write('\t'.join(list(GO_terms)) + '\n')
         out.close()

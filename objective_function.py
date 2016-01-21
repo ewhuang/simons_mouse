@@ -25,7 +25,7 @@ if __name__ == '__main__':
         if i < 3:
             continue
         line = line.split('\t')
-        in_dens += [float(line[0])]
+        in_dens += [float(line[1])]
     f.close()
     # The in-density threshold that clusters with GO terms must meet. 
     in_dens_threshold = THRESHOLD_MULT * np.median(in_dens)
@@ -43,10 +43,10 @@ if __name__ == '__main__':
             continue
         line = line.strip().split('\t')
         # Only consider the clusters that meet the threshold
-        if float(line[0]) < in_dens_threshold:
+        if float(line[1]) < in_dens_threshold:
             continue
-        num_go_terms_by_cluster += [line[4]]
-        go_terms_by_cluster += [line[7:]]
+        num_go_terms_by_cluster += [line[5]]
+        go_terms_by_cluster += [line[9:]]
 
     print 'Number of GO terms in clusters with in-density above threshold: '
     print ', '.join(num_go_terms_by_cluster)

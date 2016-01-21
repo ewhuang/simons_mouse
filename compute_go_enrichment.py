@@ -91,16 +91,20 @@ if __name__ == '__main__':
         clus_genes = set(cluster_go_dct[clus_id])
         for go_label in go_dct:
             go_genes = set(go_dct[go_label])
+            # Skip giant or tiny GO terms.
             if len(go_genes) > 1000 or len(go_genes) < 10:
                 continue
+            # Compute the four disjoint set sizes of Venn diagram for Fisher's.
             clus_and_go = len(clus_genes.intersection(go_genes))
             clus_not_go = len(clus_genes.difference(go_genes))
             go_not_clus = len(go_genes.difference(clus_genes))
             neither = len(all_genes) - len(go_genes.union(clus_genes))
+            # Compute Fisher's exact test.
             o_r, p_value = fisher_exact([[clus_and_go, clus_not_go],
                 [go_not_clus, neither]])
             fisher_dct[go_label] = p_value
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
+        # Get the log of the top 5 enrichment p-values.
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
         out_p = []
         out_go = []
@@ -111,6 +115,7 @@ if __name__ == '__main__':
                 go_top_labels[label] = 1
             else:
                 go_top_labels[label] += 1
+        out.write('Cluster %s\n' % clus_id)
         out.write('\t'.join(out_go) + '\n')
         out.write('\t'.join(out_p) + '\n')
     out.close()
@@ -144,6 +149,7 @@ if __name__ == '__main__':
                 no_go_top_labels[label] = 1
             else:
                 no_go_top_labels[label] += 1
+        out.write('Cluster %s\n' % clus_id)
         out.write('\t'.join(out_go) + '\n')
         out.write('\t'.join(out_p) + '\n')
     out.close()
