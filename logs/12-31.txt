@@ -59,42 +59,40 @@ Using top 200k edges, lambda = 0.7:
 [[], ['Z_disc', 'muscle_system_process', 'contractile_fiber', 'actomyosin', 'striated_muscle_cell_development', 'muscle_contraction', 'I_band', 'cardiac_muscle_tissue_morphogenesis', 'muscle_tissue_morphogenesis', 'actomyosin_structure_organization', 'cardiac_muscle_contraction', 'myofibril_assembly', 'striated_muscle_contraction', 'sarcomere', 'ventricular_cardiac_muscle_tissue_morphogenesis', 'myofibril', 'myosin_complex'], ['transferase_activity,_transferring_glycosyl_groups', 'UDP-glycosyltransferase_activity', 'transferase_activity,_transferring_hexosyl_groups', 'glycoprotein_biosynthetic_process', 'protein_glycosylation', 'acetylglucosaminyltransferase_activity'], ['cartilage_development', 'skin_development', 'bone_development', 'mesenchymal_cell_differentiation', 'BMP_signaling_pathway', 'formation_of_primary_germ_layer', 'telencephalon_development', 'epithelial_tube_morphogenesis', 'mesonephric_tubule_development', 'skeletal_system_morphogenesis', 'ureteric_bud_development', 'positive_regulation_of_ossification', 'regulation_of_Wnt_signaling_pathway', 'negative_regulation_of_transmembrane_receptor_protein_serine/threonine_kinase_signaling_pathway', 'negative_regulation_of_epithelial_cell_proliferation', 'somite_development', 'eye_morphogenesis', 'regulation_of_cellular_response_to_growth_factor_stimulus', 'embryonic_heart_tube_development', 'kidney_epithelium_development', 'digestive_system_development', 'positive_regulation_of_canonical_Wnt_signaling_pathway', 'Wnt_signaling_pathway', 'regulation_of_stem_cell_proliferation', 'regulation_of_pathway-restricted_SMAD_protein_phosphorylation', 'mesenchymal_cell_development', 'camera-type_eye_morphogenesis', 'negative_regulation_of_osteoblast_differentiation', 'developmental_growth_involved_in_morphogenesis', 'determination_of_left/right_symmetry', 'positive_regulation_of_osteoblast_differentiation', 'positive_regulation_of_Wnt_signaling_pathway', 'morphogenesis_of_a_branching_structure', 'neural_tube_development', 'digestive_tract_development', 'positive_regulation_of_biomineral_tissue_development', 'spinal_cord_development', 'inner_ear_development', 'mesoderm_development', 'embryonic_heart_tube_morphogenesis', 'cardiocyte_differentiation', 'regulation_of_osteoblast_differentiation', 'regulation_of_embryonic_development', 'inner_ear_morphogenesis', 'ossification', 'transforming_growth_factor_beta_receptor_signaling_pathway', 'kidney_development', 'limb_development', 'anterior/posterior_pattern_specification', 'mesonephros_development', 'urogenital_system_development', 'somitogenesis', 'gland_morphogenesis', 'positive_regulation_of_bone_mineralization', 'canonical_Wnt_signaling_pathway', 'mesonephric_epithelium_development', 'eye_development', 'regulation_of_bone_mineralization', 'mesenchyme_development', 'regulation_of_organ_morphogenesis']]
 
 
+CHANGING LAMBDA. Moving lambda to outside of the log function.
 Median in-density for clusters without GO: 0.011886
 
 Run 11
-CHANGING LAMBDA. Moving lambda to outside of the log function.
-lambda = 1.0
-0.0136875, 0.0144067, 0.017304, 0.0171906, 0.013835, 0.0159187, 0.0166703, 0.0171028, 0.0175232, 0.0169875
+2, 3, 9, 10, 12, 13, 14, 18, 19, 20
 3, 0, 1, 0, 5, 0, 0, 0, 0, 0
 [['transmembrane_transporter_activity', 'transmembrane_transport', 'ATPase_activity'], [], ['protein_binding,_bridging'], [], ['transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'phosphatase_activity', 'endoplasmic_reticulum'], [], [], [], [], []]
 
 Run 12
 lambda = 0.9
-0.0176221, 0.015762, 0.0167134, 0.0125958, 0.0175665, 0.0174784, 0.0147795, 0.0162372, 0.0158403, 0.0153622, 0.0155971
+1, 4, 5, 6, 7, 11, 12, 14, 16, 17, 20
 0, 0, 0, 0, 0, 1, 0, 0, 7, 0, 6
 [[], [], [], [], [], ['peptidase_activity'], [], [], ['cytoskeleton-dependent_intracellular_transport', 'cell_morphogenesis', 'transcription_factor_activity,_protein_binding', 'transcription_factor_binding', 'anatomical_structure_formation_involved_in_morphogenesis', 'cilium', 'embryo_development'], [], ['nuclear_envelope', 'macromolecular_complex_assembly', 'cellular_component_assembly', 'protein_folding', 'unfolded_protein_binding', 'protein_complex_assembly']]
 
 Run 13
 lambda = 0.8
-0.0152212, 0.012427, 0.0165729, 0.0167374, 0.0171994, 0.0135129, 0.017662, 0.0169152, 0.0154943, 0.0168621, 0.0168984
+2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19
 6, 0, 1, 0, 0, 16, 0, 0, 1, 0, 0
 [['transferase_activity,_transferring_glycosyl_groups', 'catabolic_process', 'carbohydrate_metabolic_process', 'peptidase_activity', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'nucleobase-containing_compound_catabolic_process'], [], ['nucleotidyltransferase_activity'], [], [], ['cell_death', 'ubiquitin-like_protein_binding', 'lipid_particle', 'signal_transducer_activity', 'nuclear_envelope', 'cytosol', 'enzyme_regulator_activity', 'enzyme_binding', 'homeostatic_process', 'kinase_activity', 'mitochondrion_organization', 'transferase_activity,_transferring_alkyl_or_aryl_(other_than_methyl)_groups', 'protein_folding', 'unfolded_protein_binding', 'transcription_factor_binding', 'nucleocytoplasmic_transport'], [], [], ['phosphatase_activity'], [], []]
 
 Run 14
 lambda = 0.7
-0.0131085, 0.0162008, 0.0175451, 0.016904, 0.0168051, 0.01513, 0.0127172, 0.0171351, 0.017096, 0.0167453, 0.0158916
+1, 2, 3, 5, 9, 11, 14, 16, 17, 18, 20
 0, 0, 0, 0, 4, 0, 0, 1, 5, 1, 0
 [[], [], [], [], ['protein_maturation', 'nuclear_envelope', 'catabolic_process', 'peptidase_activity'], [], [], ['nucleotidyltransferase_activity'], ['Golgi_apparatus', 'transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds', 'phosphatase_activity'], ['enzyme_regulator_activity'], []]
 
 Run 15
 lambda = 0.6
-Number of GO terms in clusters with in-density above threshold: 
-0.0180596, 0.017889, 0.0161608, 0.017799, 0.0177388, 0.0168835, 0.0169256, 0.0133112, 0.0155623, 0.0180147
+2, 4, 5, 6, 7, 10, 14, 16, 19, 20
 0, 1, 6, 0, 0, 1, 0, 0, 0, 0
 [[], ['phosphatase_activity'], ['nuclear_envelope', 'enzyme_regulator_activity', 'enzyme_binding', 'unfolded_protein_binding', 'protein_folding', 'nucleocytoplasmic_transport'], [], [], ['peptidase_activity'], [], [], [], []]
 
 Run 16
 lambda = 0.5
-0.0143328, 0.0170939, 0.0128589, 0.0176022, 0.0174687, 0.0169883, 0.0157326, 0.0154981, 0.0159189, 0.0173696, 0.0172669
+1, 3, 5, 6, 9, 10, 12, 15, 17, 18, 19
 1, 0, 1, 0, 3, 0, 1, 0, 2, 0, 4
 [['phosphatase_activity'], [], ['transferase_activity,_transferring_alkyl_or_aryl_(other_than_methyl)_groups'], [], ['transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds'], [], ['ligase_activity'], [], ['enzyme_regulator_activity', 'enzyme_binding'], [], ['nuclear_envelope', 'transferase_activity,_transferring_acyl_groups', 'peptidase_activity', 'endoplasmic_reticulum']]

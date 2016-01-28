@@ -29,7 +29,13 @@ if __name__ == '__main__':
             pts += [(top_enrichment_p, in_dens)]
         f.close()
         if mode == 'go':
+            fig = plt.figure()
             plt.scatter(*zip(*pts), color='r', label=mode)
+            ax = fig.add_subplot(111)
+            for i, xy in enumerate(pts):
+                if xy[0] < 10:
+                    continue
+                ax.annotate('%d' % (i+1), xy=xy)
         else:
             med_in_dens = np.median([pt[1] for pt in pts]) * THRESHOLD_MULT
             plt.axhline(med_in_dens)
