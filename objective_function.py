@@ -37,18 +37,22 @@ if __name__ == '__main__':
     # Now, check the clusters with GO terms.
     num_go_terms_by_cluster = []
     go_terms_by_cluster = []
+    in_dens_by_cluster = []
     f = open('./results/clus_info_go_%s.txt' % run_num, 'r')
     for i, line in enumerate(f):
         if i < 3:
             continue
         line = line.strip().split('\t')
         # Only consider the clusters that meet the threshold
-        if float(line[1]) < in_dens_threshold:
+        in_dens = float(line[1])
+        if in_dens < in_dens_threshold:
             continue
+        in_dens_by_cluster += [in_dens]
         num_go_terms_by_cluster += [line[5]]
         go_terms_by_cluster += [line[9:]]
 
     print 'Number of GO terms in clusters with in-density above threshold: '
+    print ', '.join(map(str, in_dens_by_cluster))
     print ', '.join(num_go_terms_by_cluster)
     print (go_terms_by_cluster)
     f.close()
