@@ -35,13 +35,14 @@ if __name__ == '__main__':
             for i, xy in enumerate(pts):
                 if xy[0] < 10:
                     continue
+                # Annotate clusters that have high GO enrichment p values.
                 ax.annotate('%d' % (i+1), xy=xy)
         else:
             med_in_dens = np.median([pt[1] for pt in pts]) * THRESHOLD_MULT
             plt.axhline(med_in_dens)
             plt.scatter(*zip(*pts), color='k', label=mode)
 
-    plt.title('Cluster in-densities vs. Best enrichment p-values, lambda=1.0')
+    plt.title('Cluster in-densities vs. Best enrichment p-values, lambda=2.5')
     plt.xlabel('negative log of lowest GO enrichment p-value')
     plt.ylabel('in-density')
     plt.legend(loc='upper right')

@@ -135,3 +135,35 @@ MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 lambda = 0.5
 Number of Clusters: 20
+
+Run 17:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+lambda = 1.5
+Number of Clusters: 20
+
+Run 18:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+lambda = 2.0
+Number of Clusters: 20
+
+Run 19:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+lambda = 4.0
+Number of Clusters: 20
+
+Run 20:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+lambda = 2.5
+Number of Clusters: 20

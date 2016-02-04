@@ -96,3 +96,25 @@ lambda = 0.5
 1, 3, 5, 6, 9, 10, 12, 15, 17, 18, 19
 1, 0, 1, 0, 3, 0, 1, 0, 2, 0, 4
 [['phosphatase_activity'], [], ['transferase_activity,_transferring_alkyl_or_aryl_(other_than_methyl)_groups'], [], ['transferase_activity,_transferring_glycosyl_groups', 'carbohydrate_metabolic_process', 'hydrolase_activity,_acting_on_glycosyl_bonds'], [], ['ligase_activity'], [], ['enzyme_regulator_activity', 'enzyme_binding'], [], ['nuclear_envelope', 'transferase_activity,_transferring_acyl_groups', 'peptidase_activity', 'endoplasmic_reticulum']]
+
+Run 17
+lambda = 1.5
+1, 2, 3, 8, 9, 14, 15, 16, 18, 19
+1, 1, 0, 1, 0, 0, 1, 0, 2, 1
+[['phosphatase_activity'], ['endoplasmic_reticulum'], [], ['nuclear_envelope'], [], [], ['protein_binding,_bridging'], [], ['enzyme_regulator_activity', 'enzyme_binding'], ['nucleotidyltransferase_activity']]
+
+Run 18
+1, 3, 4, 5, 9, 10, 12, 15, 16, 17, 19
+0, 0, 0, 4, 1, 12, 0, 1, 0, 0, 0
+[[], [], [], ['DNA_binding', 'nucleic_acid_binding_transcription_factor_activity', 'transcription_factor_binding', 'transcription_factor_activity,_protein_binding'], ['endoplasmic_reticulum'], ['cell_death', 'ubiquitin-like_protein_binding', 'nuclear_envelope', 'cytosol', 'enzyme_regulator_activity', 'immune_system_process', 'homeostatic_process', 'kinase_activity', 'phosphatase_activity', 'protein_maturation', 'enzyme_binding', 'nucleocytoplasmic_transport'], [], ['transferase_activity,_transferring_glycosyl_groups'], [], [], []]
+
+Run 19
+1, 2, 5, 6, 7, 9, 10, 11, 14, 16, 19
+0, 1, 0, 0, 0, 0, 2, 0, 5, 0, 0
+[[], ['nuclear_envelope'], [], [], [], [], ['enzyme_regulator_activity', 'peptidase_activity'], [], ['DNA_binding', 'nucleic_acid_binding_transcription_factor_activity', 'transcription_factor_binding', 'transcription_factor_activity,_protein_binding', 'nucleocytoplasmic_transport'], [], []]
+
+Run 20
+1, 3, 5, 6, 10, 11, 12, 14, 15, 18, 19, 20
+0, 0, 14, 0, 1, 2, 0, 0, 0, 0, 1, 0
+[[], [], ['cell_death', 'ubiquitin-like_protein_binding', 'nuclear_envelope', 'cytosol', 'enzyme_regulator_activity', 'immune_system_process', 'homeostatic_process', 'kinase_activity', 'phosphatase_activity', 'protein_maturation', 'protein_folding', 'unfolded_protein_binding', 'enzyme_binding', 'nucleocytoplasmic_transport'], [], ['nucleotidyltransferase_activity'], ['transferase_activity,_transferring_glycosyl_groups', 'endoplasmic_reticulum'], [], [], [], [], ['peptidase_activity'], []]
+
