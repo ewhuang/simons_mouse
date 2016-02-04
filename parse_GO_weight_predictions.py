@@ -9,7 +9,7 @@ import bisect
 ### to a file, predicted_go_edges.txt.
 
 # NUM_TOP_WEIGHTS = int(1e06)
-NUM_TOP_WEIGHTS = 200000
+NUM_TOP_WEIGHTS = 70000
 
 if __name__ == '__main__':
     # Initialize the dictionary with all of the genes in the coexpression
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     assert (len(top_weights) == NUM_TOP_WEIGHTS)
     smallest_top_weight = top_weights[0]
 
-    # Run thorugh the matrix file a second time, and write out the edge weights.
+    # Run through the matrix file a second time, and write out the edges.
     out = open('./data/predicted_go_edges.txt', 'w')
     # Rows are genes, columns are GO's.
     f = open('./go_hierarchy/Mouse_final_Score_matrix.txt', 'r')
