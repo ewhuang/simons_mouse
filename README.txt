@@ -155,6 +155,8 @@ line 14 in the script. To use this output file to cluster, we change line 14/15
 inside wgcna.R
 
 Run the cleaning script to prepare the raw outputs from R for evaluation with
-our current python scripts.
+our current python scripts. The script also removes any genes that do not
+appear in the sampled network. This can be changed with the block from lines 51
+to 60.
 >>>python clean_WGCNA_module_results.py
 Outputs to ./results/WGCNA_results/

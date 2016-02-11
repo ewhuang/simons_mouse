@@ -48,10 +48,23 @@ if __name__ == '__main__':
         gene_cluster_dct[gene] = module
     f.close()
 
+    # Extract all of the genes that appear in our randomly sampled network.
+    sampled_network_genes = set([])
+    f = open('./data/network_no_go_20.txt', 'r')
+    for i, line in enumerate(f):
+        if i < 2:
+            continue
+        gene_a, gene_b, weight = line.split()
+        sampled_network_genes.add(gene_a)
+        sampled_network_genes.add(gene_b)
+    f.close()
+
     # Write an output file in the style of the simulated annealing.
     out = open('./results/WGCNA_results/WGCNA_clusters_all_genes.txt', 'w')
     out.write('header\n')
     for gene in gene_cluster_dct:
+        if gene not in sampled_network_genes:
+            continue
         cluster_num = gene_cluster_dct[gene]
         out.write('Species 0\tGene %s\tCluster %s\n' % (gene, cluster_num))
     out.close()
