@@ -59,13 +59,11 @@ if __name__ == '__main__':
             gene_b = genes[b]
             exp_b = gene_exp_dct[genes[b]]
             pcc = abs(pearsonr(exp_a, exp_b))
-            # Ignore genes that have PCC = 1.
+            pcc = str(pcc)
+            # Always write to the full network.
+            out2.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
+            # Ignore genes that have PCC = 1 for the raw network.
             if pearson_threshold < pcc < 1.0:
-                pcc = str(pcc)
                 out.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
-                out2.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
-            else:
-                pcc = str(pcc)
-                out2.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')                
     out.close()
     out2.close()

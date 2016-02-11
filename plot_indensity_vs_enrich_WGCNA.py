@@ -22,11 +22,12 @@ if __name__ == '__main__':
             if i < 3:
                 continue
             line = line.split()
+            if float(line[4]) < 50:
+                continue
             in_dens = float(line[1])
             top_enrichment_p = -math.log(float(line[8]), 10)
             pts += [(top_enrichment_p, in_dens)]
         f.close()
-
 
         if mode == 'wgcna':
             plt.scatter(*zip(*pts), color='r', label=mode)
@@ -36,7 +37,7 @@ if __name__ == '__main__':
             plt.axhline(med_in_dens)
 
 
-    plt.title('Cluster in-densities vs. Best enrichment p-values, lambda=2.5')
+    plt.title('Cluster in-densities vs. Best enrichment p-values, WGCNA')
     plt.xlabel('negative log of lowest GO enrichment p-value')
     plt.ylabel('in-density')
     plt.legend(loc='upper right')
