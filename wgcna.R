@@ -65,4 +65,4 @@ md5sum("hb_mrsb_wgcna_run_signed_2014-11-26.Rdata")
 
 write.table(hb_mrsb_cpm_gsg$goodGenes, file="good_gene_booleans_WGCNA.txt", sep="\t", row.names=FALSE, col.names=FALSE)
 
-write.table(hb_mrsb_module_membership, file="module_membership_WGCNA.txt", sep="\t")
+write.table(hb_mrsb_module_membership, file="module_membership_WGCNA.txt", sep="\t", row.names=FALSE)

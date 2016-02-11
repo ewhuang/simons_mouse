@@ -145,3 +145,16 @@ edges.
 
 >>> python create_clustering_input.py RUNNUM lambda subgraph_decimal "predicted"
 
+___________________________________WGCNA________________________________________
+Simply run wgcna.R to cluster on the raw data.
+We can run
+>>> python preprocess_WGCNA.py
+to create a file, mm_mrsb_log2_expression_sampled.tsv, which contains only the
+genes contained in the randomly sampled network. We change this network with
+line 14 in the script. To use this output file to cluster, we change line 14/15
+inside wgcna.R
+
+Run the cleaning script to prepare the raw outputs from R for evaluation with
+our current python scripts.
+>>>python clean_WGCNA_module_results.py
+Outputs to ./results/WGCNA_results/
