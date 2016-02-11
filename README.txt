@@ -4,7 +4,9 @@ ___________________________CREATING THE RAW NETWORK_____________________________
 1. First, create the edges from the raw data. Compute pearson coefficients
 between gene expression values to find correlated genes. We can specify a
 parameter, pearson_threshold, which determines the cutoff coefficient for
-an edge to exist. Output file is raw_network.txt.
+an edge to exist. Output file is raw_network.txt. The second output file,
+full_network.txt, contains every single edge weight, including ones that are
+low.
 
 >>> python gene_edge_weights.py
 

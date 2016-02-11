@@ -49,6 +49,7 @@ if __name__ == '__main__':
     # Calculate the correlations between each pair of genes.
     print 'Computing Pearson correlation coefficients...'
     out = open('./data/raw_network.txt', 'w')
+    out2 = open('./data/full_network.txt', 'w')
     genes = gene_exp_dct.keys()
     for a in range(len(genes)):
         print '%f%% done...' % (float(a) / len(genes) * 100)
@@ -62,4 +63,9 @@ if __name__ == '__main__':
             if pearson_threshold < pcc < 1.0:
                 pcc = str(pcc)
                 out.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
+                out2.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')
+            else:
+                pcc = str(pcc)
+                out2.write(gene_a + '\t' + gene_b + '\t' + pcc + '\n')                
     out.close()
+    out2.close()
