@@ -30,6 +30,7 @@ if __name__ == '__main__':
 
     # Find the module memberships for the relevant genes.
     gene_cluster_dct = {}
+    module_lst = []
     f = open('./data/WGCNA_data/module_membership_WGCNA.txt', 'r')
     for i, line in enumerate(f):
         # Skip header.
@@ -46,6 +47,8 @@ if __name__ == '__main__':
         # Make sure each gene is only in one cluster at most.
         assert gene not in gene_cluster_dct
         gene_cluster_dct[gene] = module
+        if module not in module_lst:
+            module_lst += [module]
     f.close()
 
     # Extract all of the genes that appear in our randomly sampled network.
@@ -65,6 +68,6 @@ if __name__ == '__main__':
     for gene in gene_cluster_dct:
         if gene not in sampled_network_genes:
             continue
-        cluster_num = gene_cluster_dct[gene]
+        cluster_num = module_lst.index(gene_cluster_dct[gene]) + 1
         out.write('Species 0\tGene %s\tCluster %s\n' % (gene, cluster_num))
     out.close()
