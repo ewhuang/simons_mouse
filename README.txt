@@ -120,6 +120,11 @@ clusters, and print that information out.
 No output file, but if the numbers are bigger than 1, then we can say that the
 clusters are reasonable.
 
+11. Plotting in-density versus top GO enrichment.
+
+>>> python plot_indensity_vs_enrich.py RUN_NUM
+
+
 _____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
 Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/
 Find GO id to name mappings: http://geneontology.org/page/download-annotations
@@ -158,5 +163,14 @@ Run the cleaning script to prepare the raw outputs from R for evaluation with
 our current python scripts. The script also removes any genes that do not
 appear in the sampled network. This can be changed with the block from lines 51
 to 60.
->>>python clean_WGCNA_module_results.py
+>>> python clean_WGCNA_module_results.py
 Outputs to ./results/WGCNA_results/
+
+To evaluate, we must use a real network from some old network we created.
+
+>>> perl evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt > ./results/WGCNA_results/WGCNA_cluster_eval.txt
+
+To plot comparisons of p-values between network without GO and WGCNA:
+
+>>> python compute_go_enrichment_wgcna.py
+
