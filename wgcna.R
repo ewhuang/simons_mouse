@@ -13,11 +13,13 @@ allowWGCNAThreads(nThreads = 16)
 
 # hb_mrsb_cpm_t = read.table("mm_mrsb_log2_expression_sampled.tsv", sep="\t")
 hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
+gene_id = hb_mrsb_cpm$gene_id
 hb_mrsb_cpm$gene_id = NULL
 hb_mrsb_cpm_t <- t(hb_mrsb_cpm)
 hb_mrsb_cpm_gsg = goodSamplesGenes(hb_mrsb_cpm_t, verbose = 3)
 
 hb_mrsb_wgcna_in = hb_mrsb_cpm_t[, hb_mrsb_cpm_gsg$goodGenes]
+gene_id = gene_id[hb_mrsb_cpm_gsg$goodGenes]
 hb_mrsb_wgcna_in = hb_mrsb_wgcna_in[, goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$goodGenes]
 
 stopifnot(goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$allOK)
@@ -48,9 +50,10 @@ hb_mrsb_colors = labels2colors(hb_mrsb_modules$colors)
 hb_mrsb_eigengenes = hb_mrsb_modules$MEs
 
 hb_mrsb_module_membership = as.data.frame(matrix(ncol = 4, nrow = ncol(hb_mrsb_wgcna_in)))
-row.names(hb_mrsb_module_membership) = colnames(hb_mrsb_wgcna_in)
+row.names(hb_mrsb_module_membership) = gene_id # colnames(hb_mrsb_wgcna_in)
 colnames(hb_mrsb_module_membership) = c("ID", "module", "color", "module_membership")
-hb_mrsb_module_membership$ID = colnames(hb_mrsb_wgcna_in)
+colnames(hb_mrsb_wgcna_in) = gene_id
+hb_mrsb_module_membership$ID = gene_id #colnames(hb_mrsb_wgcna_in)
 hb_mrsb_module_membership$module = hb_mrsb_modules$colors
 hb_mrsb_module_membership$color = hb_mrsb_colors
 for (i in 1:nrow(hb_mrsb_module_membership)) {
