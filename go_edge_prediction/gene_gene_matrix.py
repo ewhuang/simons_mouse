@@ -20,16 +20,16 @@ if __name__ == '__main__':
     for line in f:
         gene_a, gene_b, weight = line.split()
         gene_a = gene_lst.index(gene_a)
-        gene_b = gene_lst.index(gene_a)
+        gene_b = gene_lst.index(gene_b)
         edge_dct[(gene_a, gene_b)] = weight
     f.close()
 
     out = open('gene_gene_weights.txt', 'w')
-    for gene_a in gene_lst:
-        for gene_b in gene_lst:
-            if (gene_a, gene_b) in edge_dct:
-                out.write(edge_dct[(gene_a, gene_b)] + '\t')
+    for a, gene_a in enumerate(gene_lst):
+        for b, gene_b in enumerate(gene_lst):
+            if (a, b) in edge_dct:
+                out.write(edge_dct[(a, b)] + '\t')
             else:
-                out.write(edge_dct([gene_b, gene_a]) + '\t')
+                out.write(edge_dct([b, a]) + '\t')
         out.write('\n')
     out.close()
