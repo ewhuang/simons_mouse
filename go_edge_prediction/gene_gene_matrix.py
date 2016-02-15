@@ -54,7 +54,7 @@ if __name__ == '__main__':
         exp_a = gene_exp_dct[gene_a]
         for b in range(len(genes)):
             gene_b = genes[b]
-            exp_b = gene_exp_dct[genes[b]]
+            exp_b = gene_exp_dct[gene_b]
             pcc = str(abs(pearsonr(exp_a, exp_b)))
             # If pearson is 1, then make no edge.
             if pcc == 1.0:
