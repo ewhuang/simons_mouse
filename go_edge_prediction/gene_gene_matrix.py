@@ -46,7 +46,7 @@ if __name__ == '__main__':
 
     # Calculate the correlations between each pair of genes.
     print 'Computing Pearson correlation coefficients...'
-    out = open('./go_edge_prediction/gene_gene_weights.txt', 'w')
+    out = open('gene_gene_weights.txt', 'w')
     genes = gene_exp_dct.keys()
     for a in range(len(genes)):
         print '%f%% done...' % (float(a) / len(genes) * 100)
