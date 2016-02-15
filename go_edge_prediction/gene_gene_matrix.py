@@ -33,7 +33,7 @@ def pearsonr(x, y):
 if __name__ == '__main__':
     # Read in the tsv file.
     print 'Reading in raw data...'
-    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
+    f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
     gene_exp_dct = OrderedDict({})
     for i, line in enumerate(f):
         if i == 0:
