@@ -9,7 +9,7 @@ import bisect
 ### to a file, predicted_go_edges.txt.
 
 # NUM_TOP_WEIGHTS = int(1e06)
-NUM_TOP_WEIGHTS = 70000
+NUM_TOP_WEIGHTS = 33284
 
 if __name__ == '__main__':
     # Initialize the dictionary with all of the genes in the coexpression
@@ -91,8 +91,8 @@ if __name__ == '__main__':
         if i not in gene_index_dct:
             continue
         line = [float(weight) for weight in line.split()]
-        for weight in line:
-            if weight <= 0:
+        for j, weight in enumerate(line):
+            if j < i or weight <= 0:
                 continue
             # Insert the weight into our sorted list of weights.
             bisect.insort(top_weights, weight)
