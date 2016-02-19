@@ -93,7 +93,7 @@ predicted GO edge weights.
 $ python cluster_info_summary.py RUNNUM
 
 Needs cluster_eval_go/no_go_RUNNUM.txt, output of compute_go_enrichment.py, both
-networks, and both raw clusters.
+networks, and both raw clusters and networks.
 
 Outputs a file, ./results/clus_info_no_go_RUNNUM.txt
 First two lines shows number of genes in input network, number of gene-gene
