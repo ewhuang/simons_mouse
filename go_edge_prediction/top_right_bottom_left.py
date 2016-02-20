@@ -91,11 +91,11 @@ if __name__ == '__main__':
         # network.
         if i not in gene_index_dct:
             continue
-        curr_gene = gene_index_dct[i]
 
         line = line.split()
 
-        gene_go_weight_dct[curr_gene] = line
+        for gene in gene_index_dct[i]:
+            gene_go_weight_dct[gene] = line
         
         if num_go_terms == 0:
             num_go_terms = len(line)
