@@ -84,8 +84,8 @@ if __name__ == '__main__':
                     current_row += ['0']
             else:
                 current_row += ['0']
+        assert len(current_row) == len(go_index_dct.keys())
         go_go_matrix += [current_row]
-
 
     f = open('./prediction_data/gene_gene_and_gene_go_weights.txt', 'r')
     out = open('./prediction_data/full_gene_go_matrix.txt', 'w')
@@ -98,7 +98,7 @@ if __name__ == '__main__':
             out.write(line)
             continue
         assert(len_prev_line - len(splitline) == len(go_index_dct))
-        out.write(line.strip() + '\t'.join(go_go_matrix[go_index]) + '\n')
+        out.write(line.strip() + '\t' + '\t'.join(go_go_matrix[go_index]) + '\n')
         go_index += 1
     out.close()
     f.close()
