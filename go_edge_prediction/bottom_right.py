@@ -98,7 +98,7 @@ if __name__ == '__main__':
             out.write(line)
             continue
         assert(len_prev_line - len(splitline) == len(go_index_dct))
-        out.write(line.strip() + '\t'.join(go_go_matrix[go_index_dct]) + '\n')
+        out.write(line.strip() + '\t'.join(go_go_matrix[go_index]) + '\n')
         go_index += 1
     out.close()
     f.close()
