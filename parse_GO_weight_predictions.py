@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # Find all MGI mappings from http://www.informatics.jax.org/
     # Use Batch query.
     mgi_to_ensembl_dct = {}
-    f = open('./go_hierarchy/mgi_to_ensembl.txt', 'r')
+    f = open('./go_edge_prediction/prediction_data/mgi_to_ensembl.txt', 'r')
     for i, line in enumerate(f):
         # Skip the header line.
         if i == 0:
@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
     # Keys are the indices in the edge weight matrix, values are the genes.
     gene_index_dct = {}
-    f = open('./go_hierarchy/noisogeneHash.txt', 'r')
+    f = open('./go_edge_prediction/prediction_data/noisogeneHash.txt', 'r')
     for line in f:
         mgi_id, row = line.split()
         if mgi_id not in mgi_to_ensembl_dct:
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # Find the GO terms to GO names.
     # Retrieved data from http://geneontology.org/page/download-annotations
     # go_id_to_name_dct = {}
-    # f = open('./go_hierarchy/go_to_name.txt', 'r')
+    # f = open('./prediction_data/go_to_name.txt', 'r')
     # while True:
     #     line = f.readline()
     #     if line == '':
@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # # Keys are the GO ids, values are the indices in the edge weight matrix.
     # go_index_dct = {}
-    # f = open('./go_hierarchy/noisogoHash.txt', 'r')
+    # f = open('./prediction_data/noisogoHash.txt', 'r')
     # for line in f:
     #     go_id, index = line.split()
     #     # Subtract 1 to change to list indices.
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
     # Run through the matrix file a first time, and gather the top edge weights.
     top_weights = [0] * NUM_TOP_WEIGHTS
-    f = open('./go_hierarchy/Mouse_final_Score_matrix.txt', 'r')
+    f = open('./go_edge_prediction/prediction_data/Mouse_final_Score_matrix.txt', 'r')
     for i, line in enumerate(f):
         # Skip a row if the corresponding gene does not appear in our network.
         if i not in gene_index_dct:
@@ -106,7 +106,7 @@ if __name__ == '__main__':
     # Run through the matrix file a second time, and write out the edges.
     out = open('./data/predicted_go_edges.txt', 'w')
     # Rows are genes, columns are GO's.
-    f = open('./go_hierarchy/Mouse_final_Score_matrix.txt', 'r')
+    f = open('./go_edge_prediction/prediction_data/Mouse_final_Score_matrix.txt', 'r')
     for i, line in enumerate(f):
         # Skip a row if the corresponding gene does not appear in our network.
         if i not in gene_index_dct:
