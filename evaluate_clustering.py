@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     for network in ['go', 'no_go']:
 
-        command = 'perl evaluate_clustering.pl '
+        command = 'perl ./sim_anneal/evaluate_clustering.pl '
         if network == 'go':
             command += './results/clusters_%s_clean_%s.txt ' % (network, run_num)
         else:
