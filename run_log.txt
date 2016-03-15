@@ -174,5 +174,15 @@ Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 Predicted GO edge weights
-lambda = 0.9
+All edge weights = 1.0. Take the 123 GO in common with original GO set. There
+are 144 in total.
+Number of Clusters: 20
+
+Run 22:
+1% of network
+Temperature = 1
+MIN_GO_SIZE = 10
+MAX_GO_SIZE = 1000
+Large GO edge weights from Sheng
+lambda = 1.0
 Number of Clusters: 20

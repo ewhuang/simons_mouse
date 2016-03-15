@@ -12,10 +12,16 @@ if __name__ == '__main__':
         exit()
 
     network, temp, num_clusters, run_num = sys.argv[1:]
-    command = './sim_anneal/bin/cs-grn %s 1 0 ' % num_clusters
+    # Old non-trashcan clustering.
+    # command = './sim_anneal/bin/cs-grn %s 1 0 ' % num_clusters
+    # New trashcan clustering.
+    grn_folder = '/co-expression_network_clustering/InOutRatioModel_withNoiseCl'
+    grn_folder += 'us_noiseOrthoEdge_fast/src/bin/'
+    command = '.%sclustering %s 1 0 ' % (grn_folder, num_clusters)
+
     command += './data/orth.txt 1 '
     assert (network in ['go', 'no_go'])
-    command += './data/network_%s_%s.txt ' % (network, run_num)
+    command += './data/network_%s_%s.txt -n ' % (network, run_num)
     command += '-t 1 2> log > '
     command += './results/clusters_%s_%s.txt' % (network, run_num)
 

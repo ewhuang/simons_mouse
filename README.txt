@@ -14,6 +14,10 @@ Output format:
 gene_a  gene_b  edge_weight
 The edges are not repeated.
 
+1.5 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
+
+$ python make_gene_go_file.py.
+
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 2. After generating the gene-gene edges, we create files that will be sent
 to the simulated annealing code. Creates 4 files overall, a network and real
@@ -40,6 +44,8 @@ Real network
 ___________________________________CLUSTERING___________________________________
 
 3. Compile clustering code inside sim_anneal folder.
+If static error for EdgeWeightThreshold, add static in front of its declaration
+in cs-grn.
 
 $ g++ -O3 -o bin/cs-grn -Wno-deprecated -std=c++0x *.cpp
 
@@ -133,7 +139,8 @@ Find GO id to name mappings: http://geneontology.org/page/download-annotations
 $ python gene_list.py
 
 Creates an output file, newline separated, where each line is a gene in the
-coexpression matrix. No duplicates.
+coexpression matrix. No duplicates. Also creates a sampled list, where each
+gene has to occur in the sampled matrix.
 
 2.
 $ python parse_GO_weight_predictions.py
@@ -149,6 +156,18 @@ create_clustering_input.py to adjust the network to add in the predicted GO
 edges.
 
 $ python create_clustering_input.py RUNNUM lambda subgraph_decimal "predicted"
+
+CREATING MATRIX FOR SHENG'S MATLAB CODE.
+1. $ python top_left.py
+Creates top left of the four-block matrix, which includes the gene-gene edge
+weights. Takes the sampled edges from our 1% network, and computes the Pearson
+correlation coefficient between each pair of genes. The genes are in order of
+of ENSMUSG ID from the original co-expression network.
+
+2. $ python top_right_bottom_left.py
+Creates the bottom left and top right blocks of the matrix, or the gene-GO
+edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
+on the index from Sheng's data.
 
 ___________________________________WGCNA________________________________________
 Simply run wgcna.R to cluster on the raw data.

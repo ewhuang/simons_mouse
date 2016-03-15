@@ -1,16 +1,11 @@
 ### Author: Edward Huang
 
 import math
-import bisect
 
 ### This script takes in the matrix created by the GO hierarchy method in order
-### to find the edge weights between GO and genes. We take the NUM_TOP_WEIGHTS
-### weights from the matrix and save them as edges in our network. Writes out 
-### to a file, predicted_go_edges.txt.
-
-# NUM_TOP_WEIGHTS = int(1e06)
-NUM_TOP_WEIGHTS = 210000
-# NUM_GO_TERMS = 117
+### to find the edge weights between GO and genes. We take the top weights
+### from the matrix and save them as edges in our network. Writes out to a file
+### predicted_go_edges.txt.
 
 if __name__ == '__main__':
     # Initialize the dictionary with all of the genes in the coexpression
@@ -22,10 +17,12 @@ if __name__ == '__main__':
     f.close()
 
     all_go = set([])
+    num_top_weights = 0
     f = open('./data/go_edges.txt', 'r')
     for line in f:
         line = line.strip().split('\t')
         all_go.add(line[1])
+        num_top_weights += 1
     f.close()
 
     # Find all MGI mappings from http://www.informatics.jax.org/
@@ -98,8 +95,10 @@ if __name__ == '__main__':
             bad_go += [i]
 
     # Run through the matrix file a first time, and gather the top edge weights.
-    top_weights = [0] * NUM_TOP_WEIGHTS
-    f = open('./go_edge_prediction/prediction_data/Mouse_final_Score_matrix.txt', 'r')
+    top_weights = [0] * num_top_weights
+    f = open('./go_edge_prediction/prediction_data/Mouse_final_Score_matrix.txt',
+        'r')
+    edge_weight_matrix = {}
     for i, line in enumerate(f):
         # Skip a row if the corresponding gene does not appear in our network.
         if i not in gene_index_dct:
@@ -107,36 +106,17 @@ if __name__ == '__main__':
         for j, weight in enumerate(line.split()):
             if j in bad_go:
                 continue
-            weight = float(weight)
-            if weight <= 0:
-                continue
-            # Insert the weight into our sorted list of weights.
-            bisect.insort(top_weights, weight)
-            # Pop the first element of the list to retain size of the list.
-            top_weights.pop(0)
+            edge_weight_matrix[(i, j)] = float(weight)
     f.close()
 
-    assert (len(top_weights) == NUM_TOP_WEIGHTS)
-    smallest_top_weight = top_weights[0]
+    edge_weight_matrix = sorted(edge_weight_matrix.items(),
+        key=operator.itemgetter(1), reverse=True)[:num_top_weights]
+    assert edge_weight_matrix[0] > edge_weight_matrix[1]
 
     print 'Writing out to file...'
     # Run through the matrix file a second time, and write out the edges.
     out = open('./data/predicted_go_edges.txt', 'w')
-    # Rows are genes, columns are GO's.
-    f = open('./go_edge_prediction/prediction_data/Mouse_final_Score_matrix.txt', 'r')
-    for i, line in enumerate(f):
-        # Skip a row if the corresponding gene does not appear in our network.
-        if i not in gene_index_dct:
-            continue
-        for j, weight in enumerate(line.split()):
-            # if weight < 0.8 or j in bad_go:
-            # if j in bad_go or weight <= 0:
-            if j in bad_go:
-                continue
-            if float(weight) < smallest_top_weight:
-                continue
-            # Somtimes an MGI ID will correspond to multiple ENSMUSG's.
-            for gene in gene_index_dct[i]:
-                out.write('%s\t%s\n' % (gene, j))#go_index_dct[j]))
-    f.close()
+    for (i, j), weight in edge_weight_matrix:
+        for gene in gene_index_dct[i]:
+            out.write('%s\t%s\n' % (gene, j))
     out.close()

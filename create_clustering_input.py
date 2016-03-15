@@ -46,8 +46,6 @@ if __name__ == '__main__':
     random.seed(5191993)
     sampled_edges = random.sample(edge_dct.keys(), num_samp_edges)
 
-    print len(sampled_edges)
-
     # Keeps track of all the unique genes in the network.
     genes = set([])
     for gene_a, gene_b in sampled_edges:
@@ -113,8 +111,10 @@ if __name__ == '__main__':
         if len(go_genes) < MIN_GO_SIZE or len(go_genes) > MAX_GO_SIZE:
             continue
         # Here we penalize GO terms that have many genes.
+        
         # Old way of calculating lambda.
         # go_weight = max(math.log(lamb * max_go_size / float(len(go_genes))), 1.0)
+
         # New way of calculating lambda, on the outside.
         go_weight = lamb * math.log(max_go_size / float(len(go_genes)))
 
