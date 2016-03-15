@@ -15,7 +15,7 @@ gene_a  gene_b  edge_weight
 The edges are not repeated.
 
 1.5 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
-
+$ cd go_edge_prediction
 $ python make_gene_go_file.py.
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________

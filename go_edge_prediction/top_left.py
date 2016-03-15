@@ -56,15 +56,12 @@ if __name__ == '__main__':
     # Calculate the correlations between each pair of genes.
     print 'Computing Pearson correlation coefficients...'
     out = open('./prediction_data/gene_gene_weights.txt', 'w')
-    genes = gene_exp_dct.keys()
-    for a in range(len(genes)):
-        print '%f%% done...' % (float(a) / len(genes) * 100)
-        gene_a = genes[a]
-        assert gene_a in sampled_genes
+    for a in range(len(sampled_genes)):
+        print '%f%% done...' % (float(a) / len(sampled_genes) * 100)
+        gene_a = sampled_genes[a]
         exp_a = gene_exp_dct[gene_a]
-        for b in range(len(genes)):
-            gene_b = genes[b]
-            assert gene_b in sampled_genes
+        for b in range(len(sampled_genes)):
+            gene_b = sampled_genes[b]
             exp_b = gene_exp_dct[gene_b]
             pcc = str(abs(pearsonr(exp_a, exp_b)))
             # If pearson is 1, then make no edge.

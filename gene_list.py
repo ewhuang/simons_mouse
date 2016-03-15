@@ -9,9 +9,9 @@ if __name__ == '__main__':
     for i, line in enumerate(f):
         if i == 0:
             continue
-        if line.split()[0] in gene_lst:
-            print 'already here?'
-        gene_lst += [line.split()[0]]
+        gene = line.split()[0]
+        assert gene not in gene_lst
+        gene_lst += [gene]
     f.close()
 
     out = open('./data/all_genes.txt', 'w')
@@ -31,6 +31,7 @@ if __name__ == '__main__':
     f.close()
 
     out = open('./data/sampled_genes_1_pct.txt', 'w')
-    for gene in sampled_genes:
-        out.write(gene + '\n')
+    for gene in gene_lst:
+        if gene in sampled_genes:
+            out.write(gene + '\n')
     out.close()
