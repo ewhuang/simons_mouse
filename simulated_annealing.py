@@ -27,3 +27,4 @@ if __name__ == '__main__':
 
     print command
     subprocess.call(command, shell=True)
+    subprocess.call('rm log', shell=True)
