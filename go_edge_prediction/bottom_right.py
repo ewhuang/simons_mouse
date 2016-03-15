@@ -88,7 +88,7 @@ if __name__ == '__main__':
         go_go_matrix += [current_row]
 
     f = open('./prediction_data/gene_gene_and_gene_go_weights.txt', 'r')
-    out = open('./prediction_data/full_gene_go_matrix.txt', 'w')
+    out = open('./prediction_data/sampled_gene_go_matrix.txt', 'w')
     len_prev_line = 0
     go_index = 0
     for line in f:

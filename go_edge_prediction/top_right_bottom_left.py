@@ -1,6 +1,7 @@
 ### Author: Edward Huang
 
 from collections import OrderedDict
+import index_to_name
 
 ### Creates the top right and bottom left block of the predicted gene matrix.
 ### These blocks are simply the transpose of each other, and contain all of the
