@@ -183,6 +183,6 @@ Run 22:
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
-Large GO edge weights from Sheng
+New GO edge weights from Sheng
 lambda = 1.0
 Number of Clusters: 20

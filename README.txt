@@ -40,7 +40,6 @@ Real network
 0   gene_a  gene_b  edge_weight
 0   gene_b  gene_a  edge_weight
 
-
 ___________________________________CLUSTERING___________________________________
 
 3. Compile clustering code inside sim_anneal folder.
