@@ -1,11 +1,13 @@
 ### Author: Edward Huang
 
-from scipy.stats import fisher_exact
+# from scipy.stats import fisher_exact
+import file_operations
+import fisher_test
+import math
 import operator
 import sys
-import matplotlib.pyplot as plt
-import math
-import numpy
+# import matplotlib.pyplot as plt
+# import numpy
 
 ### This script calculates the GO enrichment score for each clustering
 ### result. For each method, for every cluster, for every possible GO
@@ -15,36 +17,13 @@ import numpy
 ### as a whole going from coexpression network to GO network without
 ### sacrificing in-density.
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2 and len(sys.argv) != 3:
-        print 'Usage:python %s run_num predicted?' % sys.argv[0]
-        exit()
-    run_num = sys.argv[1]
+MAX_GO_SIZE = 1000
+MIN_GO_SIZE = 10
+all_genes = set([])
 
-    # Prefix for go_edges file: go_edges.txt
-    predicted = ''
-    if len(sys.argv) == 3:
-        assert(sys.argv[2] == 'predicted')
-        # Prefix for the go_edges file: predicted_go_edges.txt
-        predicted = 'predicted_'
-
-    all_genes = set([])
-
-    print 'Extracting GO labels...'
-    go_dct = {}
-    f = open('./data/%sgo_edges.txt' % predicted, 'r')
-    for line in f:
-        gene, go_label = line.split()
-        all_genes.add(gene)
-        if go_label not in go_dct:
-            go_dct[go_label] = [gene]
-        else:
-            go_dct[go_label] += [gene]
-    f.close()
-
-    print 'Creating cluster dictionary...'
-    cluster_go_dct = {}
-    f = open('./results/clusters_go_clean_%s.txt' % run_num, 'r')
+def create_cluster_dct(filename):
+    cluster_dct = {}
+    f = open(filename, 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -56,35 +35,18 @@ if __name__ == '__main__':
             continue
         gene = newline[1][len('Gene '):]
         all_genes.add(gene)
-        if cluster not in cluster_go_dct:
-            cluster_go_dct[cluster] = [gene]
+        if cluster not in cluster_dct:
+            cluster_dct[cluster] = [gene]
         else:
-            cluster_go_dct[cluster] += [gene]
+            cluster_dct[cluster] += [gene]
     f.close()
+    return cluster_dct
 
-    cluster_no_go_dct = {}
-    f = open('./results/clusters_no_go_%s.txt' % run_num, 'r')
-    # Read in the cluster file to create the cluster dictionary.
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        newline = line.strip().split('\t')
-        cluster = newline[2][len('Cluster '):]
-        # Skip trashcan clusters.
-        if cluster == '0':
-            continue
-        gene = newline[1][len('Gene '):]
-        all_genes.add(gene)
-        if cluster not in cluster_no_go_dct:
-            cluster_no_go_dct[cluster] = [gene]
-        else:
-            cluster_no_go_dct[cluster] += [gene]
-    f.close()
-
+def write_out_go_encrichments(fname):
     # Find GO enrichment for each cluster.
     go_p_vals = []
     go_top_labels = {}
-    out = open('./results/cluster_enrichment_terms_go_%s.txt' % run_num, 'w')
+    out = open(fname, 'w')
     for i in range(len(cluster_go_dct)):
         clus_id = str(i + 1)
         fisher_dct = {}
@@ -92,7 +54,7 @@ if __name__ == '__main__':
         for go_label in go_dct:
             go_genes = set(go_dct[go_label])
             # Skip giant or tiny GO terms.
-            if len(go_genes) > 1000 or len(go_genes) < 10:
+            if len(go_genes) > MAX_GO_SIZE or len(go_genes) < MIN_GO_SIZE:
                 continue
             # Compute the four disjoint set sizes of Venn diagram for Fisher's.
             clus_and_go = len(clus_genes.intersection(go_genes))
@@ -100,9 +62,10 @@ if __name__ == '__main__':
             go_not_clus = len(go_genes.difference(clus_genes))
             neither = len(all_genes) - len(go_genes.union(clus_genes))
             # Compute Fisher's exact test.
-            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go],
-                [go_not_clus, neither]])
-            fisher_dct[go_label] = p_value
+            f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
+            ft = fisher_test.FishersExactTest(f_table)
+            fisher_dct[go_label] = ft.two_tail_p()
+
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         # Get the log of the top 5 enrichment p-values.
         go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
@@ -119,47 +82,40 @@ if __name__ == '__main__':
         out.write('\t'.join(out_go) + '\n')
         out.write('\t'.join(out_p) + '\n')
     out.close()
+    return go_p_vals, go_top_labels
 
-    no_go_p_vals = []
-    no_go_top_labels = {}
-    out = open('./results/cluster_enrichment_terms_no_go_%s.txt' % run_num, 'w')
-    for i in range(len(cluster_no_go_dct)):
-        clus_id = str(i + 1)
-        fisher_dct = {}
-        clus_genes = set(cluster_no_go_dct[clus_id])
-        for go_label in go_dct:
-            go_genes = set(go_dct[go_label])
-            if len(go_genes) > 1000 or len(go_genes) < 10:
-                continue
-            clus_and_go = len(clus_genes.intersection(go_genes))
-            clus_not_go = len(clus_genes.difference(go_genes))
-            go_not_clus = len(go_genes.difference(clus_genes))
-            neither = len(all_genes) - len(go_genes.union(clus_genes))
-            o_r, p_value = fisher_exact([[clus_and_go, clus_not_go],
-                [go_not_clus, neither]])
-            fisher_dct[go_label] = p_value
-        top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
-        no_go_p_vals += [math.log(x[1], 10) for x in top_go[:5]]
-        out_p = []
-        out_go = []
-        for (label, p_value) in top_go[:5]:
-            out_p += [str(p_value)]
-            out_go += [label]
-            if label not in no_go_top_labels:
-                no_go_top_labels[label] = 1
-            else:
-                no_go_top_labels[label] += 1
-        out.write('Cluster %s\n' % clus_id)
-        out.write('\t'.join(out_go) + '\n')
-        out.write('\t'.join(out_p) + '\n')
-    out.close()
+if __name__ == '__main__':
+    if len(sys.argv) != 2 and len(sys.argv) != 3:
+        print 'Usage:python %s run_num predicted?' % sys.argv[0]
+        exit()
+    run_num = sys.argv[1]
 
-    bins = numpy.linspace(-150, 0, 100)
-    plt.hist(go_p_vals, bins, alpha=0.5, label='GO')
-    plt.hist(no_go_p_vals, bins, alpha=0.5, label='no GO')
+    # First, get a clean cluster file.
+    file_operations.create_clean_go_file(run_num)
 
-    plt.xlabel('log of p values')
-    plt.ylabel('number of enrichments')
-    plt.title('GO Enrichment p-values for top 5 labels of each cluster')
-    plt.legend(loc='upper left')
-    plt.show()
+    # Cluster dictionary generation.
+    # Compute GO enrichment without GO nodes, so we use cleaned file.
+    go_cluster_fname = './results/clusters_go_clean_%s.txt' % run_num
+    cluster_go_dct = create_cluster_dct(go_cluster_fname)
+
+    no_go_cluster_fname = './results/clusters_no_go_%s.txt' % run_num
+    cluster_no_go_dct = create_cluster_dct(no_go_cluster_fname)
+
+    go_dct = file_operations.get_go_labels()
+
+    go_fname = './results/cluster_enrichment_terms_go_%s.txt' % run_num
+    go_p_vals, go_top_labels = write_out_go_encrichments(go_fname)
+
+    no_go_fname = './results/cluster_enrichment_terms_no_go_%s.txt' % run_num
+    no_go_p_vals, no_go_top_labels = write_out_go_encrichments(no_go_fname)
+
+    # # Plotting GO enrichment histograms.
+    # bins = numpy.linspace(-150, 0, 100)
+    # plt.hist(go_p_vals, bins, alpha=0.5, label='GO')
+    # plt.hist(no_go_p_vals, bins, alpha=0.5, label='no GO')
+
+    # plt.xlabel('log of p values')
+    # plt.ylabel('number of enrichments')
+    # plt.title('GO Enrichment p-values for top 5 labels of each cluster')
+    # plt.legend(loc='upper left')
+    # plt.show()
