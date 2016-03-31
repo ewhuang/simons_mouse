@@ -19,38 +19,19 @@ import sys
 
 MAX_GO_SIZE = 1000
 MIN_GO_SIZE = 10
-all_genes = set([])
 
-def create_cluster_dct(filename):
-    cluster_dct = {}
-    f = open(filename, 'r')
-    # Read in the cluster file to create the cluster dictionary.
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        newline = line.strip().split('\t')
-        cluster = newline[2][len('Cluster '):]
-        # Skip trashcan clusters.
-        if cluster == '0':
-            continue
-        gene = newline[1][len('Gene '):]
-        all_genes.add(gene)
-        if cluster not in cluster_dct:
-            cluster_dct[cluster] = [gene]
-        else:
-            cluster_dct[cluster] += [gene]
-    f.close()
-    return cluster_dct
+sampled_genes = file_operations.get_sampled_genes()
+go_dct = file_operations.get_go_labels(sampled_genes)
 
-def write_out_go_encrichments(fname):
+def write_out_go_enrichments(fname, cluster_dct):
     # Find GO enrichment for each cluster.
     go_p_vals = []
     go_top_labels = {}
     out = open(fname, 'w')
-    for i in range(len(cluster_go_dct)):
+    for i in range(len(cluster_dct)):
         clus_id = str(i + 1)
         fisher_dct = {}
-        clus_genes = set(cluster_go_dct[clus_id])
+        clus_genes = set(cluster_dct[clus_id])
         for go_label in go_dct:
             go_genes = set(go_dct[go_label])
             # Skip giant or tiny GO terms.
@@ -60,7 +41,7 @@ def write_out_go_encrichments(fname):
             clus_and_go = len(clus_genes.intersection(go_genes))
             clus_not_go = len(clus_genes.difference(go_genes))
             go_not_clus = len(go_genes.difference(clus_genes))
-            neither = len(all_genes) - len(go_genes.union(clus_genes))
+            neither = len(sampled_genes) - len(go_genes.union(clus_genes))
             # Compute Fisher's exact test.
             f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
             ft = fisher_test.FishersExactTest(f_table)
@@ -96,18 +77,18 @@ if __name__ == '__main__':
     # Cluster dictionary generation.
     # Compute GO enrichment without GO nodes, so we use cleaned file.
     go_cluster_fname = './results/clusters_go_clean_%s.txt' % run_num
-    cluster_go_dct = create_cluster_dct(go_cluster_fname)
+    cluster_go_dct = file_operations.create_cluster_dct(go_cluster_fname)
 
     no_go_cluster_fname = './results/clusters_no_go_%s.txt' % run_num
-    cluster_no_go_dct = create_cluster_dct(no_go_cluster_fname)
-
-    go_dct = file_operations.get_go_labels()
+    cluster_no_go_dct = file_operations.create_cluster_dct(no_go_cluster_fname)
 
     go_fname = './results/cluster_enrichment_terms_go_%s.txt' % run_num
-    go_p_vals, go_top_labels = write_out_go_encrichments(go_fname)
+    go_p_vals, go_top_labels = write_out_go_enrichments(go_fname,
+        cluster_go_dct)
 
     no_go_fname = './results/cluster_enrichment_terms_no_go_%s.txt' % run_num
-    no_go_p_vals, no_go_top_labels = write_out_go_encrichments(no_go_fname)
+    no_go_p_vals, no_go_top_labels = write_out_go_enrichments(no_go_fname,
+        cluster_no_go_dct)
 
     # # Plotting GO enrichment histograms.
     # bins = numpy.linspace(-150, 0, 100)

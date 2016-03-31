@@ -28,7 +28,8 @@ RUNNUM indicates the run number. The characteristics of each run number can be
 found in run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
 real_network_go_RUNNUM.txt.
 
-$ python create_clustering_input.py RUNNUM lambda subgraph_frac
+$ python create_clustering_input.py RUNNUM lambda subgraph_frac pearson/
+    embedding
 
 Output format for network_go.txt/network_no_go_RUNNUM.txt:
 0
@@ -59,14 +60,7 @@ Only run the clustering on networks without GO only once, as it will be the
 same network for any given percentage of the raw network, since we use a random
 seed.
 
-5. Remove GO nodes from cluster files with GO before evaluating.
-
-$ python post_cluster_remove_go.py RUNNUM
-
-Output file: ./results/clusters_go_clean_RUNNUM.txt
-
-
-6. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
+7. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
 
 $ python evaluate_clustering.py RUNNUM
 
@@ -77,9 +71,9 @@ without GO.
 ________________________________CLUSTER ANALYSIS________________________________
 Compute GO enrichment of each of the clusterings.
 
-7. Compute GO enrichments for each clustering.
+8. Compute GO enrichments for each clustering.
 
-$ python compute_go_enrichment.py RUNNUM "predicted"
+$ python compute_go_enrichment.py RUNNUM
 
 Needs clusters_go_clean_RUNNUM.txt and clusters_no_go_RUNNUM.txt
 
@@ -93,7 +87,7 @@ those of the clusters without GO terms.
 Add in the literal string "predicted" without quotes to the end if dealing with
 predicted GO edge weights.
 
-8. Analyze the properties of the clusterings.
+9. Analyze the properties of the clusterings.
 
 $ python cluster_info_summary.py RUNNUM
 
@@ -106,13 +100,13 @@ edges, and number of gene-GO edges. Then, for each cluster, shows the number of
 genes in the cluster, number of GO terms, number of gene-gene edges, and number
 of gene-GO edges.
 
-9. Perform the wilcoxon rank-sum test on the clusters
+10. Perform the wilcoxon rank-sum test on the clusters
 
 $ python wilcoxon_clusters.py RUNNUM
 
 Prints out the score and p-value of the test.
 
-10. Objective function analysis.
+11. Objective function analysis.
 
 This script looks at the output files from analyze_clusters.py. First we look at
 clus_inf_no_go_RUNNUM.txt, and then find the median of the in-density for all of
@@ -125,7 +119,7 @@ $ python objective_function.py RUNNUM
 No output file, but if the numbers are bigger than 1, then we can say that the
 clusters are reasonable.
 
-11. Plotting in-density versus top GO enrichment.
+12. Plotting in-density versus top GO enrichment.
 
 $ python plot_indensity_vs_enrich.py RUN_NUM
 
@@ -168,6 +162,10 @@ Creates the bottom left and top right blocks of the matrix, or the gene-GO
 edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
 on the index from Sheng's data.
 
+3. $ python embedding_sampled_network.py
+Outputs a new network, ./data/embedding_network.txt, which contains edges
+between genes with weights computed by embedding.
+
 ___________________________________WGCNA________________________________________
 Simply run wgcna.R to cluster on the raw data.
 We can run
@@ -186,7 +184,8 @@ Outputs to ./results/WGCNA_results/
 
 To evaluate, we must use a real network from some old network we created.
 
-$ perl evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt > ./results/WGCNA_results/WGCNA_cluster_eval.txt
+$ perl evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt >
+./results/WGCNA_results/WGCNA_cluster_eval.txt
 
 To plot comparisons of p-values between network without GO and WGCNA:
 

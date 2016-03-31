@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import sys
 
 ### Generates readable, tab-separated file to provide information on the
@@ -12,110 +13,26 @@ if __name__ == '__main__':
     run_num = sys.argv[1]
 
     # Find the GO terms to GO names.
-    # Retrieved data from http://geneontology.org/page/download-annotations
-    go_id_to_name_dct = {}
-    f = open('./go_hierarchy/go_to_name.txt', 'r')
-    while True:
-        line = f.readline()
-        if line == '':
-            break
-        if line.strip() == '[Term]':
-            go_id = f.readline().split()[1]
-            go_name = '_'.join(f.readline()[len('name: '):].split())
-            go_id_to_name_dct[go_id.lower()] = go_name
-            f.readline()
-            next = f.readline()
-            while 'alt_id' in next:
-                go_id_to_name_dct[next.split()[1].lower()] = go_name
-                next = f.readline()
-    f.close()
-    # Keys are the GO ids, values are the indices in the edge weight matrix.
-    go_index_dct = {}
-    f = open('./go_hierarchy/noisogoHash.txt', 'r')
-    for line in f:
-        go_id, index = line.split()
-        # Subtract 1 to change to list indices.
-        go_index_dct[int(index) - 1] = go_id_to_name_dct[go_id]
-    f.close()
+    go_index_dct = file_operations.get_go_index_dct()
 
     for mode in ['go', 'no_go']:
-        print 'Extracting cluster data...'
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
-        f = open('./results/clusters_%s_%s.txt' % (mode, run_num), 'r')
-        # Dictionary for clusters with GO. Keys are cluster indexes, values are
-        # the list of genes in those clusters.
-        clst_go_dct = {}
-        for i, line in enumerate(f):
-            if i == 0:
-                continue
-            newline = line.strip().split('\t')
-            gene = newline[1][len('Gene '):]
-            cluster = newline[2][len('Cluster '):]
-            if cluster == '0':
-                continue
-            if cluster in clst_go_dct:
-                clst_go_dct[cluster] += [gene]
-            else:
-                clst_go_dct[cluster] = [gene]
-        f.close()
+        cluster_fname = './results/clusters_%s_%s.txt' % (mode, run_num)
+        clst_go_dct = file_operations.create_cluster_dct(cluster_fname)
 
-        # We then read in the network to figure out how many GO terms went into
-        # the clustering.
-        print 'Extracting network data...'
-        num_genes_net = 0
-        num_gg_net = 0
-        num_ggo_net = 0
-        f = open('./data/network_%s_%s.txt' % (mode, run_num), 'r')
-        edge_list_go = []
-        for i, line in enumerate(f):
-            if i == 0:
-                continue
-            if i == 1:
-                num_genes_net = line.strip()
-                continue
-            # If not first two lines, find out if each edge is G-GO or G-G.
-            node_a, node_b, weight = line.strip().split('\t')
-            if 'ENSMUSG' not in node_a or 'ENSMUSG' not in node_b:
-                num_ggo_net += 1
-            else:
-                num_gg_net += 1
-            edge_list_go += [(node_a, node_b)]
-        f.close()
-        # Divide the two numbers by two to account for each edge in twice.
-        assert(num_ggo_net % 2 == 0)
-        assert(num_ggo_net % 2 == 0)
-        num_ggo_net /= 2
-        num_gg_net /= 2
+        network_fname = './data/network_%s_%s.txt' % (mode, run_num)
+        (num_genes_net, num_gg_net, num_ggo_net,
+            edge_list_go) = file_operations.get_network_stats(network_fname)
 
-        # Get the output files of the Perl script evaluate_clustering.pl and
-        # find the in-density and out-density of each cluster.
-        dens_dct = {}
-        f = open('./results/cluster_eval_%s_%s.txt' % (mode, run_num), 'r')
-        for i, line in enumerate(f):
-            if line[:7] != 'Cluster':
-                continue
-            line = line.split()
-            clus_id, in_density, out_density = line[1], line[7], line[9]
-            dens_dct[clus_id] = (float(in_density), float(out_density))
-        f.close()
+        eval_fname = './results/cluster_eval_%s_%s.txt' % (mode, run_num)
+        dens_dct = file_operations.get_cluster_evaluation_densities(eval_fname)
 
         # Find the best p-value GO enrichments for each cluster.
-        best_enrichment_dct = {}
-        f = open('./results/cluster_enrichment_terms_%s_%s.txt' % (mode, run_num), 'r')
-        while True:
-            line = f.readline()
-            if line == '':
-                break
-            line = line.split()
-            if line[0] == 'Cluster':
-                cid = line[1]
-                # Skip two lines, and read in the top p-value.
-                line = f.readline()
-                line = f.readline().split()
-                best_enrichment_dct[cid] = line[0]
-        f.close()
+        enrichment_fname = './results/cluster_enrichment_terms_%s_%s.txt' % (
+            mode, run_num)
+        best_enrichment_dct = file_operations.get_best_enrichment_dct(
+            enrichment_fname)
 
-        print 'Writing out clustering summary...'
         # Write out to file.
         out = open('./results/clus_info_%s_%s.txt' % (mode, run_num), 'w')
         out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
@@ -127,9 +44,7 @@ if __name__ == '__main__':
             cid = str(i + 1)
             clus = clst_go_dct[cid]
             num_genes = len(clus)
-            num_go = 0
-            num_gg = 0
-            num_ggo = 0
+            num_go, num_gg, num_ggo = 0, 0, 0
             GO_terms = set([])
             for node in clus:
                 if 'ENSMUSG' not in node:
