@@ -44,8 +44,10 @@ def write_out_go_enrichments(fname, cluster_dct):
             neither = len(sampled_genes) - len(go_genes.union(clus_genes))
             # Compute Fisher's exact test.
             f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
-            ft = fisher_test.FishersExactTest(f_table)
-            fisher_dct[go_label] = ft.two_tail_p()
+            p_value = fisher_test.FishersExactTest(f_table).two_tail_p()
+            if p_value == 0:
+                p_value = 1e-300
+            fisher_dct[go_label] = p_value
 
         top_go = sorted(fisher_dct.items(), key=operator.itemgetter(1))
         # Get the log of the top 5 enrichment p-values.
@@ -71,16 +73,15 @@ if __name__ == '__main__':
         exit()
     run_num = sys.argv[1]
 
-    # First, get a clean cluster file.
-    file_operations.create_clean_go_file(run_num)
-
     # Cluster dictionary generation.
     # Compute GO enrichment without GO nodes, so we use cleaned file.
     go_cluster_fname = './results/clusters_go_clean_%s.txt' % run_num
     cluster_go_dct = file_operations.create_cluster_dct(go_cluster_fname)
+    assert len(cluster_go_dct) == 20
 
     no_go_cluster_fname = './results/clusters_no_go_%s.txt' % run_num
     cluster_no_go_dct = file_operations.create_cluster_dct(no_go_cluster_fname)
+    assert len(cluster_no_go_dct) == 20
 
     go_fname = './results/cluster_enrichment_terms_go_%s.txt' % run_num
     go_p_vals, go_top_labels = write_out_go_enrichments(go_fname,

@@ -170,9 +170,9 @@ def get_cluster_evaluation_densities(eval_fname):
 
 # Find the best p-value GO enrichments for each cluster. Returns a dictionary
 # where keys are cluster ID's, and values are the best p-values.
-def get_best_enrichment_dct(encrichment_fname):
+def get_best_enrichment_dct(enrichment_fname):
     best_enrichment_dct = {}
-    f = open(encrichment_fname, 'r')
+    f = open(enrichment_fname, 'r')
     while True:
         line = f.readline()
         if line == '':

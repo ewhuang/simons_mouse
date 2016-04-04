@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import subprocess
 import sys
 
@@ -12,6 +13,9 @@ if __name__ == '__main__':
         print 'Usage:python %s run_num' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
+
+    # First, get a clean cluster file.
+    file_operations.create_clean_go_file(run_num)
 
     for network in ['go', 'no_go']:
 

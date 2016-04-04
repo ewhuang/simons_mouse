@@ -19,6 +19,7 @@ if __name__ == '__main__':
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
         cluster_fname = './results/clusters_%s_%s.txt' % (mode, run_num)
         clst_go_dct = file_operations.create_cluster_dct(cluster_fname)
+        assert len(clst_go_dct) == 20
 
         network_fname = './data/network_%s_%s.txt' % (mode, run_num)
         (num_genes_net, num_gg_net, num_ggo_net,

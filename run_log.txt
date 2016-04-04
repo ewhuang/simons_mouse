@@ -178,7 +178,7 @@ All edge weights = 1.0. Take the 123 GO in common with original GO set. There
 are 144 in total.
 Number of Clusters: 20
 
-_________________________NEW GO EDGE WEIGHTS___________________________________
+________________________NEW GO EDGE WEIGHTS 4/3_________________________________
 Run 22:
 1% of network
 Temperature = 1
@@ -252,6 +252,8 @@ New GO edge weights from Sheng, embedding gg
 lambda = 1.0
 Number of Clusters: 20
 
+STILL RUNNING
+_______________
 Run 30:
 1% of network
 Temperature = 1
