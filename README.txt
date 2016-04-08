@@ -28,8 +28,7 @@ RUNNUM indicates the run number. The characteristics of each run number can be
 found in run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
 real_network_go_RUNNUM.txt.
 
-$ python create_clustering_input.py RUNNUM lambda subgraph_frac pearson/
-    embedding
+$ python create_clustering_input.py RUNNUM
 
 Output format for network_go.txt/network_no_go_RUNNUM.txt:
 0
@@ -54,7 +53,7 @@ Execute clustering code on the created networks.
 
 4. Run the simulated annealing clustering code.
 
-$ python simulated_annealing.py go/no_go temperature num_clusters RUNNUM
+$ python simulated_annealing.py RUNNUM go/no_go
 
 Only run the clustering on networks without GO only once, as it will be the
 same network for any given percentage of the raw network, since we use a random

@@ -12,6 +12,8 @@ if __name__ == '__main__':
         exit()
     run_num = sys.argv[1]
 
+    config_dct = file_operations.read_config_file()[run_num]
+    num_clusters = int(config_dct['num_clusters'])
     # Find the GO terms to GO names.
     go_index_dct = file_operations.get_go_index_dct()
 
@@ -19,7 +21,7 @@ if __name__ == '__main__':
         # We use the "dirty" clusters with GO to analyze gene-GO edges.
         cluster_fname = './results/clusters_%s_%s.txt' % (mode, run_num)
         clst_go_dct = file_operations.create_cluster_dct(cluster_fname)
-        assert len(clst_go_dct) == 20
+        assert len(clst_go_dct) == num_clusters
 
         network_fname = './data/network_%s_%s.txt' % (mode, run_num)
         (num_genes_net, num_gg_net, num_ggo_net,

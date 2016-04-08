@@ -223,3 +223,39 @@ def get_embedding_edge_dct():
         embedding_edge_dct[(gene_a, gene_b)] = weight
     f.close()
     return embedding_edge_dct
+
+# Returns dictionary. Keys are run_num strings, values are dicts of config
+# options. Each dct has key of subgraph_decimal, temp, min_go_size,
+# max_go_size, pearson/embedding edges, lambda, num_clusters.
+def read_config_file():
+    NUM_OPTIONS = 8
+    config_dct = {}
+    f = open('config.txt', 'r')
+    for i, line in enumerate(f):
+        config_num = i % (NUM_OPTIONS + 1)
+        if config_num == 0:
+            run_num = line.split(' ')[1].strip()
+            config_dct[run_num] = {}
+        elif config_num == 1:
+            subgraph_decimal = line.split()[0].strip()
+            config_dct[run_num]['subgraph_decimal'] = subgraph_decimal
+        elif config_num == 2:
+            temp = line.split()[2].strip()
+            config_dct[run_num]['temp'] = temp
+        elif config_num == 3:
+            min_go_size = line.split()[2].strip()
+            config_dct[run_num]['min_go_size'] = min_go_size
+        elif config_num == 4:
+            max_go_size = line.split()[2].strip()
+            config_dct[run_num]['max_go_size'] = max_go_size
+        elif config_num == 5:
+            edge_method = line.strip()
+            config_dct[run_num]['edge_method'] = edge_method
+        elif config_num == 6:
+            lamb = line.split()[2].strip()
+            config_dct[run_num]['lamb'] = lamb
+        elif config_num == 7:
+            num_clusters = line.split()[1].strip()
+            config_dct[run_num]['num_clusters'] = num_clusters
+    f.close()
+    return config_dct

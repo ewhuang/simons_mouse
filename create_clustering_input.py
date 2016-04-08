@@ -100,20 +100,22 @@ def write_go_files(run_num, lamb, max_go_size, num_genes, go_dct, edge_dct,
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 5:
-        print 'Usage:python %s run_num lambda subgraph_frac pearson/embedding' % sys.argv[0]
+    if len(sys.argv) != 2:
+        print 'Usage:python %s run_num' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
-    lamb = float(sys.argv[2])
-    subgraph_frac = float(sys.argv[3]) # Fraction of graph to randomly sample.
-    edge_method = sys.argv[4]
+
+    config_dct = file_operations.read_config_file()[run_num]
+    lamb = float(config_dct['lamb'])
+    subgraph_decimal = float(config_dct['subgraph_decimal'])
+    edge_method = config_dct['edge_method']
     assert edge_method in ['pearson', 'embedding']
 
     # Keys are pairs of genes, values are the edge weights.
     edge_dct = file_operations.get_raw_edge_dct()
 
     # Sample the fraction subgraph.
-    num_samp_edges = int(math.ceil(subgraph_frac * len(edge_dct)))
+    num_samp_edges = int(math.ceil(subgraph_decimal * len(edge_dct)))
     # We seed so that networks of the same percentage of raw network will have
     # the same non-GO edges.
     random.seed(5191993)

@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import subprocess
 import sys
 
@@ -29,16 +30,20 @@ if __name__ == '__main__':
     # subprocess.call(command, shell=True)
     # subprocess.call('rm log', shell=True)
 
-    if len(sys.argv) != 5:
-        print 'Usage:python %s go/no_go temp num_clusters run_num' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage:python %s run_num go/no_go' % sys.argv[0]
         exit()
 
-    network, temp, num_clusters, run_num = sys.argv[1:]
+    run_num, network = sys.argv[1:]
+    config_dct = file_operations.read_config_file()[run_num]
+    temp = config_dct['temp']
+    num_clusters = config_dct['num_clusters']
+
     command = './sim_anneal/bin/cs-grn %s 1 0 ' % num_clusters
     command += './data/orth.txt 1 '
     assert (network in ['go', 'no_go'])
     command += './data/network_%s_%s.txt ' % (network, run_num)
-    command += '-t 1 2> log > '
+    command += '-t %s 2> log > ' % temp
     command += './results/clusters_%s_%s.txt' % (network, run_num)
 
     print command

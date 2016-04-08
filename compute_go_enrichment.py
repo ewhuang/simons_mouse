@@ -1,13 +1,10 @@
 ### Author: Edward Huang
 
-# from scipy.stats import fisher_exact
 import file_operations
 import fisher_test
 import math
 import operator
 import sys
-# import matplotlib.pyplot as plt
-# import numpy
 
 ### This script calculates the GO enrichment score for each clustering
 ### result. For each method, for every cluster, for every possible GO
@@ -68,20 +65,23 @@ def write_out_go_enrichments(fname, cluster_dct):
     return go_p_vals, go_top_labels
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2 and len(sys.argv) != 3:
-        print 'Usage:python %s run_num predicted?' % sys.argv[0]
+    if len(sys.argv) != 2:
+        print 'Usage:python %s run_num' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
+
+    config_dct = file_operations.read_config_file()[run_num]
+    num_clusters = int(config_dct['num_clusters'])
 
     # Cluster dictionary generation.
     # Compute GO enrichment without GO nodes, so we use cleaned file.
     go_cluster_fname = './results/clusters_go_clean_%s.txt' % run_num
     cluster_go_dct = file_operations.create_cluster_dct(go_cluster_fname)
-    assert len(cluster_go_dct) == 20
+    assert len(cluster_go_dct) == num_clusters
 
     no_go_cluster_fname = './results/clusters_no_go_%s.txt' % run_num
     cluster_no_go_dct = file_operations.create_cluster_dct(no_go_cluster_fname)
-    assert len(cluster_no_go_dct) == 20
+    assert len(cluster_no_go_dct) == num_clusters
 
     go_fname = './results/cluster_enrichment_terms_go_%s.txt' % run_num
     go_p_vals, go_top_labels = write_out_go_enrichments(go_fname,
