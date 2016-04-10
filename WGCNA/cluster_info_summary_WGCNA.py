@@ -9,7 +9,7 @@ if __name__ == '__main__':
     # Find the GO terms to GO names.
     # Retrieved data from http://geneontology.org/page/download-annotations
     go_id_to_name_dct = {}
-    f = open('./go_hierarchy/go_to_name.txt', 'r')
+    f = open('../go_edge_prediction/prediction_data/go_to_name.txt', 'r')
     while True:
         line = f.readline()
         if line == '':
@@ -26,7 +26,7 @@ if __name__ == '__main__':
     f.close()
     # Keys are the GO ids, values are the indices in the edge weight matrix.
     go_index_dct = {}
-    f = open('./go_hierarchy/noisogoHash.txt', 'r')
+    f = open('../go_edge_prediction/prediction_data/noisogoHash.txt', 'r')
     for line in f:
         go_id, index = line.split()
         # Subtract 1 to change to list indices.
@@ -35,7 +35,7 @@ if __name__ == '__main__':
 
     print 'Extracting cluster data...'
     # We use the "dirty" clusters with GO to analyze gene-GO edges.
-    f = open('./results/WGCNA_results/WGCNA_clusters_all_genes.txt', 'r')
+    f = open('../results/WGCNA_results/WGCNA_clusters_all_genes.txt', 'r')
     # Dictionary for clusters with GO. Keys are cluster indexes, values are
     # the list of genes in those clusters.
     clst_go_dct = {}
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     num_genes_net = 0
     num_gg_net = 0
     num_ggo_net = 0
-    f = open('./data/network_no_go_20.txt', 'r')
+    f = open('../data/network_no_go_20.txt', 'r')
     edge_list_go = []
     for i, line in enumerate(f):
         if i == 0:
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # Get the output files of the Perl script evaluate_clustering.pl and
     # find the in-density and out-density of each cluster.
     dens_dct = {}
-    f = open('./results/WGCNA_results/WGCNA_cluster_eval.txt', 'r')
+    f = open('../results/WGCNA_results/WGCNA_cluster_eval.txt', 'r')
     for i, line in enumerate(f):
         if line[:7] != 'Cluster':
             continue
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     # Find the best p-value GO enrichments for each cluster.
     best_enrichment_dct = {}
-    f = open('./results/WGCNA_results/cluster_enrichment_terms_wgcna.txt', 'r')
+    f = open('../results/WGCNA_results/cluster_enrichment_terms_wgcna.txt', 'r')
     while True:
         line = f.readline()
         if line == '':
@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     print 'Writing out clustering summary...'
     # Write out to file.
-    out = open('./results/WGCNA_results/clus_info_WGCNA.txt', 'w')
+    out = open('../results/WGCNA_results/clus_info_WGCNA.txt', 'w')
     out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
     out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
     out.write('cluster_number\tin_dens\tout_dens\tin/(in+out)\t')

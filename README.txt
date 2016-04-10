@@ -183,8 +183,7 @@ Outputs to ./results/WGCNA_results/
 
 To evaluate, we must use a real network from some old network we created.
 
-$ perl evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt >
-./results/WGCNA_results/WGCNA_cluster_eval.txt
+$ perl ./sim_anneal/evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt > ./results/WGCNA_results/WGCNA_cluster_eval.txt
 
 To plot comparisons of p-values between network without GO and WGCNA:
 
