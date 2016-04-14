@@ -18,6 +18,10 @@ The edges are not repeated.
 $ cd go_edge_prediction
 $ python make_gene_go_file.py.
 
+1.6 Plot the standard deviation distribution of the genes involved in both GO
+annotations and PPI networks.
+$ python standard_deviation_hist.py
+
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 2. After generating the gene-gene edges, we create files that will be sent
 to the simulated annealing code. Creates 4 files overall, a network and real
@@ -161,9 +165,10 @@ Creates the bottom left and top right blocks of the matrix, or the gene-GO
 edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
 on the index from Sheng's data.
 
-3. $ python embedding_sampled_network.py
-Outputs a new network, ./data/embedding_network.txt, which contains edges
-between genes with weights computed by embedding.
+3. $ python embedding_sampled_network.py sampled/full
+Outputs a new network, ./data/embedding_sampled_network.txt, which contains
+edges between genes with weights computed by embedding with the sampled edges.
+We can use keyword full to generate the full network.
 
 ___________________________________WGCNA________________________________________
 Simply run wgcna.R to cluster on the raw data.

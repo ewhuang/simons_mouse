@@ -6,6 +6,21 @@ import math
 ### This file contains functions that parse the data files and return the 
 ### data objects that we work with in our scripts.
 
+# Returns dictionary where keys are genes, and values are gene expression
+# vectors.
+def get_gene_expression_dct():
+    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
+    gene_exp_dct = OrderedDict({})
+    for i, line in enumerate(f):
+        if i == 0:
+            continue
+        line = line.split()
+        gene, exp_vals = line[0], line[1:]
+        exp_vals = [float(val) for val in exp_vals]
+        gene_exp_dct[gene] = exp_vals
+    f.close()
+    return gene_exp_dct
+
 # Return the ful gene-gene weight matrix in the form of a dictionary.
 def get_raw_edge_dct():
     raw_edge_dct = {}
@@ -215,9 +230,11 @@ def get_network_stats(network_fname):
     num_gg_net /= 2
     return num_genes_net, num_gg_net, num_ggo_net, edge_list_go
 
-def get_embedding_edge_dct():
+# Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
+def get_embedding_edge_dct(keyword):
+    assert keyword in ['full', 'sampled']
     embedding_edge_dct = {}
-    f = open('./data/embedding_network.txt', 'r')
+    f = open('./data/embedding_%s_network.txt' % keyword, 'r')
     for line in f:
         gene_a, gene_b, weight = line.split()
         embedding_edge_dct[(gene_a, gene_b)] = weight

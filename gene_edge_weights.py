@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 from collections import OrderedDict
 import math
 
@@ -35,16 +36,7 @@ def pearsonr(x, y):
 if __name__ == '__main__':
     # Read in the tsv file.
     print 'Reading in raw data...'
-    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
-    gene_exp_dct = OrderedDict({})
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        line = line.split()
-        gene, exp_vals = line[0], line[1:]
-        exp_vals = [float(val) for val in exp_vals]
-        gene_exp_dct[gene] = exp_vals
-    f.close()
+    gene_exp_dct = file_operations.get_gene_expression_dct()
 
     # Calculate the correlations between each pair of genes.
     print 'Computing Pearson correlation coefficients...'
