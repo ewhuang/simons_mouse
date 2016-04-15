@@ -21,6 +21,10 @@ $ python make_gene_go_file.py.
 1.6 Plot the standard deviation distribution of the genes involved in both GO
 annotations and PPI networks.
 $ python standard_deviation_hist.py
+Also writes out the genes that we should keep, in
+./data/ppi_and_go_genes_high_std.txt.
+These are the genes in PPI-enriched network, GO annotated genes, with a
+standard deviation of gene expression greater than 0.1
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 2. After generating the gene-gene edges, we create files that will be sent

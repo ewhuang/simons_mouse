@@ -12,12 +12,12 @@ import numpy as np
 THRESHOLD_MULT = 0.8
 
 if __name__ == '__main__':
-    for mode in ['wgcna', 'no_go']:
+    for mode in ['wgcna', 'simulated annealing']:
         pts = []
         if mode == 'wgcna':
             f = open('./results/WGCNA_results/clus_info_WGCNA.txt', 'r')
         else:
-            f = open('./results/clus_info_no_go_20.txt', 'r')            
+            f = open('./results/clus_info_no_go_40.txt', 'r')            
         for i, line in enumerate(f):
             if i < 3:
                 continue
@@ -33,11 +33,11 @@ if __name__ == '__main__':
             plt.scatter(*zip(*pts), color='r', label=mode)
         else:
             plt.scatter(*zip(*pts), color='k', label=mode)
-            med_in_dens = np.median([pt[1] for pt in pts]) * THRESHOLD_MULT
-            plt.axhline(med_in_dens)
+            # med_in_dens = np.median([pt[1] for pt in pts]) * THRESHOLD_MULT
+            # plt.axhline(med_in_dens)
 
 
-    plt.title('Cluster in-densities vs. Best enrichment p-values, WGCNA')
+    plt.title('WGCNA and Simulated Annealing')
     plt.xlabel('negative log of lowest GO enrichment p-value')
     plt.ylabel('in-density')
     plt.legend(loc='upper right')

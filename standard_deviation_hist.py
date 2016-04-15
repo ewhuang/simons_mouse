@@ -2,6 +2,8 @@
 
 import file_operations
 import math
+import matplotlib.pyplot as plt
+import numpy
 import time
 
 ### This script plots a histogram of the number of genes vs. standard deviation
@@ -49,9 +51,42 @@ def main():
         ppi_and_go_genes += [gene]
     f.close()
 
+    # Compute standard deviations for each gene
+    std_list = []
+    flat_gene = []
+    high_std_genes = []
     gene_exp_dct = file_operations.get_gene_expression_dct()
     for gene in gene_exp_dct:
-        print std(gene_exp_dct[gene])
+        # gene_std = -math.log(std(gene_exp_dct[gene]), 10)
+        gene_exp_vector = gene_exp_dct[gene]
+        # Transform back to non-log.
+        gene_exp_vector = [pow(2, val) for val in gene_exp_vector]
+        gene_std = std(gene_exp_vector)
+        if gene_std < 4.5e-15:
+            if flat_gene == []:
+                flat_gene = gene_exp_vector
+            else:
+                assert flat_gene == gene_exp_vector
+            continue
+        elif gene_std > 0.1:
+            high_std_genes += [gene]
+        std_list += [gene_std]
+
+    # Writing out genes with high standard deviation.
+    out = open('./data/ppi_and_go_genes_high_std.txt', 'w')
+    for gene in high_std_genes:
+        if gene in ppi_and_go_genes:
+            out.write(gene + '\n')
+    out.close()
+
+    # Plotting GO enrichment histograms.
+    bins = numpy.linspace(0, 5, 50)
+    plt.hist(std_list, bins, alpha=0.5, label='GO')
+
+    plt.xlabel('standard deviation')
+    plt.ylabel('number of genes')
+    plt.title('Number of genes for each standard deviation, 90 samples')
+    plt.show()
 
 if __name__ == '__main__':
     start_time = time.time()
