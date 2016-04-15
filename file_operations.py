@@ -241,6 +241,14 @@ def get_embedding_edge_dct(keyword):
     f.close()
     return embedding_edge_dct
 
+def get_ppi_go_high_std_genes():
+    ppi_and_go_genes_high_std = []
+    f = open('./data/ppi_and_go_genes_high_std.txt', 'r')
+    for line in f:
+        ppi_and_go_genes_high_std += [line.strip()]
+    f.close()
+    return ppi_and_go_genes_high_std
+
 # Returns dictionary. Keys are run_num strings, values are dicts of config
 # options. Each dct has key of subgraph_decimal, temp, min_go_size,
 # max_go_size, pearson/embedding edges, lambda, num_clusters.
