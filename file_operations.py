@@ -41,12 +41,16 @@ def map_genes_to_indices(genes):
 # This function returns a dictionary, with keys as the names of GO annotations
 # and values as lists of genes annotated by the keys.
 def get_go_labels(gene_set):
+    high_std_genes = get_ppi_go_high_std_genes()
+    genes_to_indices = map_genes_to_indices(high_std_genes)
+
     go_dct = OrderedDict({})
     f = open('./data/go_edges.txt', 'r')
     for line in f:
         gene, go_label = line.split()
         if gene not in gene_set:
             continue
+        gene = genes_to_indices[gene]
         if go_label not in go_dct:
             go_dct[go_label] = [gene]
         else:
@@ -148,7 +152,7 @@ def get_gene_index_dct():
     return gene_index_dct
 
 # Map GO indices to their English names.
-def get_go_index_dct():
+def get_go_id_to_name_dct():
     go_id_to_name_dct = {}
     f = open('./go_edge_prediction/prediction_data/go_to_name.txt', 'r')
     while True:
@@ -165,7 +169,23 @@ def get_go_index_dct():
                 go_id_to_name_dct[next.split()[1].lower()] = go_name
                 next = f.readline()
     f.close()
+    return go_id_to_name_dct
 
+def chunkify_go_terms():
+    go_id_to_name_dct = get_go_id_to_name_dct()
+
+    # Three chunks: biological process, cellular component, molecular function
+    go_chunks = [[], [], []]
+    f = open('./data/GO.namespace', 'r')
+    for line in f:
+        go_id, category = line.split()
+        category = int(category) - 1
+        go_chunks[category] += [go_id_to_name_dct(go_id)]
+    f.close()
+    return go_chunks
+
+def get_go_index_dct():
+    go_id_to_name_dct = get_go_id_to_name_dct()
     # Keys are the GO ids, values are the indices in the edge weight matrix.
     go_index_dct = {}
     f = open('./go_edge_prediction/prediction_data/noisogoHash.txt', 'r')

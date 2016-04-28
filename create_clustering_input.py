@@ -1,8 +1,8 @@
 ### Author: Edward Huang
 
 import file_operations
-import random
 import math
+import operator
 import sys
 import time
 
@@ -18,11 +18,6 @@ import time
 
 MIN_GO_SIZE = 10 # Minimum number of genes in a GO term to consider that term.
 MAX_GO_SIZE = 1000
-NUM_FOLDS = 3
-
-# Separates a list into n chunks.
-def chunkify(lst, n):
-    return [ lst[i::n] for i in xrange(n) ]
 
 # Return the set of genes from a set of edges.
 def get_genes_from_edges(edges):
@@ -46,32 +41,31 @@ def find_max_go_size(go_dct, go_terms):
     return max_go_size
 
 # Writes the networks without GO.
-def write_no_go_files(run_num, num_genes, edges, edge_dct):
+def write_no_go_files(run_num, num_genes, edges):
     no_go_out = open('./data/network_no_go_%s.txt' % (run_num), 'w')
     no_go_out.write('0\n%d\n' % num_genes)
     # Real network file for cluster evaluation.
     ng_real = open('./data/real_network_no_go_%s.txt' % (run_num), 'w')
     ng_real.write('Real network\n')
     for gene_a, gene_b in edges:
-        weight = edge_dct[(gene_a, gene_b)]
         # Write in each edge twice to make it undirected.
-        no_go_out.write('%s\t%s\t%s\n' % (gene_a, gene_b, weight))
-        no_go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, weight))
-        ng_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, weight))
-        ng_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, weight))
+        no_go_out.write('%s\t%s\t1\n' % (gene_a, gene_b))
+        no_go_out.write('%s\t%s\t1\n' % (gene_b, gene_a))
+        ng_real.write('0\t%s\t%s\t1\n' % (gene_a, gene_b))
+        ng_real.write('0\t%s\t%s\t1\n' % (gene_b, gene_a))
     no_go_out.close()
     ng_real.close()
 
 # Compute the GO weight.
-def compute_go_weight(lamb, max_go_size, go_genes):
-    return lamb * math.log(max_go_size / float(len(go_genes)))
+def compute_go_weight(lamb, max_go_size, num_go_genes):
+    return lamb * math.log(max_go_size / float(num_go_genes))
 
 # Writes the networks with GO.
-def write_go_files(run_num, num_genes, edges, edge_dct, go_dct, lamb):
-    # 3-fold clustering.
-    go_term_chunks = chunkify(go_dct.keys(), NUM_FOLDS)
-    for chunk_index in range(NUM_FOLDS):
-        current_go_terms = go_term_chunks[chunk_index]
+def write_go_files(run_num, num_genes, edges, go_dct, lamb):
+    # 3-fold clustering. Each sub-list contains GO terms.
+    go_term_chunks = file_operations.chunkify_go_terms()
+
+    for chunk_index, current_go_terms in enumerate(go_term_chunks):
         # Find the size of the largest GO term.
         max_go_size = find_max_go_size(go_dct, current_go_terms)
 
@@ -98,22 +92,21 @@ def write_go_files(run_num, num_genes, edges, edge_dct, go_dct, lamb):
             if num_go_genes < MIN_GO_SIZE or num_go_genes > MAX_GO_SIZE:
                 continue
             # Here we penalize GO terms that have many genes.
-            go_weight = compute_go_weight(lamb, max_go_size, go_genes)
+            go_weight = compute_go_weight(lamb, max_go_size, num_go_genes)
             if go_weight == 0.0:
                 continue
             for gene in go_genes:
-                go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
-                go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
-                g_real.write('0\t%s\t%s\t%f\n' % (gene, go, go_weight))
-                g_real.write('0\t%s\t%s\t%f\n' % (go, gene, go_weight))
+                go_out.write('%s\t%s\t%.3f\n' % (gene, go, go_weight))
+                go_out.write('%s\t%s\t%.3f\n' % (go, gene, go_weight))
+                g_real.write('0\t%s\t%s\t%.3f\n' % (gene, go, go_weight))
+                g_real.write('0\t%s\t%s\t%.3f\n' % (go, gene, go_weight))
         # Now write all of the gene-gene edges.
         for gene_a, gene_b in edges:
-            weight = edge_dct[(gene_a, gene_b)]
             # Write in each edge twice to make it undirected.
-            go_out.write('%s\t%s\t%s\n' % (gene_a, gene_b, weight))
-            go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, weight))
-            g_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, weight))
-            g_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, weight))
+            go_out.write('%s\t%s\t1\n' % (gene_a, gene_b))
+            go_out.write('%s\t%s\t1\n' % (gene_b, gene_a))
+            g_real.write('0\t%s\t%s\t1\n' % (gene_a, gene_b))
+            g_real.write('0\t%s\t%s\t1\n' % (gene_b, gene_a))
         go_out.close()
         g_real.close()
 
@@ -133,36 +126,33 @@ def main():
     # Right now, only looking at genes with high standard deviation.
     edge_dct = file_operations.get_raw_edge_dct()
 
-    # print 'not sampling subgraph...'
-    # Sample the fraction subgraph.
-    num_samp_edges = int(math.ceil(subgraph_decimal * len(edge_dct)))
-    # We seed so that networks of the same percentage of raw network will have
-    # the same non-GO edges.
-    random.seed(5191993)
-    sampled_edges = random.sample(edge_dct.keys(), num_samp_edges)
-    # edges = edge_dct.keys()
+    # Calculate how many edges to keep.
+    num_edges = int(math.ceil(subgraph_decimal * len(edge_dct)))
 
-    # # Keeps track of all the unique genes in the network.
-    sampled_genes = get_genes_from_edges(sampled_edges)
-    # genes = get_genes_from_edges(edges)
+    ### THIS IS WHERE YOU LEFT OFF.
+
+    # Keep the top num_edges weights from the edge_dictionary, first sort.
+    top_edges = sorted(edge_dct.items(), key=operator.itemgetter(1),
+        reverse=True)[:num_edges]
+    edges = [edge for (edge, weight) in top_edges]
+
+    # Keeps track of all the unique genes in the network.
+    genes = get_genes_from_edges(edges)
 
     # First count how many sampled nodes there are.
-    num_genes = len(sampled_genes)
-    # num_genes = len(genes)
+    num_genes = len(genes)
 
     if edge_method == 'embedding':
         edge_dct = file_operations.get_embedding_edge_dct()
 
     # Write networks without GO.
-    write_no_go_files(run_num, num_genes, sampled_edges, edge_dct)
-    # write_no_go_files(run_num, num_genes, edges, edge_dct)
+    write_no_go_files(run_num, num_genes, edges)
 
     # Get the GO labels.
-    go_dct = file_operations.get_go_labels(sampled_genes)
-    # go_dct = file_operations.get_go_labels(genes)
+    go_dct = file_operations.get_go_labels(genes)
 
-    write_go_files(run_num, num_genes, sampled_edges, edge_dct, go_dct, lamb)
-    # write_go_files(run_num, num_genes, edges, edge_dct, go_dct, lamb)
+    # write_go_files(run_num, num_genes, sampled_edges, edge_dct, go_dct, lamb)
+    write_go_files(run_num, num_genes, edges, go_dct, lamb)
 
 if __name__ == '__main__':
     start_time = time.time()
