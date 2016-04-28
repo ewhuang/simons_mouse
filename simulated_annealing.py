@@ -42,9 +42,18 @@ if __name__ == '__main__':
     command = './sim_anneal/bin/cs-grn %s 1 0 ' % num_clusters
     command += './data/orth.txt 1 '
     assert (network in ['go', 'no_go'])
-    command += './data/network_%s_%s.txt ' % (network, run_num)
-    command += '-t %s 2> log > ' % temp
-    command += './results/clusters_%s_%s.txt' % (network, run_num)
+    if network == 'no_go':
+        command += './data/network_%s_%s.txt ' % (network, run_num)
+        command += '-t %s 2> log > ' % temp
+        command += './results/clusters_%s_%s.txt' % (network, run_num)
 
-    print command
-    subprocess.call(command, shell=True)
+        print command
+        subprocess.call(command, shell=True)
+    else:
+        for i in range(3):
+            command += './data/network_%s_%s_%d.txt ' % (network, run_num, i)
+            command += '-t %s 2> log > ' % temp
+            command += './results/clusters_%s_%s_%d.txt' % (network, run_num, i)
+
+            print command
+            subprocess.call(command, shell=True)

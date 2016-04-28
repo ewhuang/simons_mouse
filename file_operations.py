@@ -34,7 +34,7 @@ def get_raw_edge_dct():
 # This function returns a dictionary, with keys as the names of GO annotations
 # and values as lists of genes annotated by the keys.
 def get_go_labels(gene_set):
-    go_dct = {}
+    go_dct = OrderedDict({})
     f = open('./data/go_edges.txt', 'r')
     for line in f:
         gene, go_label = line.split()

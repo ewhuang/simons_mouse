@@ -14,13 +14,11 @@ if __name__ == '__main__':
         exit()
     run_num = sys.argv[1]
 
-    # First, get a clean cluster file.
-    file_operations.create_clean_go_file(run_num)
-
     for network in ['go', 'no_go']:
-
         command = 'perl ./sim_anneal/evaluate_clustering.pl '
         if network == 'go':
+            # First, get a clean cluster file.
+            file_operations.create_clean_go_file(run_num)
             command += './results/clusters_%s_clean_%s.txt ' % (network, run_num)
         else:
             command += './results/clusters_%s_%s.txt ' % (network, run_num)
