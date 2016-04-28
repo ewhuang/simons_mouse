@@ -15,6 +15,7 @@ def main():
     # Read in the tsv file.
     gene_exp_dct = file_operations.get_gene_expression_dct()
     genes = file_operations.get_ppi_go_high_std_genes()
+    genes_to_indices = file_operations.map_genes_to_indices(genes)
 
     # Calculate the correlations between each pair of genes.
     out = open('./data/raw_network.txt', 'w')
@@ -28,8 +29,8 @@ def main():
             pcc, p_value = pearsonr(exp_a, exp_b)
             # Ignore genes that have PCC = 1 for the raw network.
             if p_value < 0.005 and pcc < 1.0:
-                pcc = str(abs(pcc))
-                out.write('%s\t%s\t%s\n' % (gene_a, gene_b, pcc))
+                out.write('%d\t%d\t%f\n' % (genes_to_indices[gene_a],
+                    genes_to_indices[gene_b], abs(pcc)))
     out.close()
 
 if __name__ == '__main__':

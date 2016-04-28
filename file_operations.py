@@ -31,6 +31,13 @@ def get_raw_edge_dct():
     f.close()
     return raw_edge_dct
 
+# Map genes to indices.
+def map_genes_to_indices(genes):
+    genes_to_indices = {}
+    for index, gene in enumerate(genes):
+        genes_to_indices[gene] = index
+    return genes_to_indices
+
 # This function returns a dictionary, with keys as the names of GO annotations
 # and values as lists of genes annotated by the keys.
 def get_go_labels(gene_set):
