@@ -368,7 +368,7 @@ lambda = 1.5
 Clusters 40
 
 Run 42
-0.01 of genes, 3-fold
+all edges
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
@@ -377,7 +377,7 @@ lambda = 0.5
 Clusters 40
 
 Run 43
-0.01 of genes, 3-fold
+all edges
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
@@ -386,7 +386,7 @@ lambda = 0.75
 Clusters 40
 
 Run 44
-0.01 of genes, 3-fold
+all edges
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
@@ -395,7 +395,7 @@ lambda = 1.0
 Clusters 40
 
 Run 45
-0.01 of genes, 3-fold
+all edges
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
@@ -404,7 +404,7 @@ lambda = 1.25
 Clusters 40
 
 Run 46
-0.01 of genes, 3-fold
+all edges
 Temperature = 1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000

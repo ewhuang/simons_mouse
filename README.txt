@@ -1,7 +1,22 @@
 Author: Edward Huang
+Simons Foundation Mouse Project
 
 ___________________________CREATING THE RAW NETWORK_____________________________
-1. First, create the edges from the raw data. Compute pearson coefficients
+1.0 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
+
+$ python make_gene_go_file.py.
+
+1.1 Plot the standard deviation distribution of the genes involved in both GO
+annotations and PPI networks.
+
+$ python standard_deviation_hist.py
+
+Also writes out the genes that we should keep, in
+./data/ppi_and_go_genes_high_std.txt.
+These are the genes in PPI-enriched network, GO annotated genes, with a
+standard deviation of gene expression greater than 0.1.
+
+1.2 First, create the edges from the raw data. Compute pearson coefficients
 between gene expression values to find correlated genes. We can specify a
 parameter, pearson_threshold, which determines the cutoff coefficient for
 an edge to exist. Output file is raw_network.txt. The second output file,
@@ -13,18 +28,6 @@ $ python gene_edge_weights.py
 Output format:
 gene_a  gene_b  edge_weight
 The edges are not repeated.
-
-1.5 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
-$ cd go_edge_prediction
-$ python make_gene_go_file.py.
-
-1.6 Plot the standard deviation distribution of the genes involved in both GO
-annotations and PPI networks.
-$ python standard_deviation_hist.py
-Also writes out the genes that we should keep, in
-./data/ppi_and_go_genes_high_std.txt.
-These are the genes in PPI-enriched network, GO annotated genes, with a
-standard deviation of gene expression greater than 0.1
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 2. After generating the gene-gene edges, we create files that will be sent
@@ -147,7 +150,7 @@ $ python parse_GO_weight_predictions.py
 
 Creates an output file, predicted_go_edge_weights.txt, where each newline is
 a gene and a GO edge, same format as go_edges.txt. However, the GO terms are the
-indices in Moues_final_Score_matrix.txt, not the actual GO name.
+indices in Mouse_final_Score_matrix.txt, not the actual GO name.
 Specify the number of edges to keep with the variable NUM_TOP_WEIGHTS.
 
 3.
@@ -169,10 +172,9 @@ Creates the bottom left and top right blocks of the matrix, or the gene-GO
 edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
 on the index from Sheng's data.
 
-3. $ python embedding_sampled_network.py sampled/full
-Outputs a new network, ./data/embedding_sampled_network.txt, which contains
-edges between genes with weights computed by embedding with the sampled edges.
-We can use keyword full to generate the full network.
+3. $ python convert_embedding_matrix_to_edge_file.py
+Outputs a new network, ./data/embedding_edges.txt, which contains
+edges between genes with weights computed by embedding.
 
 ___________________________________WGCNA________________________________________
 Simply run wgcna.R to cluster on the raw data.

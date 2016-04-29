@@ -14,10 +14,15 @@ import time
 ### gene_b gene_a weight
 ### Each edge twice. SPECIES_INDEX should just be 0 for single species.
 ### We can sample a subgraph to speed up clustering.
-### Run time: 18 minutes.
+### Run time: 11 minutes.
 
 MIN_GO_SIZE = 10 # Minimum number of genes in a GO term to consider that term.
-MAX_GO_SIZE = 1000
+MAX_GO_SIZE = 500
+
+# Get the GO ID to name mappings.
+go_id_to_name_dct = file_operations.get_go_id_to_name_dct()
+# Swap keys and values.
+go_name_to_id_dct = dict((v,k) for k,v in go_id_to_name_dct.iteritems())
 
 # Return the set of genes from a set of edges.
 def get_genes_from_edges(edges):
@@ -63,9 +68,11 @@ def compute_go_weight(lamb, max_go_size, num_go_genes):
 # Writes the networks with GO.
 def write_go_files(run_num, num_genes, edges, go_dct, lamb):
     # 3-fold clustering. Each sub-list contains GO terms.
-    go_term_chunks = file_operations.chunkify_go_terms()
+    for chunk_index in range(3):
+        current_go_terms = file_operations.chunkify_go_terms(go_dct.keys())
+        current_go_terms.pop(chunk_index)
+        current_go_terms = current_go_terms[0] + current_go_terms[1]
 
-    for chunk_index, current_go_terms in enumerate(go_term_chunks):
         # Find the size of the largest GO term.
         max_go_size = find_max_go_size(go_dct, current_go_terms)
 
@@ -91,10 +98,12 @@ def write_go_files(run_num, num_genes, edges, go_dct, lamb):
             num_go_genes = len(go_genes)
             if num_go_genes < MIN_GO_SIZE or num_go_genes > MAX_GO_SIZE:
                 continue
-            # Here we penalize GO terms that have many genes.
+            # Here, we penalize GO terms that have many genes.
             go_weight = compute_go_weight(lamb, max_go_size, num_go_genes)
-            if go_weight == 0.0:
-                continue
+            # Set all GO weights below 0.5 to 0.5.
+            if go_weight < 0.5:
+                go_weight = 0.5
+            go = go_name_to_id_dct[go]
             for gene in go_genes:
                 go_out.write('%s\t%s\t%.3f\n' % (gene, go, go_weight))
                 go_out.write('%s\t%s\t%.3f\n' % (go, gene, go_weight))
@@ -110,48 +119,37 @@ def write_go_files(run_num, num_genes, edges, go_dct, lamb):
         go_out.close()
         g_real.close()
 
-def main():
+def main():    
     if len(sys.argv) != 2:
         print 'Usage:python %s run_num' % sys.argv[0]
         exit()
     run_num = sys.argv[1]
 
+    # Extracting configuration options.
     config_dct = file_operations.read_config_file()[run_num]
     lamb = float(config_dct['lamb'])
-    subgraph_decimal = float(config_dct['subgraph_decimal'])
+    # subgraph_decimal = float(config_dct['subgraph_decimal'])
     edge_method = config_dct['edge_method']
     assert edge_method in ['pearson', 'embedding']
 
-    # Keys are pairs of genes, values are the edge weights.
     # Right now, only looking at genes with high standard deviation.
-    edge_dct = file_operations.get_raw_edge_dct()
-
-    # Calculate how many edges to keep.
-    num_edges = int(math.ceil(subgraph_decimal * len(edge_dct)))
-
-    ### THIS IS WHERE YOU LEFT OFF.
-
-    # Keep the top num_edges weights from the edge_dictionary, first sort.
-    top_edges = sorted(edge_dct.items(), key=operator.itemgetter(1),
-        reverse=True)[:num_edges]
-    edges = [edge for (edge, weight) in top_edges]
+    edges = file_operations.get_high_std_edge_dct().keys()
 
     # Keeps track of all the unique genes in the network.
     genes = get_genes_from_edges(edges)
 
     # First count how many sampled nodes there are.
     num_genes = len(genes)
+    # Get the GO labels.
+    go_dct = file_operations.get_go_labels(genes)
+    # Clear genes.
+    del(genes)
 
-    if edge_method == 'embedding':
-        edge_dct = file_operations.get_embedding_edge_dct()
+    # if edge_method == 'embedding':
+    #     edge_dct = file_operations.get_embedding_edge_dct()
 
     # Write networks without GO.
     write_no_go_files(run_num, num_genes, edges)
-
-    # Get the GO labels.
-    go_dct = file_operations.get_go_labels(genes)
-
-    # write_go_files(run_num, num_genes, sampled_edges, edge_dct, go_dct, lamb)
     write_go_files(run_num, num_genes, edges, go_dct, lamb)
 
 if __name__ == '__main__':

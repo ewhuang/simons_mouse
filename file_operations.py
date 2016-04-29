@@ -21,36 +21,51 @@ def get_gene_expression_dct():
     f.close()
     return gene_exp_dct
 
-# Return the ful gene-gene weight matrix in the form of a dictionary.
-def get_raw_edge_dct():
-    raw_edge_dct = {}
-    f = open('./data/raw_network.txt', 'r')
-    for line in f:
+# create_clustering_input.py
+def get_high_std_edge_dct():
+    '''
+    Returns a dictionary of genes with high standard deviation. The keys are
+    pairs of genes, and the values are the Pearson correlation weights between
+    them.
+    '''
+    edge_dct = {}
+    f = open('./data/high_std_network.txt', 'r')
+    for i, line in enumerate(f):
         gene_a, gene_b, pcc = line.split()
-        raw_edge_dct[(gene_a, gene_b)] = pcc
+        edge_dct[(gene_a, gene_b)] = pcc
     f.close()
-    return raw_edge_dct
+    return edge_dct
 
-# Map genes to indices.
-def map_genes_to_indices(genes):
-    genes_to_indices = {}
+# gene_edge_weights.py
+def get_gene_to_index_dct(genes):
+    '''
+    Takes a list of genes, and returns a dictionary where keys are the genes,
+    and the values are their corresponding indices in the lists.
+    '''
+    gene_to_index_dct = {}
     for index, gene in enumerate(genes):
-        genes_to_indices[gene] = index
-    return genes_to_indices
+        gene_to_index_dct[gene] = str(index)
+    return gene_to_index_dct
 
 # This function returns a dictionary, with keys as the names of GO annotations
-# and values as lists of genes annotated by the keys.
+# and values as lists of genes annotated by the keys. Genes are represented by
+# their indices in the high_std_genes.txt file.
 def get_go_labels(gene_set):
-    high_std_genes = get_ppi_go_high_std_genes()
-    genes_to_indices = map_genes_to_indices(high_std_genes)
+    high_std_genes = get_high_std_genes()
+    gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
-    go_dct = OrderedDict({})
+    go_dct = {}
     f = open('./data/go_edges.txt', 'r')
-    for line in f:
+    for i, line in enumerate(f):
         gene, go_label = line.split()
+        
+        if gene not in high_std_genes:
+            continue
+        # Map the name of the gene to the index in the array of high std genes.
+        gene = gene_to_index_dct[gene]
         if gene not in gene_set:
             continue
-        gene = genes_to_indices[gene]
+
         if go_label not in go_dct:
             go_dct[go_label] = [gene]
         else:
@@ -96,26 +111,28 @@ def create_cluster_dct(filename):
     f.close()
     return cluster_dct
 
-# Return a set of all of the genes.
+# make_gene_go_file.py
 def get_all_genes():
+    '''
+    Reads the original co-expression matrix, and returns the set of genes that
+    appear in the matrix.
+    '''
     all_genes = set([])
-    f = open('./data/all_genes.txt', 'r')
-    for line in f:
-        all_genes.add(line.strip())
+    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
+    gene_lst = []
+    for i, line in enumerate(f):
+        if i == 0:
+            continue
+        gene = line.split()[0]
+        all_genes.add(gene)
     f.close()
     return all_genes
 
-def get_sampled_genes():
-    sampled_genes = set([])
-    f = open('./data/sampled_genes_1_pct.txt', 'r')
-    for line in f:
-        ensmusg_id = line.strip()
-        sampled_genes.add(ensmusg_id)
-    f.close()
-    return sampled_genes
-
-# Map gene indices to their ENSMUSG ID's.
+# make_gene_go_file.py
 def get_gene_index_dct():
+    '''
+    Returns a dictionary that maps gene indices to their ENSMUSG id's.
+    '''
     all_genes = get_all_genes()
     mgi_to_ensembl_dct = {}
     f = open('./go_edge_prediction/prediction_data/mgi_to_ensembl.txt', 'r')
@@ -151,8 +168,28 @@ def get_gene_index_dct():
     f.close()
     return gene_index_dct
 
-# Map GO indices to their English names.
+# Takes a set of GO terms and then separates them into their respective
+# categories: biological process, cellular component, or molecular function.
+def chunkify_go_terms(go_terms):
+    go_id_to_name_dct = get_go_id_to_name_dct()
+
+    # One chunk for each category.
+    go_chunks = [[], [], []]
+    f = open('./data/GO.namespace', 'r')
+    for line in f:
+        go_id, category = line.split()
+        go_name = go_id_to_name_dct[go_id.lower()]
+        if go_name not in go_terms:
+            continue
+        category = int(category) - 1
+        go_chunks[category] += [go_name]
+    f.close()
+    return go_chunks
+
 def get_go_id_to_name_dct():
+    '''
+    Returns a dictionary that maps GO ID's to their English names.
+    '''
     go_id_to_name_dct = {}
     f = open('./go_edge_prediction/prediction_data/go_to_name.txt', 'r')
     while True:
@@ -171,20 +208,12 @@ def get_go_id_to_name_dct():
     f.close()
     return go_id_to_name_dct
 
-def chunkify_go_terms():
-    go_id_to_name_dct = get_go_id_to_name_dct()
-
-    # Three chunks: biological process, cellular component, molecular function
-    go_chunks = [[], [], []]
-    f = open('./data/GO.namespace', 'r')
-    for line in f:
-        go_id, category = line.split()
-        category = int(category) - 1
-        go_chunks[category] += [go_id_to_name_dct(go_id)]
-    f.close()
-    return go_chunks
-
+# make_gene_go_file.py
 def get_go_index_dct():
+    '''
+    This function returns a dictionary where keys are GO id's, and values are
+    their corresponding indices.
+    '''
     go_id_to_name_dct = get_go_id_to_name_dct()
     # Keys are the GO ids, values are the indices in the edge weight matrix.
     go_index_dct = {}
@@ -257,24 +286,29 @@ def get_network_stats(network_fname):
     num_gg_net /= 2
     return num_genes_net, num_gg_net, num_ggo_net, edge_list_go
 
-# Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
-def get_embedding_edge_dct(keyword):
-    assert keyword in ['full', 'sampled']
-    embedding_edge_dct = {}
-    f = open('./data/embedding_%s_network.txt' % keyword, 'r')
-    for line in f:
-        gene_a, gene_b, weight = line.split()
-        embedding_edge_dct[(gene_a, gene_b)] = weight
-    f.close()
-    return embedding_edge_dct
+# # Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
+# def get_embedding_edge_dct(keyword):
+#     assert keyword in ['full', 'sampled']
+#     embedding_edge_dct = {}
+#     f = open('./data/embedding_%s_network.txt' % keyword, 'r')
+#     for line in f:
+#         gene_a, gene_b, weight = line.split()
+#         embedding_edge_dct[(gene_a, gene_b)] = weight
+#     f.close()
+#     return embedding_edge_dct
 
-def get_ppi_go_high_std_genes():
-    ppi_and_go_genes_high_std = []
-    f = open('./data/ppi_and_go_genes_high_std.txt', 'r')
+# gene_edge_weights.py
+def get_high_std_genes():
+    '''
+    Retrieves the list of genes that have high standard deviations across their
+    gene expression vectors.
+    '''
+    high_std_genes = []
+    f = open('./data/high_std_genes.txt', 'r')
     for line in f:
-        ppi_and_go_genes_high_std += [line.strip()]
+        high_std_genes += [line.strip()]
     f.close()
-    return ppi_and_go_genes_high_std
+    return high_std_genes
 
 # Returns dictionary. Keys are run_num strings, values are dicts of config
 # options. Each dct has key of subgraph_decimal, temp, min_go_size,
@@ -311,3 +345,18 @@ def read_config_file():
             config_dct[run_num]['num_clusters'] = num_clusters
     f.close()
     return config_dct
+
+# convert_embedding_matrix_to_edge_file.py
+def get_embedding_genes():
+    '''
+    Mouse.embedding.id contains a file of ENSMUSG ID's separated by newlines.
+    Returns the list of genes.
+    '''
+    embedding_genes = []
+    f = open('./Sheng/data/network/integrated_network/Mouse.embedding.id', 'r')
+    for i, line in enumerate(f):
+        ensmusg_id = line.strip()
+        assert 'ENSMUSG' in ensmusg_id
+        embedding_genes += [ensmusg_id]
+    f.close()
+    return embedding_genes
