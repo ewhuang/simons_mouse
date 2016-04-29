@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import time
 
 ### This script takes the embedding network, and generates edges in the format:
@@ -7,25 +8,13 @@ import time
 ### in ./data/embedding_edges.txt
 ### Run time: 178 seconds.
 
-data_folder = './Sheng/data/network/integrated_network/'
-
-# Mouse.embedding.id contains a file of ENSMUSG ID's separated by newlines.
-def get_embedding_genes():
-    embedding_genes = []
-    f = open(data_folder + 'Mouse.embedding.id', 'r')
-    for i, line in enumerate(f):
-        ensmusg_id = line.strip()
-        assert 'ENSMUSG' in ensmusg_id
-        embedding_genes += [ensmusg_id]
-    f.close()
-    return embedding_genes
-
 def main():
-    embedding_genes = get_embedding_genes()
+    # First, retrieve the genes that are available in embedding.
+    embedding_genes = file_operations.get_embedding_genes()
 
     # Mouse.embedding is an nxn matrix, where n is the number of genes in 
     # Mouse.embedding.id.
-    f = open(data_folder + 'Mouse.embedding', 'r')
+    f = open('./Sheng/data/network/integrated_network/Mouse.embedding', 'r')
     out = open('./data/embedding_edges.txt', 'w')
     for i, line in enumerate(f):
         row_gene = embedding_genes[i]
