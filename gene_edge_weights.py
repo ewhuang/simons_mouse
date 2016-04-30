@@ -9,7 +9,9 @@ import time
 ### finds the Pearson correlation coefficient between every pair of genes,
 ### making an edge in the generated network if the coefficient exceeds a 
 ### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE".
-### Run time: 1.8 hours.
+### Run time: 2.6 hours.
+
+P_VALUE_THRESHOLD = 0.001
 
 def main():
     # Read in the tsv file.
@@ -23,14 +25,20 @@ def main():
         print '%f%% done...' % (float(a) / len(high_std_genes) * 100)
         gene_a = high_std_genes[a]
         exp_a = gene_exp_dct[gene_a]
+        gene_a_index = gene_to_index_dct[gene_a]
+
         for b in range(a + 1, len(high_std_genes)):
             gene_b = high_std_genes[b]
             exp_b = gene_exp_dct[high_std_genes[b]]
+            gene_b_index = gene_to_index_dct[gene_b]
+
+            # Compute correlation beween the two gene expression vectors.
             pcc, p_value = pearsonr(exp_a, exp_b)
+
             # Ignore genes that have PCC = 1 for the raw network.
-            if p_value < 0.001 and pcc < 1.0:
-                out.write('%s\t%s\t%f\n' % (gene_to_index_dct[gene_a],
-                    gene_to_index_dct[gene_b], abs(pcc)))
+            if p_value < P_VALUE_THRESHOLD and pcc < 1.0:
+                out.write('%s\t%s\t%f\n' % (gene_a_index, gene_b_index,
+                    abs(pcc)))
     out.close()
 
 if __name__ == '__main__':

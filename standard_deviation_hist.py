@@ -10,6 +10,7 @@ import time
 ### that have high standard deviation.
 ### Run time: 12 seconds
 
+# Chosen from examining the histogram.
 HIGH_STANDARD_DEVIATION = 0.1
 
 # Plotting GO enrichment histograms.
