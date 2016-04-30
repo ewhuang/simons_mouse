@@ -13,11 +13,23 @@ import time
 
 P_VALUE_THRESHOLD = 0.001
 
+def get_gene_to_index_dct(genes):
+    '''
+    Takes a list of genes, and returns a dictionary where keys are the genes,
+    and the values are their corresponding indices in the lists.
+    '''
+    gene_to_index_dct = {}
+    for index, gene in enumerate(genes):
+        gene_to_index_dct[gene] = str(index)
+    return gene_to_index_dct
+
 def main():
     # Read in the tsv file.
     gene_exp_dct = file_operations.get_gene_expression_dct()
     high_std_genes = file_operations.get_high_std_genes()
-    gene_to_index_dct = file_operations.get_gene_to_index_dct(high_std_genes)
+
+    # Map the gene ENSMUSG ID's to indices.
+    gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
     # Calculate the correlations between each pair of genes.
     out = open('./data/high_std_network.txt', 'w')

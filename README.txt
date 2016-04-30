@@ -1,27 +1,20 @@
 Author: Edward Huang
 Simons Foundation Mouse Project
 
-___________________________CREATING THE RAW NETWORK_____________________________
-1.0 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
-
-$ python make_gene_go_file.py.
-
-1.1 Plot the standard deviation distribution of the genes involved in both GO
-annotations and PPI networks.
+___________________________CREATING THE GENE NETWORK____________________________
+1. Plot the standard deviation distribution of the genes, and write to file.
 
 $ python standard_deviation_hist.py
 
-Also writes out the genes that we should keep, in
-./data/ppi_and_go_genes_high_std.txt.
-These are the genes in PPI-enriched network, GO annotated genes, with a
-standard deviation of gene expression greater than 0.1.
+2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
+values are lists of ENSMUSG ID's.
 
-1.2 First, create the edges from the raw data. Compute pearson coefficients
-between gene expression values to find correlated genes. We can specify a
-parameter, pearson_threshold, which determines the cutoff coefficient for
-an edge to exist. Output file is raw_network.txt. The second output file,
-full_network.txt, contains every single edge weight, including ones that are
-low.
+$ python dump_go_dictionary_files.py.
+
+3. Compute pearson coefficients between gene expression values to find
+correlated genes. We can specify a parameter, pearson_threshold, which
+determines the cutoff coefficient for an edge to exist. Output file is
+high_std_network.txt. 
 
 $ python gene_edge_weights.py
 
@@ -30,14 +23,16 @@ gene_a  gene_b  edge_weight
 The edges are not repeated.
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
-2. After generating the gene-gene edges, we create files that will be sent
-to the simulated annealing code. Creates 4 files overall, a network and real
-network each for a network with and without GO labels. Two parameters to change.
-First is percentage of subgraph to randomly sample. Second is the lambda weight
-to assign to all gene-GO edges. Output files network_no_go_RUNNUM.txt, where
-RUNNUM indicates the run number. The characteristics of each run number can be
-found in run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
-real_network_go_RUNNUM.txt.
+4. Create 4 files overall, a network and real network each for a network with
+and without GO labels.
+Output files network_go_RUNNUM_FOLD.txt, where RUNNUM indicates the run
+number, and FOLD indicates the fold number, as we separate the GO terms into
+the three categories: biological process, molecular function, and cellular
+component.
+Other files:
+real_network_go_RUNNUM_FOLD.txt.
+network_no_go_RUNNUM_FOLD.txt, and
+real_network_no_go_RUNNUM.txt
 
 $ python create_clustering_input.py RUNNUM
 

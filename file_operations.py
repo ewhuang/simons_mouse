@@ -3,75 +3,41 @@
 from collections import OrderedDict
 import math
 
-### This file contains functions that parse the data files and return the 
-### data objects that we work with in our scripts.
-
-# Returns dictionary where keys are genes, and values are gene expression
-# vectors.
+# standard_deviation_hist.py
 def get_gene_expression_dct():
+    '''
+    Returns dictionary where keys are genes, and values are gene expression
+    vectors.
+    '''
     f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
-    gene_exp_dct = OrderedDict({})
+    gene_expression_dct = {}
     for i, line in enumerate(f):
         if i == 0:
             continue
         line = line.split()
         gene, exp_vals = line[0], line[1:]
+        assert 'ENSMUSG' in gene
         exp_vals = [float(val) for val in exp_vals]
-        gene_exp_dct[gene] = exp_vals
+        assert gene not in gene_expression_dct
+        gene_expression_dct[gene] = exp_vals
     f.close()
-    return gene_exp_dct
+    return gene_expression_dct
 
-# create_clustering_input.py
-def get_high_std_edge_dct():
+# standard_deviation_hist.py
+# convert_embedding_matrix_to_edge_file.py
+def get_embedding_genes():
     '''
-    Returns a dictionary of genes with high standard deviation. The keys are
-    pairs of genes, and the values are the Pearson correlation weights between
-    them.
+    Mouse.embedding.id contains a file of ENSMUSG ID's separated by newlines.
+    Returns the list of genes.
     '''
-    edge_dct = {}
-    f = open('./data/high_std_network.txt', 'r')
+    embedding_genes = []
+    f = open('./Sheng/data/network/integrated_network/Mouse.embedding.id', 'r')
     for i, line in enumerate(f):
-        gene_a, gene_b, pcc = line.split()
-        edge_dct[(gene_a, gene_b)] = pcc
+        ensmusg_id = line.strip()
+        assert 'ENSMUSG' in ensmusg_id
+        embedding_genes += [ensmusg_id]
     f.close()
-    return edge_dct
-
-# gene_edge_weights.py
-def get_gene_to_index_dct(genes):
-    '''
-    Takes a list of genes, and returns a dictionary where keys are the genes,
-    and the values are their corresponding indices in the lists.
-    '''
-    gene_to_index_dct = {}
-    for index, gene in enumerate(genes):
-        gene_to_index_dct[gene] = str(index)
-    return gene_to_index_dct
-
-# This function returns a dictionary, with keys as the names of GO annotations
-# and values as lists of genes annotated by the keys. Genes are represented by
-# their indices in the high_std_genes.txt file.
-def get_go_labels(gene_set):
-    high_std_genes = get_high_std_genes()
-    gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
-
-    go_dct = {}
-    f = open('./data/go_edges.txt', 'r')
-    for i, line in enumerate(f):
-        gene, go_label = line.split()
-        
-        if gene not in high_std_genes:
-            continue
-        # Map the name of the gene to the index in the array of high std genes.
-        gene = gene_to_index_dct[gene]
-        if gene not in gene_set:
-            continue
-
-        if go_label not in go_dct:
-            go_dct[go_label] = [gene]
-        else:
-            go_dct[go_label] += [gene]
-    f.close()
-    return go_dct
+    return embedding_genes
 
 # Takes a clustered file from simulated annealing and outputs a clean file
 # without the GO nodes.
@@ -112,28 +78,31 @@ def create_cluster_dct(filename):
     return cluster_dct
 
 # make_gene_go_file.py
-def get_all_genes():
+def get_coexpression_genes():
     '''
     Reads the original co-expression matrix, and returns the set of genes that
     appear in the matrix.
     '''
-    all_genes = set([])
+    coexpression_genes = set([])
     f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
     gene_lst = []
     for i, line in enumerate(f):
         if i == 0:
             continue
         gene = line.split()[0]
-        all_genes.add(gene)
+        assert 'ENSMUSG' in gene
+        coexpression_genes.add(gene)
     f.close()
-    return all_genes
+    return coexpression_genes
 
 # make_gene_go_file.py
 def get_gene_index_dct():
     '''
     Returns a dictionary that maps gene indices to their ENSMUSG id's.
     '''
-    all_genes = get_all_genes()
+    # We only want coexpression genes in gene-GO relationships.
+    coexpression_genes = get_coexpression_genes()
+
     mgi_to_ensembl_dct = {}
     f = open('./go_edge_prediction/prediction_data/mgi_to_ensembl.txt', 'r')
     for i, line in enumerate(f):
@@ -141,18 +110,19 @@ def get_gene_index_dct():
         if i == 0:
             continue
         line = line.split()
-        if len(line) != 5 or (line[1] != 'current' and line[1] != 'old'):
+        if len(line) != 5 or line[1] != 'current':
             continue
-        ENSMUSG = line[4]
+        ensmusg_id = line[4]
+        assert 'ENSMUSG' in ensmusg_id
         # Skip if a gene isn't in our coexpression network, or if it isn't up
         # to date.
-        if ENSMUSG not in all_genes:
+        if ensmusg_id not in coexpression_genes:
             continue
         mgi_id = line[0]
         if mgi_id in mgi_to_ensembl_dct:
-            mgi_to_ensembl_dct[mgi_id] += [ENSMUSG]
+            mgi_to_ensembl_dct[mgi_id] += [ensmusg_id]
         else:
-            mgi_to_ensembl_dct[mgi_id] = [ENSMUSG]
+            mgi_to_ensembl_dct[mgi_id] = [ensmusg_id]
     f.close()
 
     # Keys are the indices in the edge weight matrix, values are the genes.
@@ -166,26 +136,11 @@ def get_gene_index_dct():
         row_index = int(row) - 1
         gene_index_dct[row_index] = mgi_to_ensembl_dct[mgi_id]
     f.close()
+    # Make sure we indeed subtract 1 from the row indices.
+    assert -1 not in gene_index_dct
     return gene_index_dct
 
-# Takes a set of GO terms and then separates them into their respective
-# categories: biological process, cellular component, or molecular function.
-def chunkify_go_terms(go_terms):
-    go_id_to_name_dct = get_go_id_to_name_dct()
-
-    # One chunk for each category.
-    go_chunks = [[], [], []]
-    f = open('./data/GO.namespace', 'r')
-    for line in f:
-        go_id, category = line.split()
-        go_name = go_id_to_name_dct[go_id.lower()]
-        if go_name not in go_terms:
-            continue
-        category = int(category) - 1
-        go_chunks[category] += [go_name]
-    f.close()
-    return go_chunks
-
+# create_clustering_input.py
 def get_go_id_to_name_dct():
     '''
     Returns a dictionary that maps GO ID's to their English names.
@@ -197,32 +152,40 @@ def get_go_id_to_name_dct():
         if line == '':
             break
         if line.strip() == '[Term]':
-            go_id = f.readline().split()[1]
+            go_id = f.readline().split()[1].lower()
             go_name = '_'.join(f.readline()[len('name: '):].split())
-            go_id_to_name_dct[go_id.lower()] = go_name
+
+            assert go_id not in go_id_to_name_dct
+            go_id_to_name_dct[go_id] = go_name
             f.readline()
             next = f.readline()
             while 'alt_id' in next:
-                go_id_to_name_dct[next.split()[1].lower()] = go_name
+                go_alt_id = next.split()[1].lower()
+                assert go_alt_id not in go_id_to_name_dct
+                go_id_to_name_dct[go_alt_id] = go_name
                 next = f.readline()
     f.close()
+    # Manual tests.
+    assert go_id_to_name_dct['go:0000001'] == 'mitochondrion_inheritance'
+    assert go_id_to_name_dct['go:0000011'] == 'vacuole_inheritance'
     return go_id_to_name_dct
 
 # make_gene_go_file.py
-def get_go_index_dct():
+def get_go_index_to_id_dct():
     '''
     This function returns a dictionary where keys are GO id's, and values are
     their corresponding indices.
     '''
-    go_id_to_name_dct = get_go_id_to_name_dct()
     # Keys are the GO ids, values are the indices in the edge weight matrix.
     go_index_dct = {}
     f = open('./go_edge_prediction/prediction_data/noisogoHash.txt', 'r')
     for line in f:
         go_id, index = line.split()
         # Subtract 1 to change to list indices.
-        go_index_dct[int(index) - 1] = go_id_to_name_dct[go_id]
+        go_index_dct[int(index) - 1] = go_id
     f.close()
+    # Make sure we indeed subtract 1 from the indices.
+    assert -1 not in go_index_dct
     return go_index_dct
 
 # Get the output files of the Perl script evaluate_clustering.pl and find the
@@ -306,14 +269,32 @@ def get_high_std_genes():
     high_std_genes = []
     f = open('./data/high_std_genes.txt', 'r')
     for line in f:
-        high_std_genes += [line.strip()]
+        gene = line.strip()        
+        assert 'ENSMUSG' in gene
+        high_std_genes += [gene]
     f.close()
     return high_std_genes
 
-# Returns dictionary. Keys are run_num strings, values are dicts of config
-# options. Each dct has key of subgraph_decimal, temp, min_go_size,
-# max_go_size, pearson/embedding edges, lambda, num_clusters.
+# create_clustering_input.py
+def get_high_std_edge_list():
+    '''
+    Returns edges between high standard deviation genes that have very
+    correlated gene expression vectors.
+    '''
+    high_std_edge_list = []
+    f = open('./data/high_std_network.txt', 'r')
+    for i, line in enumerate(f):
+        gene_a, gene_b, pcc = line.split()
+        high_std_edge_list += [(gene_a, gene_b)]
+    f.close()
+    return high_std_edge_list
+
 def read_config_file():
+    '''
+    Returns dictionary. Keys are run_num strings, values are dicts of config
+    options. Each dct has key of subgraph_decimal, temp, min_go_size,
+    max_go_size, pearson/embedding edges, lambda, num_clusters.
+    '''
     NUM_OPTIONS = 8
     config_dct = {}
     f = open('config.txt', 'r')
@@ -345,18 +326,3 @@ def read_config_file():
             config_dct[run_num]['num_clusters'] = num_clusters
     f.close()
     return config_dct
-
-# convert_embedding_matrix_to_edge_file.py
-def get_embedding_genes():
-    '''
-    Mouse.embedding.id contains a file of ENSMUSG ID's separated by newlines.
-    Returns the list of genes.
-    '''
-    embedding_genes = []
-    f = open('./Sheng/data/network/integrated_network/Mouse.embedding.id', 'r')
-    for i, line in enumerate(f):
-        ensmusg_id = line.strip()
-        assert 'ENSMUSG' in ensmusg_id
-        embedding_genes += [ensmusg_id]
-    f.close()
-    return embedding_genes

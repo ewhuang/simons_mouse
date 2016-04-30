@@ -369,7 +369,7 @@ Clusters 40
 
 Run 42
 all edges
-Temperature = 1
+Temperature = 0.1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 pearson
@@ -378,7 +378,7 @@ Clusters 40
 
 Run 43
 all edges
-Temperature = 1
+Temperature = 0.1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 pearson
@@ -387,7 +387,7 @@ Clusters 40
 
 Run 44
 all edges
-Temperature = 1
+Temperature = 0.1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 pearson
@@ -396,7 +396,7 @@ Clusters 40
 
 Run 45
 all edges
-Temperature = 1
+Temperature = 0.1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 pearson
@@ -405,7 +405,7 @@ Clusters 40
 
 Run 46
 all edges
-Temperature = 1
+Temperature = 0.1
 MIN_GO_SIZE = 10
 MAX_GO_SIZE = 1000
 pearson
