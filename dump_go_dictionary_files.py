@@ -9,6 +9,17 @@ import time
 ### Customize Gene List: Add GO Database CC/BP/MF Complete to "Columns sorted
 ### using user preferences". Send list to file. It will download as
 ### pantherGeneList.txt.
+### Run time: 1.8 seconds.
+
+def get_gene_to_index_dct(genes):
+    '''
+    Takes a list of genes, and returns a dictionary where keys are the genes,
+    and the values are their corresponding indices in the lists.
+    '''
+    gene_to_index_dct = {}
+    for index, gene in enumerate(genes):
+        gene_to_index_dct[gene] = str(index)
+    return gene_to_index_dct
 
 def process_go_term_list(go_term_list):
     '''
@@ -35,7 +46,7 @@ def process_go_term_list(go_term_list):
 
     return go_id_list
 
-def add_to_dictionary(ensmusg_id, term_list, go_dct):
+def add_to_dictionary(gene, term_list, go_dct):
     '''
     Adds GO terms as keys, with the ENSMUSG ID as values to the dictionary.
     '''
@@ -43,9 +54,9 @@ def add_to_dictionary(ensmusg_id, term_list, go_dct):
     # is nothing meaningful to add.
     for term in term_list:
         if term in go_dct:
-            go_dct[term] += [ensmusg_id]
+            go_dct[term] += [gene]
         else:
-            go_dct[term] = [ensmusg_id]
+            go_dct[term] = [gene]
 
 def get_go_domains():
     '''
@@ -53,6 +64,8 @@ def get_go_domains():
     genes, and values are GO terms.
     '''
     high_std_genes = file_operations.get_high_std_genes()
+    # Map the gene ENSMUSG ID's to indices.
+    gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
     # cc = cellular component, bp = biological process, mf = molecular function.
     cc_go_gene_dct = {}
@@ -73,9 +86,10 @@ def get_go_domains():
         ensmusg_id_list = ensmusg_id_list.split(',')
         for ensmusg_id in ensmusg_id_list:
             assert 'ENSMUSG' in ensmusg_id and ensmusg_id in high_std_genes
-            add_to_dictionary(ensmusg_id, cc_term_list, cc_go_gene_dct)
-            add_to_dictionary(ensmusg_id, bp_term_list, bp_go_gene_dct)
-            add_to_dictionary(ensmusg_id, mf_term_list, mf_go_gene_dct)
+            gene_index = gene_to_index_dct[ensmusg_id]
+            add_to_dictionary(gene_index, cc_term_list, cc_go_gene_dct)
+            add_to_dictionary(gene_index, bp_term_list, bp_go_gene_dct)
+            add_to_dictionary(gene_index, mf_term_list, mf_go_gene_dct)
     f.close()
 
     return cc_go_gene_dct, bp_go_gene_dct, mf_go_gene_dct

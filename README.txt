@@ -172,26 +172,21 @@ Outputs a new network, ./data/embedding_edges.txt, which contains
 edges between genes with weights computed by embedding.
 
 ___________________________________WGCNA________________________________________
-Simply run wgcna.R to cluster on the raw data.
-We can run
+1.
+cd wgcna/
 $ python preprocess_WGCNA.py
-to create a file, mm_mrsb_log2_expression_sampled.tsv, which contains only the
-genes contained in the randomly sampled network. We change this network with
-line 14 in the script. To use this output file to cluster, we change line 14/15
-inside wgcna.R
 
-Run the cleaning script to prepare the raw outputs from R for evaluation with
-our current python scripts. The script also removes any genes that do not
-appear in the sampled network. This can be changed with the block from lines 51
-to 60.
+2.
+Run wgcna.R in R. Move output (module_membership_WGCNA.txt) to results file.
+
+3.
 $ python clean_WGCNA_module_results.py
-Outputs to ./results/WGCNA_results/
 
-To evaluate, we must use a real network from some old network we created.
+4.
+$ perl ./sim_anneal/evaluate_clustering.pl ./wgcna/results/WGCNA_clusters_high_std_genes.txt ./data/networks_no_go/real_network_no_go_42.txt > ./wgcna/results/WGCNA_cluster_eval.txt
 
-$ perl ./sim_anneal/evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt > ./results/WGCNA_results/WGCNA_cluster_eval.txt
-
-To plot comparisons of p-values between network without GO and WGCNA:
-
+5.
 $ python compute_go_enrichment_wgcna.py
 
+6.
+$ python cluster_info_summary_WGCNA.py

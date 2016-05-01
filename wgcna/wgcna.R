@@ -11,8 +11,8 @@ setwd("C:/Users/ewhuang3/Documents/simons_mouse")
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
-# hb_mrsb_cpm_t = read.table("mm_mrsb_log2_expression_sampled.tsv", sep="\t")
-hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
+hb_mrsb_cpm = read.table("mm_mrsb_log2_expression_high_std.tsv", sep="\t", header=T)
+# hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
 gene_id = hb_mrsb_cpm$gene_id
 hb_mrsb_cpm$gene_id = NULL
 hb_mrsb_cpm_t <- t(hb_mrsb_cpm)
@@ -41,7 +41,7 @@ stopifnot(goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$allOK)
 # text(hb_mrsb_sft$fitIndices$Power, hb_mrsb_sft$fitIndices$mean.k., labels = powers, 
 #     col = "#3399CC")
 
-hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 8, networkType = "signed", 
+hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 20, networkType = "signed", 
     minModuleSize = 30, corType = "pearson", maxBlockSize = 30000, numericLabels = TRUE, 
     saveTOMs = FALSE, verbose = 3)
 

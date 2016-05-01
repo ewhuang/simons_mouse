@@ -12,10 +12,11 @@ import numpy as np
 THRESHOLD_MULT = 0.8
 
 if __name__ == '__main__':
-    for mode in ['wgcna', 'simulated annealing']:
+    # for mode in ['wgcna', 'simulated annealing']:
+    for mode in ['wgcna']:
         pts = []
         if mode == 'wgcna':
-            f = open('./results/WGCNA_results/clus_info_WGCNA.txt', 'r')
+            f = open('./results/clus_info_WGCNA.txt', 'r')
         else:
             f = open('./results/clus_info_no_go_40.txt', 'r')            
         for i, line in enumerate(f):
