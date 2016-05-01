@@ -55,9 +55,12 @@ def create_clean_go_file(run_num):
     out.close()
     f.close()
 
-# Returns a dictionary where keys are cluster ID's, and values are lists of
-# genes in the keys' clusters.
-def create_cluster_dct(filename):
+# compute_go_enrichment.py
+def get_cluster_dictionary(filename):
+    '''
+    Returns a dictionary, keys=cluster ID's, values=lists of genes in the
+    corresponding clusters.
+    '''
     cluster_dct = {}
     f = open(filename, 'r')
     # Read in the cluster file to create the cluster dictionary.
@@ -188,24 +191,31 @@ def get_go_index_to_id_dct():
     assert -1 not in go_index_dct
     return go_index_dct
 
-# Get the output files of the Perl script evaluate_clustering.pl and find the
-# in-density and out-density of each cluster.
-def get_cluster_evaluation_densities(eval_fname):
-    dens_dct = {}
+# cluster_info_summary.txt
+def get_cluster_densities(eval_fname):
+    '''
+    Get the output files of the Perl script evaluate_clustering.pl and find
+    the in-density and out-density of each cluster.
+    Key: Cluster Index
+    Value: (in-density, out-density)
+    '''
+    density_dct = {}
     f = open(eval_fname, 'r')
     for i, line in enumerate(f):
         if line[:7] != 'Cluster':
             continue
         line = line.split()
         clus_id, in_density, out_density = line[1], line[7], line[9]
-        dens_dct[clus_id] = (float(in_density), float(out_density))
+        density_dct[clus_id] = (float(in_density), float(out_density))
     f.close()
-    return dens_dct
+    return density_dct
 
-# Find the best p-value GO enrichments for each cluster. Returns a dictionary
-# where keys are cluster ID's, and values are the best p-values.
-def get_best_enrichment_dct(enrichment_fname):
-    best_enrichment_dct = {}
+# cluster_info_summary.py
+def get_enrichment_dct(enrichment_fname):
+    '''
+    Find the best p-value GO enrichments for each cluster.
+    '''
+    enrichment_dct = {}
     f = open(enrichment_fname, 'r')
     while True:
         line = f.readline()
@@ -217,37 +227,30 @@ def get_best_enrichment_dct(enrichment_fname):
             # Skip two lines, and read in the top p-value.
             line = f.readline()
             line = f.readline().split()
-            best_enrichment_dct[cid] = line[0]
+            enrichment_dct[cid] = line[0]
     f.close()
-    return best_enrichment_dct
+    return enrichment_dct
 
-# Read in the network to figure out how many GO terms went into the clustering.
+# cluster_info_summary.py
 def get_network_stats(network_fname):
-    num_genes_net = 0
-    num_gg_net = 0
-    num_ggo_net = 0
+    '''
+    Reads a network and counts the number of genes, gene-gene edges, and gene-GO
+    edges in the network.
+    '''
+    num_gg_net, num_ggo_net = 0, 0
+    
     f = open(network_fname, 'r')
-    edge_list_go = []
     for i, line in enumerate(f):
-        if i == 0:
+        if i < 2:
             continue
-        if i == 1:
-            num_genes_net = line.strip()
-            continue
-        # If not first two lines, find out if each edge is G-GO or G-G.
-        node_a, node_b, weight = line.strip().split('\t')
-        if 'ENSMUSG' not in node_a or 'ENSMUSG' not in node_b:
+
+        if 'GO:' in line:
             num_ggo_net += 1
         else:
             num_gg_net += 1
-        edge_list_go += [(node_a, node_b)]
     f.close()
     # Divide the two numbers by two to account for each edge in twice.
-    assert(num_ggo_net % 2 == 0)
-    assert(num_ggo_net % 2 == 0)
-    num_ggo_net /= 2
-    num_gg_net /= 2
-    return num_genes_net, num_gg_net, num_ggo_net, edge_list_go
+    return num_gg_net / 2, num_ggo_net / 2
 
 # # Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
 # def get_embedding_edge_dct(keyword):
@@ -261,6 +264,7 @@ def get_network_stats(network_fname):
 #     return embedding_edge_dct
 
 # gene_edge_weights.py
+# compute_go_enrichment.py
 def get_high_std_genes():
     '''
     Retrieves the list of genes that have high standard deviations across their

@@ -72,11 +72,11 @@ def get_network_statistics(run_num):
     num_gg_net /= 2
     return num_genes_net, num_gg_net
 
-def get_best_p_value_per_cluster():
+def get_enrichment_dct():
     '''
     Find the best p-value GO enrichments for each cluster.
     '''
-    best_enrichment_dct = {}
+    enrichment_dct = {}
     f = open('./results/cluster_enrichment_terms_wgcna.txt', 'r')
     while True:
         line = f.readline()
@@ -88,15 +88,15 @@ def get_best_p_value_per_cluster():
             # Skip two lines, and read in the top p-value.
             line = f.readline()
             line = f.readline().split()
-            best_enrichment_dct[cid] = line[0]
+            enrichment_dct[cid] = line[0]
     f.close()
-    return best_enrichment_dct
+    return enrichment_dct
 
 def main():
     cluster_wgcna_dct = get_cluster_dictionary()
     density_dct = get_density_dct()
     num_genes_net, num_gg_net = get_network_statistics(42)
-    best_enrichment_dct = get_best_p_value_per_cluster()
+    enrichment_dct = get_enrichment_dct()
 
     # Write out to file.
     out = open('./results/clus_info_WGCNA.txt', 'w')
@@ -123,7 +123,7 @@ def main():
         ratio = in_dens / (in_dens + out_dens)
         out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
         out.write('%d\t0\t%d\t0\t' % (num_genes, num_gg_edges))
-        out.write('%s\n' % best_enrichment_dct[cid])
+        out.write('%s\n' % enrichment_dct[cid])
     out.close()
 
 if __name__ == '__main__':

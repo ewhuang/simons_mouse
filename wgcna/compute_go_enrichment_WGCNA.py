@@ -77,6 +77,7 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
     Returns a dictionary, where keys=GO terms, values=p-values of Fisher's test
     GO enrichment for the set of genes in the cluster.
     '''
+
     # Keys are GO terms, and values are the enrichment p-values.
     fisher_dct = {}
     for go_label in go_dct:
@@ -94,18 +95,18 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
 
         # Run Fisher's test.
         f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
-
         o_r, p_value = fisher_exact(f_table)
+
         fisher_dct[go_label] = p_value
-    sorted_fisher_dct = sorted(fisher_dct.items(), key=operator.itemgetter(1))
-    return sorted_fisher_dct
+
+    return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
 def compute_go_enrichments(go_dct, cluster_wgcna_dct):
     gene_universe = get_high_std_genes()
 
     out = open('./results/cluster_enrichment_terms_wgcna.txt', 'w')
 
-    # Loop through the number of clusters.
+    # Loop through the clusters.
     for i in range(len(cluster_wgcna_dct)):
         clus_id = str(i + 1)
         clus_genes = set(cluster_wgcna_dct[clus_id])
@@ -113,8 +114,7 @@ def compute_go_enrichments(go_dct, cluster_wgcna_dct):
         sorted_fisher_dct = get_sorted_fisher_dct(clus_genes, go_dct,
             gene_universe)
 
-        top_go_terms = []
-        top_p_values = []
+        top_go_terms, top_p_values = [], []
         for (go_term, p_value) in sorted_fisher_dct[:5]:
             top_go_terms += [go_term]
             top_p_values += [str(p_value)]

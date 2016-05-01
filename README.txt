@@ -80,30 +80,9 @@ Compute GO enrichment of each of the clusterings.
 
 $ python compute_go_enrichment.py RUNNUM
 
-Needs clusters_go_clean_RUNNUM.txt and clusters_no_go_RUNNUM.txt
-
-Produces a histogram of the two clusterings' p-values. These p-values are all
-of the p-values from the top 5 highest correlated GO terms, computed by
-Fisher's exact test.
-Additionally, outputs a file, called ./results/go_top_go_RUNNUM.txt, which shows
-the p-values for each of the clusters to see which clusters have high p-values.
-About half of the clusters with GO terms have enrichment values much better than
-those of the clusters without GO terms.
-Add in the literal string "predicted" without quotes to the end if dealing with
-predicted GO edge weights.
-
 9. Analyze the properties of the clusterings.
 
 $ python cluster_info_summary.py RUNNUM
-
-Needs cluster_eval_go/no_go_RUNNUM.txt, output of compute_go_enrichment.py, both
-networks, and both raw clusters and networks.
-
-Outputs a file, ./results/clus_info_no_go_RUNNUM.txt
-First two lines shows number of genes in input network, number of gene-gene
-edges, and number of gene-GO edges. Then, for each cluster, shows the number of
-genes in the cluster, number of GO terms, number of gene-gene edges, and number
-of gene-GO edges.
 
 10. Perform the wilcoxon rank-sum test on the clusters
 
