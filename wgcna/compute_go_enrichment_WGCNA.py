@@ -13,34 +13,24 @@ import time
 ### their p-values.
 ### Run time: 52 seconds.
 
-def merge_GO_enrichments():
+def get_go_gene_dct(go_domain):
     '''
-    Merges the three GO dictionaries corresponding to each GO domain.
+   Gets the GO dictionary corresponding to the GO domain.
     '''
     # First, load all of the GO dictionaries.
-    with open('../data/biological_process.json', 'r') as fp:
-        bp_go_gene_dct = json.load(fp)
+    with open('../data/%s_index.json' % go_domain, 'r') as fp:
+        go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('../data/cellular_component_go.json', 'r') as fp:
-        cc_go_gene_dct = json.load(fp)
-    fp.close()
+    return go_gene_dct
 
-    with open('../data/molecular_function.json', 'r') as fp:
-        mf_go_gene_dct = json.load(fp)
-    fp.close()
-
-    bp_go_gene_dct.update(cc_go_gene_dct)
-    bp_go_gene_dct.update(mf_go_gene_dct)
-    return bp_go_gene_dct
-
-def get_cluster_dictionary():
+def get_cluster_dictionary(go_domain):
     '''
     Returns a dictionary, keys=cluster ID's, values=lists of genes in the
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./results/WGCNA_clusters_high_std_genes.txt', 'r')
+    f = open('./results/clusters_%s.txt' % go_domain, 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -101,10 +91,10 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
 
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
-def compute_go_enrichments(go_dct, cluster_wgcna_dct):
+def compute_go_enrichments(go_dct, cluster_wgcna_dct, go_domain):
     gene_universe = get_high_std_genes()
 
-    out = open('./results/cluster_enrichment_terms_wgcna.txt', 'w')
+    out = open('./results/cluster_enrichment_terms_%s.txt' % go_domain, 'w')
 
     # Loop through the clusters.
     for i in range(len(cluster_wgcna_dct)):
@@ -124,10 +114,11 @@ def compute_go_enrichments(go_dct, cluster_wgcna_dct):
     out.close()
 
 def main():
-    go_dct = merge_GO_enrichments()
-    cluster_wgcna_dct = get_cluster_dictionary()
+    for go_domain in ['bp', 'cc', 'mf']:
+        go_dct = get_go_gene_dct(go_domain)
+        cluster_wgcna_dct = get_cluster_dictionary(go_domain)
 
-    compute_go_enrichments(go_dct, cluster_wgcna_dct)
+        compute_go_enrichments(go_dct, cluster_wgcna_dct, go_domain)
 
 if __name__ == '__main__':
     start_time = time.time()

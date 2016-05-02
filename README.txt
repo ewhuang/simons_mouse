@@ -156,16 +156,25 @@ cd wgcna/
 $ python preprocess_WGCNA.py
 
 2.
-Run wgcna.R in R. Move output (module_membership_WGCNA.txt) to results file.
+Run wgcna.R in 64-bit R. Move output (module_membership_WGCNA.txt) to results
+file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
+Takes about 55 minutes.
 
 3.
 $ python clean_WGCNA_module_results.py
 
 4.
-$ perl ./sim_anneal/evaluate_clustering.pl ./wgcna/results/WGCNA_clusters_high_std_genes.txt ./data/networks_no_go/real_network_no_go_42.txt > ./wgcna/results/WGCNA_cluster_eval.txt
+$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_bp.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_bp.txt
+
+$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_cc.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_cc.txt
+
+$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_mf.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_mf.txt
 
 5.
 $ python compute_go_enrichment_wgcna.py
 
 6.
 $ python cluster_info_summary_WGCNA.py
+
+7.
+$ python plot_indensity_vs_enrich_WGCNA.py

@@ -7,13 +7,13 @@ import time
 ### clusters generated from the simulated annealing experiment.
 ### Run time: 1 minute.
 
-def get_cluster_dictionary():
+def get_cluster_dictionary(go_domain):
     '''
     Returns a dictionary, keys=cluster ID's, values=lists of genes in the
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./results/WGCNA_clusters_high_std_genes.txt', 'r')
+    f = open('./results/clusters_%s.txt' % go_domain, 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -31,7 +31,7 @@ def get_cluster_dictionary():
     f.close()
     return cluster_wgcna_dct
 
-def get_density_dct():
+def get_density_dct(go_domain):
     '''
     Get the output files of the Perl script evaluate_clustering.pl and find
     the in-density and out-density of each cluster.
@@ -39,7 +39,7 @@ def get_density_dct():
     Values: (in-density, out-density, number of in-cluster edges)
     '''
     density_dct = {}
-    f = open('./results/WGCNA_cluster_eval.txt', 'r')
+    f = open('./results/cluster_eval_%s.txt' % go_domain, 'r')
     for i, line in enumerate(f):
         if line[:7] != 'Cluster':
             continue
@@ -72,12 +72,12 @@ def get_network_statistics(run_num):
     num_gg_net /= 2
     return num_genes_net, num_gg_net
 
-def get_enrichment_dct():
+def get_enrichment_dct(go_domain):
     '''
     Find the best p-value GO enrichments for each cluster.
     '''
     enrichment_dct = {}
-    f = open('./results/cluster_enrichment_terms_wgcna.txt', 'r')
+    f = open('./results/cluster_enrichment_terms_%s.txt' % go_domain, 'r')
     while True:
         line = f.readline()
         if line == '':
@@ -93,38 +93,40 @@ def get_enrichment_dct():
     return enrichment_dct
 
 def main():
-    cluster_wgcna_dct = get_cluster_dictionary()
-    density_dct = get_density_dct()
     num_genes_net, num_gg_net = get_network_statistics(42)
-    enrichment_dct = get_enrichment_dct()
 
-    # Write out to file.
-    out = open('./results/clus_info_WGCNA.txt', 'w')
-    out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
-    # Automatically write 0 for the last column, since there are no gene-GO
-    # edges for WGCNA.
-    out.write('%s\t%d\t0\n' % (num_genes_net, num_gg_net))
-    out.write('cluster_number\tin_dens\tout_dens\tin/(in+out)\t')
-    out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
-    out.write('top_enrichment_p\n')
+    for go_domain in ['bp', 'cc', 'mf']:
+        cluster_wgcna_dct = get_cluster_dictionary(go_domain)
+        density_dct = get_density_dct(go_domain)
+        enrichment_dct = get_enrichment_dct(go_domain)
 
-    # Loop through the clusters of genes.
-    for i in range(len(cluster_wgcna_dct)):
-        print float(i) / len(cluster_wgcna_dct) * 100
-        cid = str(i + 1)
-        clus = cluster_wgcna_dct[cid]
+        # Write out to file.
+        out = open('./results/clus_info_%s.txt' % go_domain, 'w')
+        out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
+        # Automatically write 0 for the last column, since there are no gene-GO
+        # edges for WGCNA.
+        out.write('%s\t%d\t0\n' % (num_genes_net, num_gg_net))
+        out.write('cluster_number\tin_dens\tout_dens\tin/(in+out)\t')
+        out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
+        out.write('top_enrichment_p\n')
 
-        num_genes = len(clus)
+        # Loop through the clusters of genes.
+        for i in range(len(cluster_wgcna_dct)):
+            print float(i) / len(cluster_wgcna_dct) * 100
+            cid = str(i + 1)
+            clus = cluster_wgcna_dct[cid]
 
-        in_dens, out_dens, num_gg_edges = density_dct[cid]
-        # if in_dens == 0:
-        #     ratio = float('inf')
-        # else:
-        ratio = in_dens / (in_dens + out_dens)
-        out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
-        out.write('%d\t0\t%d\t0\t' % (num_genes, num_gg_edges))
-        out.write('%s\n' % enrichment_dct[cid])
-    out.close()
+            num_genes = len(clus)
+
+            in_dens, out_dens, num_gg_edges = density_dct[cid]
+            # if in_dens == 0:
+            #     ratio = float('inf')
+            # else:
+            ratio = in_dens / (in_dens + out_dens)
+            out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
+            out.write('%d\t0\t%d\t0\t' % (num_genes, num_gg_edges))
+            out.write('%s\n' % enrichment_dct[cid])
+        out.close()
 
 if __name__ == '__main__':
     start_time = time.time()

@@ -1,7 +1,7 @@
 ### Author: Edward Huang
 
 ### Reformats the output of WGCNA for running through simulated annealing
-### evluation scripts.
+### evluation scripts. Takes out any GO terms.
 
 def get_gene_to_index_dct(genes):
     '''
@@ -32,34 +32,38 @@ def main():
     # Map the gene ENSMUSG ID's to indices.
     gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
-    f = open('./results/module_membership_WGCNA.txt', 'r')
-    out = open('./results/WGCNA_clusters_high_std_genes.txt', 'w')
+    for go_domain in ['bp', 'cc', 'mf']:
+        f = open('./results/module_membership_%s.txt' % go_domain, 'r')
+        out = open('./results/clusters_%s.txt' % go_domain, 'w')
+        # Write dummy header line.
+        out.write('dummy_header\n')
 
-    # Write dummy header line.
-    out.write('header\n')
+        for i, line in enumerate(f):
+            # Skip header.
+            if i == 0:
+                continue
 
-    for i, line in enumerate(f):
-        # Skip header.
-        if i == 0:
-            continue
+            # Ignore color and membershi columns.
+            node, module, color, membership = line.split()
 
-        # Ignore color and membershi columns.
-        ensmusg_id, module, color, membership = line.split()
+            # Skip garbage module.
+            if module == '0':
+                continue
+            
+            # Remove quotiation marks around the ENSMUSG ID.
+            node = node.strip('"')
 
-        # Skip garbage module.
-        if module == '0':
-            continue
-        
-        # Remove quotiation marks around the ENSMUSG ID.
-        ensmusg_id = ensmusg_id.strip('"')
+            # Don't add in GO terms.
+            if 'GO:' in node:
+                continue
 
-        # Convert ENSMUSG ID to index.
-        gene_index = gene_to_index_dct[ensmusg_id]
+            # Convert ENSMUSG ID to index.
+            gene_index = gene_to_index_dct[node]
 
-        # Write out the line.
-        out.write('Species 0\tGene %s\tCluster %s\n' % (gene_index, module))
-    out.close()
-    f.close()
+            # Write out the line.
+            out.write('Species 0\tGene %s\tCluster %s\n' % (gene_index, module))
+        out.close()
+        f.close()
 
 if __name__ == '__main__':
     main()

@@ -9,7 +9,7 @@ import time
 ### Customize Gene List: Add GO Database CC/BP/MF Complete to "Columns sorted
 ### using user preferences". Send list to file. It will download as
 ### pantherGeneList.txt.
-### Run time: 1.8 seconds.
+### Run time: 4 seconds.
 
 def get_gene_to_index_dct(genes):
     '''
@@ -58,7 +58,7 @@ def add_to_dictionary(gene, term_list, go_dct):
         else:
             go_dct[term] = [gene]
 
-def get_go_domains():
+def get_go_domains(gene_type):
     '''
     Returns three dictionaries, one corresponding to each GO domain. Keys are
     genes, and values are GO terms.
@@ -84,31 +84,36 @@ def get_go_domains():
 
         # Associate each GO term list with the corresponding gene.
         ensmusg_id_list = ensmusg_id_list.split(',')
-        for ensmusg_id in ensmusg_id_list:
-            assert 'ENSMUSG' in ensmusg_id and ensmusg_id in high_std_genes
-            gene_index = gene_to_index_dct[ensmusg_id]
-            add_to_dictionary(gene_index, cc_term_list, cc_go_gene_dct)
-            add_to_dictionary(gene_index, bp_term_list, bp_go_gene_dct)
-            add_to_dictionary(gene_index, mf_term_list, mf_go_gene_dct)
+        for gene in ensmusg_id_list:
+            assert 'ENSMUSG' in gene and gene in high_std_genes
+            if gene_type == 'index':
+                gene = gene_to_index_dct[gene]
+            add_to_dictionary(gene, cc_term_list, cc_go_gene_dct)
+            add_to_dictionary(gene, bp_term_list, bp_go_gene_dct)
+            add_to_dictionary(gene, mf_term_list, mf_go_gene_dct)
     f.close()
 
     return cc_go_gene_dct, bp_go_gene_dct, mf_go_gene_dct
 
 def main():
-    cc_go_gene_dct, bp_go_gene_dct, mf_go_gene_dct = get_go_domains()
+    # Write out two types of values: ENSMUSG ID's and their indices in the
+    # high standard deviation genes.
+    for gene_type in ['index', 'ensmusg']:
+        cc_go_gene_dct, bp_go_gene_dct, mf_go_gene_dct = get_go_domains(
+            gene_type)
 
-    # Dump each dictionary out to file.
-    with open('./data/cellular_component_go.json', 'w') as fp:
-        json.dump(cc_go_gene_dct, fp)
-    fp.close()
+        # Dump each dictionary out to file.
+        with open('./data/cc_%s.json' % gene_type, 'w') as fp:
+            json.dump(cc_go_gene_dct, fp)
+        fp.close()
 
-    with open('./data/biological_process.json', 'w') as fp:
-        json.dump(bp_go_gene_dct, fp)
-    fp.close()
+        with open('./data/bp_%s.json' % gene_type, 'w') as fp:
+            json.dump(bp_go_gene_dct, fp)
+        fp.close()
 
-    with open('./data/molecular_function.json', 'w') as fp:
-        json.dump(mf_go_gene_dct, fp)
-    fp.close()
+        with open('./data/mf_%s.json' % gene_type, 'w') as fp:
+            json.dump(mf_go_gene_dct, fp)
+        fp.close()
 
 if __name__ == '__main__':
     start_time = time.time()
