@@ -14,7 +14,7 @@ $ python dump_go_dictionary_files.py.
 3. Compute pearson coefficients between gene expression values to find
 correlated genes. We can specify a parameter, pearson_threshold, which
 determines the cutoff coefficient for an edge to exist. Output file is
-high_std_network.txt. 
+high_std_network.txt.
 
 $ python gene_edge_weights.py
 
@@ -153,28 +153,25 @@ edges between genes with weights computed by embedding.
 ___________________________________WGCNA________________________________________
 1.
 cd wgcna/
-$ python preprocess_WGCNA.py
+$ python preprocess_WGCNA.py genes_only/pca/mean/median
 
 2.
+Move results from preprocessing to working directory of R.
 Run wgcna.R in 64-bit R. Move output (module_membership_WGCNA.txt) to results
 file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
 Takes about 55 minutes.
 
 3.
-$ python clean_WGCNA_module_results.py
+$ python clean_WGCNA_module_results.py genes_only/pca/mean/median
 
 4.
-$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_bp.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_bp.txt
-
-$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_cc.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_cc.txt
-
-$ perl ../sim_anneal/evaluate_clustering.pl ./results/clusters_mf.txt ../data/networks_no_go/real_network_no_go_42.txt > ./results/cluster_eval_mf.txt
+python evaluate_clustering_wgcna genes_only/pca/mean/median
 
 5.
-$ python compute_go_enrichment_wgcna.py
+$ python compute_go_enrichment_wgcna.py genes_only/pca/mean/median
 
 6.
-$ python cluster_info_summary_WGCNA.py
+$ python cluster_info_summary_WGCNA.py genes_only/pca/mean/median
 
 7.
 $ python plot_indensity_vs_enrich_WGCNA.py

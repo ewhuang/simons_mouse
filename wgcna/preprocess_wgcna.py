@@ -4,6 +4,7 @@ import json
 import numpy as np
 from sklearn.decomposition import PCA
 from scipy.stats import pearsonr
+import sys
 import time
 
 ### This script preprocesses the original coexpression file to prepare for
@@ -36,9 +37,18 @@ def get_go_gene_dct(go_domain):
     return go_gene_dct
 
 def main():
+    if len(sys.argv) != 2:
+        print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
+        exit()
+    go_method = sys.argv[1]
+    assert go_method in ['genes_only', 'pca', 'mean', 'median']
+
     high_std_genes = get_high_std_genes()
 
-    go_domain_list = ['bp', 'cc', 'mf']
+    if go_method == 'genes_only':
+        go_domain_list = ['genes_only']
+    else:
+        go_domain_list = ['bp', 'cc', 'mf']
 
     # go_domain is the domain we hold out.
     for go_domain in go_domain_list:
@@ -52,7 +62,8 @@ def main():
         #     go_gene_dct.update(get_go_gene_dct(go_domain_train))
 
         # This line is to both train and evaluate on the same domain.
-        go_gene_dct = get_go_gene_dct(go_domain)
+        if go_domain != 'genes_only':
+            go_gene_dct = get_go_gene_dct(go_domain)
 
         f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
         out = open('./data/mm_mrsb_log2_expression_%s.tsv' % go_domain, 'w')
@@ -77,6 +88,9 @@ def main():
             gene_expression_dct[gene] = exp_vals
         f.close()
 
+        if go_domain == 'genes_only':
+            break
+
         # Run PCA and generate gene expression vectors for GO terms.
         for go_term in go_gene_dct:
             annotated_gene_list = go_gene_dct[go_term]
@@ -86,16 +100,26 @@ def main():
             if num_annotated_gene_list < 10 or num_annotated_gene_list > 1000:
                 continue
 
-            # Run PCA for a GO term on the genes it annotates.
+            # Construct expression matrix for a GO term on the genes it
+            # annotates.
             super_gene_matrix = []
             for annotated_gene in annotated_gene_list:
                 ann_gene_expression = gene_expression_dct[annotated_gene]
                 super_gene_matrix += [ann_gene_expression]
             
-            # Get most principal component.
-            pca = PCA()
-            pca.fit(super_gene_matrix)
-            super_gene = pca.components_[0] + pca.mean_
+            if go_method == 'mean':
+                # Get the average across each sample.
+                super_gene_matrix = np.array(super_gene_matrix)
+                super_gene = np.mean(super_gene_matrix, axis=0)
+            elif go_method == 'pca':
+                # Get most principal component.
+                pca = PCA()
+                pca.fit(super_gene_matrix)
+                super_gene = pca.components_[0] + pca.mean_
+            elif go_method == 'median':
+                # Get median across each sample.
+                super_gene_matrix = np.array(super_gene_matrix)
+                super_gene = np.median(super_gene_matrix, axis=0)
 
             # Write out the vector to file.
             out.write(go_term + '\t')

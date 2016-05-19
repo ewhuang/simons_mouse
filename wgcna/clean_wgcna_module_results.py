@@ -1,5 +1,7 @@
 ### Author: Edward Huang
 
+import sys
+
 ### Reformats the output of WGCNA for running through simulated annealing
 ### evluation scripts. Takes out any GO terms.
 
@@ -28,13 +30,26 @@ def get_high_std_genes():
     return high_std_genes
 
 def main():
+    if len(sys.argv) != 2:
+        print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
+        exit()
+    go_method = sys.argv[1]
+    assert go_method in ['genes_only', 'pca', 'mean', 'median']
+
     high_std_genes = get_high_std_genes()
     # Map the gene ENSMUSG ID's to indices.
     gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
-    for go_domain in ['bp', 'cc', 'mf']:
-        f = open('./results/module_membership_%s.txt' % go_domain, 'r')
-        out = open('./results/clusters_%s.txt' % go_domain, 'w')
+    if go_method == 'genes_only':
+        domain_list = ['genes_only']
+    else:
+        domain_list = ['bp', 'cc', 'mf']
+
+    for go_domain in domain_list:
+        f = open('./%s_results/module_membership_%s.txt' % (go_method,
+            go_domain), 'r')
+        out = open('./%s_results/clusters_%s.txt' % (go_method,
+            go_domain), 'w')
         # Write dummy header line.
         out.write('dummy_header\n')
 
