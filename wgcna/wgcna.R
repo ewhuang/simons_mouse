@@ -11,8 +11,8 @@ setwd("C:/Users/ewhuang3/Documents/simons_mouse")
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
-# hb_mrsb_cpm_t = read.table("mm_mrsb_log2_expression_sampled.tsv", sep="\t")
-hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
+hb_mrsb_cpm = read.table("mm_mrsb_log2_expression_mf.tsv", sep="\t", header=T)
+# hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
 gene_id = hb_mrsb_cpm$gene_id
 hb_mrsb_cpm$gene_id = NULL
 hb_mrsb_cpm_t <- t(hb_mrsb_cpm)
@@ -31,7 +31,7 @@ stopifnot(goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$allOK)
 # plot(x = hb_mrsb_sft$fitIndices$Power, hb_mrsb_sft$fitIndices$SFT.R.sq, xlab = "Soft Threshold (power)", 
 #     ylab = "R-Squared", type = "l", col = "dark gray", main = "Scale Independence")
 # text(hb_mrsb_sft$fitIndices$Power, hb_mrsb_sft$fitIndices$SFT.R.sq, labels = powers, 
-#     col = "#3399CC")
+#     col = "#3399mf")
 # abline(h = 0.85, col = "#FF3333")
 
 
@@ -39,9 +39,9 @@ stopifnot(goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$allOK)
 #     ylab = "Mean Connectivity", main = "Mean Connectivity", col = "dark gray", 
 #     type = "l")
 # text(hb_mrsb_sft$fitIndices$Power, hb_mrsb_sft$fitIndices$mean.k., labels = powers, 
-#     col = "#3399CC")
+#     col = "#3399mf")
 
-hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 8, networkType = "signed", 
+hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 20, networkType = "signed", 
     minModuleSize = 30, corType = "pearson", maxBlockSize = 30000, numericLabels = TRUE, 
     saveTOMs = FALSE, verbose = 3)
 
@@ -66,6 +66,6 @@ for (i in 1:nrow(hb_mrsb_module_membership)) {
         current_eigengene], hb_mrsb_wgcna_in[, current_id])
 }
 
-write.table(hb_mrsb_cpm_gsg$goodGenes, file="good_gene_booleans_WGCNA.txt", sep="\t", row.names=FALSE, col.names=FALSE)
+# write.table(hb_mrsb_cpm_gsg$goodGenes, file="good_gene_booleans_WGCNA.txt", sep="\t", row.names=FALSE, col.names=FALSE)
 
-write.table(hb_mrsb_module_membership, file="module_membership_WGCNA.txt", sep="\t", row.names=FALSE)
+write.table(hb_mrsb_module_membership, file="module_membership_mf.txt", sep="\t", row.names=FALSE)

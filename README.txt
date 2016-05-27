@@ -1,12 +1,20 @@
 Author: Edward Huang
+Simons Foundation Mouse Project
 
-___________________________CREATING THE RAW NETWORK_____________________________
-1. First, create the edges from the raw data. Compute pearson coefficients
-between gene expression values to find correlated genes. We can specify a
-parameter, pearson_threshold, which determines the cutoff coefficient for
-an edge to exist. Output file is raw_network.txt. The second output file,
-full_network.txt, contains every single edge weight, including ones that are
-low.
+___________________________CREATING THE GENE NETWORK____________________________
+1. Plot the standard deviation distribution of the genes, and write to file.
+
+$ python standard_deviation_hist.py
+
+2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
+values are lists of ENSMUSG ID's.
+
+$ python dump_go_dictionary_files.py.
+
+3. Compute pearson coefficients between gene expression values to find
+correlated genes. We can specify a parameter, pearson_threshold, which
+determines the cutoff coefficient for an edge to exist. Output file is
+high_std_network.txt.
 
 $ python gene_edge_weights.py
 
@@ -14,27 +22,17 @@ Output format:
 gene_a  gene_b  edge_weight
 The edges are not repeated.
 
-1.5 Create the go_edges.txt file from the files Sheng sent in Feb. 29 e-mail.
-$ cd go_edge_prediction
-$ python make_gene_go_file.py.
-
-1.6 Plot the standard deviation distribution of the genes involved in both GO
-annotations and PPI networks.
-$ python standard_deviation_hist.py
-Also writes out the genes that we should keep, in
-./data/ppi_and_go_genes_high_std.txt.
-These are the genes in PPI-enriched network, GO annotated genes, with a
-standard deviation of gene expression greater than 0.1
-
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
-2. After generating the gene-gene edges, we create files that will be sent
-to the simulated annealing code. Creates 4 files overall, a network and real
-network each for a network with and without GO labels. Two parameters to change.
-First is percentage of subgraph to randomly sample. Second is the lambda weight
-to assign to all gene-GO edges. Output files network_no_go_RUNNUM.txt, where
-RUNNUM indicates the run number. The characteristics of each run number can be
-found in run_log.txt. real_network_no_go_RUNNUM.txt, network_go_RUNNUM.txt, and
-real_network_go_RUNNUM.txt.
+4. Create 4 files overall, a network and real network each for a network with
+and without GO labels.
+Output files network_go_RUNNUM_FOLD.txt, where RUNNUM indicates the run
+number, and FOLD indicates the fold number, as we separate the GO terms into
+the three categories: biological process, molecular function, and cellular
+component.
+Other files:
+real_network_go_RUNNUM_FOLD.txt.
+network_no_go_RUNNUM_FOLD.txt, and
+real_network_no_go_RUNNUM.txt
 
 $ python create_clustering_input.py RUNNUM
 
@@ -82,30 +80,9 @@ Compute GO enrichment of each of the clusterings.
 
 $ python compute_go_enrichment.py RUNNUM
 
-Needs clusters_go_clean_RUNNUM.txt and clusters_no_go_RUNNUM.txt
-
-Produces a histogram of the two clusterings' p-values. These p-values are all
-of the p-values from the top 5 highest correlated GO terms, computed by
-Fisher's exact test.
-Additionally, outputs a file, called ./results/go_top_go_RUNNUM.txt, which shows
-the p-values for each of the clusters to see which clusters have high p-values.
-About half of the clusters with GO terms have enrichment values much better than
-those of the clusters without GO terms.
-Add in the literal string "predicted" without quotes to the end if dealing with
-predicted GO edge weights.
-
 9. Analyze the properties of the clusterings.
 
 $ python cluster_info_summary.py RUNNUM
-
-Needs cluster_eval_go/no_go_RUNNUM.txt, output of compute_go_enrichment.py, both
-networks, and both raw clusters and networks.
-
-Outputs a file, ./results/clus_info_no_go_RUNNUM.txt
-First two lines shows number of genes in input network, number of gene-gene
-edges, and number of gene-GO edges. Then, for each cluster, shows the number of
-genes in the cluster, number of GO terms, number of gene-gene edges, and number
-of gene-GO edges.
 
 10. Perform the wilcoxon rank-sum test on the clusters
 
@@ -147,7 +124,7 @@ $ python parse_GO_weight_predictions.py
 
 Creates an output file, predicted_go_edge_weights.txt, where each newline is
 a gene and a GO edge, same format as go_edges.txt. However, the GO terms are the
-indices in Moues_final_Score_matrix.txt, not the actual GO name.
+indices in Mouse_final_Score_matrix.txt, not the actual GO name.
 Specify the number of edges to keep with the variable NUM_TOP_WEIGHTS.
 
 3.
@@ -169,32 +146,32 @@ Creates the bottom left and top right blocks of the matrix, or the gene-GO
 edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
 on the index from Sheng's data.
 
-3. $ python embedding_sampled_network.py sampled/full
-Outputs a new network, ./data/embedding_sampled_network.txt, which contains
-edges between genes with weights computed by embedding with the sampled edges.
-We can use keyword full to generate the full network.
+3. $ python convert_embedding_matrix_to_edge_file.py
+Outputs a new network, ./data/embedding_edges.txt, which contains
+edges between genes with weights computed by embedding.
 
 ___________________________________WGCNA________________________________________
-Simply run wgcna.R to cluster on the raw data.
-We can run
-$ python preprocess_WGCNA.py
-to create a file, mm_mrsb_log2_expression_sampled.tsv, which contains only the
-genes contained in the randomly sampled network. We change this network with
-line 14 in the script. To use this output file to cluster, we change line 14/15
-inside wgcna.R
+1.
+cd wgcna/
+$ python preprocess_WGCNA.py genes_only/pca/mean/median
 
-Run the cleaning script to prepare the raw outputs from R for evaluation with
-our current python scripts. The script also removes any genes that do not
-appear in the sampled network. This can be changed with the block from lines 51
-to 60.
-$ python clean_WGCNA_module_results.py
-Outputs to ./results/WGCNA_results/
+2.
+Move results from preprocessing to working directory of R.
+Run wgcna.R in 64-bit R. Move output (module_membership_WGCNA.txt) to results
+file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
+Takes about 55 minutes.
 
-To evaluate, we must use a real network from some old network we created.
+3.
+$ python clean_WGCNA_module_results.py genes_only/pca/mean/median
 
-$ perl ./sim_anneal/evaluate_clustering.pl ./results/WGCNA_results/WGCNA_clusters_all_genes.txt ./data/real_network_no_go_20.txt > ./results/WGCNA_results/WGCNA_cluster_eval.txt
+4.
+python evaluate_clustering_wgcna genes_only/pca/mean/median
 
-To plot comparisons of p-values between network without GO and WGCNA:
+5.
+$ python compute_go_enrichment_wgcna.py genes_only/pca/mean/median
 
-$ python compute_go_enrichment_wgcna.py
+6.
+$ python cluster_info_summary_WGCNA.py genes_only/pca/mean/median
 
+7.
+$ python plot_indensity_vs_enrich_WGCNA.py
