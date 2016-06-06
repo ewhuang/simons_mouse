@@ -24,27 +24,27 @@ def get_go_gene_dct(go_domain):
 
     return go_gene_dct
 
-def get_cluster_dictionary(go_method, go_domain):
+def get_cluster_dictionary(network_type, go_domain):
     '''
     Returns a dictionary, keys=cluster ID's, values=lists of genes in the
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./%s_results/clusters_%s.txt' % (go_method, go_domain), 'r')
+    f = open('./%s_results/clusters_%s.txt' % (network_type, go_domain), 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
             continue
         newline = line.strip().split('\t')
-        cluster = newline[2][len('Cluster '):]
+        cluster_id = newline[2][len('Cluster '):]
         # Skip trashcan clusters.
-        if cluster == '0':
+        if cluster_id == '0':
             continue
         gene = newline[1][len('Gene '):]
-        if cluster not in cluster_wgcna_dct:
-            cluster_wgcna_dct[cluster] = [gene]
+        if cluster_id not in cluster_wgcna_dct:
+            cluster_wgcna_dct[cluster_id] = [gene]
         else:
-            cluster_wgcna_dct[cluster] += [gene]
+            cluster_wgcna_dct[cluster_id] += [gene]
     f.close()
     return cluster_wgcna_dct
 
@@ -91,11 +91,11 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
 
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
-def compute_go_enrichments(go_method, go_dct, cluster_wgcna_dct, go_domain):
+def compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct, go_domain):
     gene_universe = get_high_std_genes()
 
-    out = open('./%s_results/cluster_enrichment_terms_%s_%s.txt' % (go_method,
-        go_method, go_domain), 'w')
+    out = open('./%s_results/cluster_enrichment_terms_%s_%s.txt' % (
+        network_type, network_type, go_domain), 'w')
 
     # Loop through the clusters.
     for i in range(len(cluster_wgcna_dct)):
@@ -118,20 +118,21 @@ def main():
     if len(sys.argv) != 2:
         print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
         exit()
-    go_method = sys.argv[1]
-    assert go_method in ['genes_only', 'pca', 'mean', 'median']
+    network_type = sys.argv[1]
+    assert network_type in ['genes_only', 'pca', 'mean', 'median']
 
     high_std_genes = get_high_std_genes()
 
     for go_domain in ['bp', 'cc', 'mf']:
         go_dct = get_go_gene_dct(go_domain)
-
-        if go_method == 'genes_only':
-            cluster_wgcna_dct = get_cluster_dictionary(go_method, go_method)
+        if network_type == 'genes_only':
+            cluster_wgcna_dct = get_cluster_dictionary(network_type,
+                network_type)
         else:
-            cluster_wgcna_dct = get_cluster_dictionary(go_method, go_domain)
+            cluster_wgcna_dct = get_cluster_dictionary(network_type, go_domain)
 
-        compute_go_enrichments(go_method, go_dct, cluster_wgcna_dct, go_domain)
+        compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct,
+            go_domain)
 
 if __name__ == '__main__':
     start_time = time.time()

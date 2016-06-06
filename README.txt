@@ -48,9 +48,9 @@ Real network
 
 ___________________________________CLUSTERING___________________________________
 
-3. Compile clustering code inside sim_anneal folder.
+5. Compile clustering code inside sim_anneal folder.
 If static error for EdgeWeightThreshold, add static in front of its declaration
-in cs-grn.
+in cs-grn.h.
 
 $ g++ -O3 -o bin/cs-grn -Wno-deprecated -std=c++0x *.cpp
 
@@ -59,7 +59,7 @@ Execute clustering code on the created networks.
 
 4. Run the simulated annealing clustering code.
 
-$ python simulated_annealing.py RUNNUM go/no_go
+$ python simulated_annealing.py RUNNUM go/no_go optional:go_num
 
 Only run the clustering on networks without GO only once, as it will be the
 same network for any given percentage of the raw network, since we use a random
@@ -174,4 +174,4 @@ $ python compute_go_enrichment_wgcna.py genes_only/pca/mean/median
 $ python cluster_info_summary_WGCNA.py genes_only/pca/mean/median
 
 7.
-$ python plot_indensity_vs_enrich_WGCNA.py
+$ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf

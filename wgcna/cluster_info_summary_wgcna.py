@@ -66,7 +66,6 @@ def get_network_statistics(run_num):
         if i == 1:
             num_genes_net = line.strip()
             continue
-        line = line.split()
         num_gg_net += 1
     f.close()
     # Divide the by two to account for each edge listed twice.
@@ -103,7 +102,10 @@ def main():
 
     num_genes_net, num_gg_net = get_network_statistics(42)
 
-    for go_domain in ['bp', 'cc', 'mf']:
+    domain_list = ['bp', 'cc', 'mf']
+    if go_method == 'genes_only':
+        domain_list += ['all']
+    for go_domain in domain_list:
         if go_method == 'genes_only':
             cluster_wgcna_dct = get_cluster_dictionary(go_method, go_method)
             density_dct = get_density_dct(go_method, go_method)

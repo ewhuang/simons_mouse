@@ -41,15 +41,18 @@ def get_embedding_genes():
 
 # Takes a clustered file from simulated annealing and outputs a clean file
 # without the GO nodes.
-def create_clean_go_file(run_num):
-    f = open('./results/clusters_go_%s.txt' % run_num, 'r')
-    out = open('./results/clusters_go_clean_%s.txt' % run_num, 'w')
+def create_clean_go_file(run_num, go_domain_num):
+    f = open('./results/clusters_go/clusters_go_%s_%d.txt' % (run_num,
+        go_domain_num), 'r')
+    out = open('./results/clusters_go/clusters_go_clean_%s_%d.txt' % (run_num,
+        go_domain_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)
             continue
-        newline = line.split()
-        if 'ENSMUSG' not in newline[3]:
+        # Skip GO terms in clusters.
+        if 'ENSMUSG' not in line:
+            assert 'GO:' in line
             continue
         out.write(line)
     out.close()
@@ -205,8 +208,11 @@ def get_cluster_densities(eval_fname):
         if line[:7] != 'Cluster':
             continue
         line = line.split()
+        if len(line) != 35:
+            continue
         clus_id, in_density, out_density = line[1], line[7], line[9]
-        density_dct[clus_id] = (float(in_density), float(out_density))
+        ratio = float(line[34])
+        density_dct[clus_id] = (float(in_density), float(out_density), ratio)
     f.close()
     return density_dct
 
@@ -241,7 +247,10 @@ def get_network_stats(network_fname):
     
     f = open(network_fname, 'r')
     for i, line in enumerate(f):
-        if i < 2:
+        if i == 0:
+            continue
+        if i == 1:
+            num_genes_net = line.strip()
             continue
 
         if 'GO:' in line:
@@ -250,7 +259,7 @@ def get_network_stats(network_fname):
             num_gg_net += 1
     f.close()
     # Divide the two numbers by two to account for each edge in twice.
-    return num_gg_net / 2, num_ggo_net / 2
+    return num_genes_net, num_gg_net / 2, num_ggo_net / 2
 
 # # Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
 # def get_embedding_edge_dct(keyword):
@@ -280,18 +289,18 @@ def get_high_std_genes():
     return high_std_genes
 
 # create_clustering_input.py
-def get_high_std_edge_list():
+def get_high_std_edge_dct():
     '''
     Returns edges between high standard deviation genes that have very
     correlated gene expression vectors.
     '''
-    high_std_edge_list = []
-    f = open('./data/high_std_network.txt', 'r')
+    high_std_edge_dct = {}
+    f = open('./data/high_std_ensmusg_network.txt', 'r')
     for i, line in enumerate(f):
         gene_a, gene_b, pcc = line.split()
-        high_std_edge_list += [(gene_a, gene_b)]
+        high_std_edge_dct[(gene_a, gene_b)] = pcc
     f.close()
-    return high_std_edge_list
+    return high_std_edge_dct
 
 def read_config_file():
     '''
