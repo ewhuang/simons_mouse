@@ -12,7 +12,7 @@ import time
 ### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE".
 ### Run time: 7 minutes.
 
-P_VALUE_THRESHOLD = 0.001
+P_VALUE_THRESHOLD = 0.85
 
 def corrcoef(matrix):
     '''
@@ -47,19 +47,13 @@ def main():
     r, p = corrcoef(gene_exp_matrix)
 
     out = open('./data/high_std_ensmusg_network.txt', 'w')
-    for row_index, row in enumerate(p):
-        for col_index, p_val in enumerate(row):
-            if col_index <= row_index or p_val > P_VALUE_THRESHOLD:
+    for row_index, row in enumerate(r):
+        for col_index, pcc in enumerate(row):
+            if col_index <= row_index or pcc < 0.8 or pcc == 1:
                 continue
-
-            pcc = r[row_index][col_index]
-            # Ignore genes that have PCC = 1 for the raw network.
-            if pcc == 1:
-                continue
-
             # Write out gene information.
-            gene_a, gene_b = (high_std_genes[row_index],
-                high_std_genes[col_index])
+            gene_a, gene_b = (high_std_genes[row_index], high_std_genes[
+                col_index])
             out.write('%s\t%s\t%f\n' % (gene_a, gene_b, abs(pcc)))
     out.close()
 
