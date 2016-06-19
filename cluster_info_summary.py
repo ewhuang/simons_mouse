@@ -70,16 +70,11 @@ if __name__ == '__main__':
 
     start_time = time.time()
 
-    # Get no_go summary.
+    # No GO filenames.
     clus_fname = './results/clusters_no_go/clusters_no_go_%s.txt' % run_num
     net_fname = './data/networks_no_go/network_no_go_%s.txt' % run_num
     eval_fname = './results/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
         run_num)
-    enrich_fname = './results/cluster_enrichment_terms_no_go/'
-    enrich_fname += 'cluster_enrichment_terms_no_go_%s.txt' % run_num
-    out_fname = './results/clus_info_no_go/clus_info_no_go_%s.txt' % run_num
-    write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
-        out_fname)
 
     # Get GO summaries.
     for domain_index in range(3):
@@ -94,6 +89,15 @@ if __name__ == '__main__':
             domain_index)
         out_fname = './results/clus_info_go/clus_info_go_%s_%d.txt' % (run_num,
             domain_index)
+        write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
+            out_fname)
+
+        # Get no GO summaries.
+        enrich_fname = './results/cluster_enrichment_terms_no_go/'
+        enrich_fname += 'cluster_enrichment_terms_no_go_%s_%d.txt' % (run_num,
+            domain_index)
+        out_fname = './results/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
+            run_num, domain_index)
         write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 

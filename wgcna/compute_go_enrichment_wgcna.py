@@ -18,7 +18,7 @@ def get_go_gene_dct(go_domain):
    Gets the GO dictionary corresponding to the GO domain.
     '''
     # First, load all of the GO dictionaries.
-    with open('../data/%s_index.json' % go_domain, 'r') as fp:
+    with open('../data/%s_ensmusg.json' % go_domain, 'r') as fp:
         go_gene_dct = json.load(fp)
     fp.close()
 
@@ -98,8 +98,7 @@ def compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct, go_domain):
         network_type, network_type, go_domain), 'w')
 
     # Loop through the clusters.
-    for i in range(len(cluster_wgcna_dct)):
-        clus_id = str(i + 1)
+    for clus_id in cluster_wgcna_dct:
         clus_genes = set(cluster_wgcna_dct[clus_id])
 
         sorted_fisher_dct = get_sorted_fisher_dct(clus_genes, go_dct,
@@ -120,8 +119,6 @@ def main():
         exit()
     network_type = sys.argv[1]
     assert network_type in ['genes_only', 'pca', 'mean', 'median']
-
-    high_std_genes = get_high_std_genes()
 
     for go_domain in ['bp', 'cc', 'mf']:
         go_dct = get_go_gene_dct(go_domain)

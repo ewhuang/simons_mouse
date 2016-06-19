@@ -103,8 +103,7 @@ def main():
     num_genes_net, num_gg_net = get_network_statistics(42)
 
     domain_list = ['bp', 'cc', 'mf']
-    if go_method == 'genes_only':
-        domain_list += ['all']
+    
     for go_domain in domain_list:
         if go_method == 'genes_only':
             cluster_wgcna_dct = get_cluster_dictionary(go_method, go_method)

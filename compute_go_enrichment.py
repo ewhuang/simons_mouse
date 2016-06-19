@@ -110,31 +110,22 @@ def main():
 
     go_dct_list = read_go_dictionaries()
 
-    master_go_dct = {}
-    for go_dct in go_dct_list:
-        master_go_dct.update(go_dct)
-
     for domain_index in range(3):
         go_dct = go_dct_list[domain_index]
+
+        # GO network.
         cluster_fname = './results/clusters_go/clusters_go_clean_%s_%d.txt' % (
             run_num, domain_index)
         go_fname = './results/cluster_enrichment_terms_go/cluster_enrichment_t'
         go_fname += 'erms_go_%s_%d.txt' % (run_num, domain_index)
-        write_enrichment_files(cluster_fname, go_fname, master_go_dct)
+        write_enrichment_files(cluster_fname, go_fname, go_dct)
 
-    # Compute GO enrichment for networks without GO.
-
-    # The GO dictionary for the network without GO contains all three domains.
-    # Merge the three GO dictionaries.
-    master_dct = {}
-    for go_dct in go_dct_list:
-        master_dct.update(go_dct)
-
-    no_go_cluster_fname = './results/clusters_no_go/clusters_no_go_%s.txt' % (
-        run_num)
-    no_go_fname = './results/cluster_enrichment_terms_no_go/cluster_enrichment'
-    no_go_fname += '_terms_no_go_%s.txt' % run_num
-    write_enrichment_files(no_go_cluster_fname, no_go_fname, master_dct)
+        # No GO network.
+        no_go_cluster_fname = './results/clusters_no_go/clusters_no_go_%s.txt' % (
+            run_num)
+        no_go_fname = './results/cluster_enrichment_terms_no_go/cluster_enrichment'
+        no_go_fname += '_terms_no_go_%s_%d.txt' % (run_num, domain_index)
+        write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

@@ -46,7 +46,7 @@ def main():
     high_std_genes = get_high_std_genes()
 
     if go_method == 'genes_only':
-        go_domain_list = ['genes_only']
+        go_domain_list = [go_method]
     else:
         go_domain_list = ['bp', 'cc', 'mf']
 

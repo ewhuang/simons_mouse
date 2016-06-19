@@ -165,6 +165,7 @@ Takes about 55 minutes.
 $ python clean_WGCNA_module_results.py genes_only/pca/mean/median
 
 4.
+Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
 python evaluate_clustering_wgcna genes_only/pca/mean/median
 
 5.
