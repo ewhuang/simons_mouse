@@ -2,6 +2,8 @@
 
 import file_operations
 import json
+import operator
+from scipy.stats import fisher_exact
 import time
 
 ### Go to http://pantherdb.org/
@@ -95,6 +97,49 @@ def get_go_domains(gene_type):
 
     return cc_go_gene_dct, bp_go_gene_dct, mf_go_gene_dct
 
+def write_go_overlap(bp_go_gene_dct, mf_go_gene_dct):
+    '''
+    Given two dictionaries of GO terms, find the overlapping terms' Fisher's
+    test p-values.
+    '''
+    gene_universe = set([item for sublist in bp_go_gene_dct.values() for item
+        in sublist]).union([item for sublist in mf_go_gene_dct.values() for
+        item in sublist])
+
+    fisher_dct = {}
+    for bp_label in bp_go_gene_dct:
+        bp_genes = set(bp_go_gene_dct[bp_label])
+        if len(bp_genes) > 1000 or len(bp_genes) < 10:
+            continue
+
+        for mf_label in mf_go_gene_dct:
+            mf_genes = set(mf_go_gene_dct[mf_label])
+            if len(mf_genes) > 1000 or len(mf_genes) < 10:
+                continue
+
+            # Compute the four sets for Fisher's test.
+            bp_and_mf = len(bp_genes.intersection(mf_genes))
+            bp_not_mf = len(bp_genes.difference(mf_genes))
+            mf_not_bp = len(mf_genes.difference(bp_genes))
+            neither = len(gene_universe) - len(mf_genes.union(bp_genes))
+
+            # Run Fisher's test.
+            f_table = ([[bp_and_mf, bp_not_mf], [mf_not_bp, neither]])
+            o_r, p_value = fisher_exact(f_table)
+
+            # Handle overflow issues.
+            p_value = max(p_value, 1e-300)
+
+            fisher_dct[(bp_label, mf_label)] = p_value
+
+    fisher_dct = sorted(fisher_dct.items(), key=operator.itemgetter(1))
+    out = open('./data/overlapping_bp_mf_go_labels.txt', 'w')
+    for (bp_label, mf_label), p_value in fisher_dct:
+        out.write(bp_label + '\t' + mf_label + '\t' + str(p_value) + '\n')
+        if p_value > 1e-10:
+            break
+    out.close()
+
 def main():
     # Write out two types of values: ENSMUSG ID's and their indices in the
     # high standard deviation genes.
@@ -114,6 +159,8 @@ def main():
         with open('./data/mf_%s.json' % gene_type, 'w') as fp:
             json.dump(mf_go_gene_dct, fp)
         fp.close()
+
+    write_go_overlap(bp_go_gene_dct, mf_go_gene_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

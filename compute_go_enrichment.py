@@ -46,7 +46,6 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
         # Run Fisher's test.
         f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
         o_r, p_value = fisher_exact(f_table)
-        fisher_dct[go_label] = p_value
 
         # Handle overflow issues.
         p_value = max(p_value, 1e-300)
@@ -92,40 +91,42 @@ def read_go_dictionaries():
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/cc_ensmusg.json', 'r') as fp:
-        cc_go_gene_dct = json.load(fp)
-    fp.close()
-
     with open('./data/mf_ensmusg.json', 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
-    return (bp_go_gene_dct, cc_go_gene_dct, mf_go_gene_dct)
+    return (bp_go_gene_dct, mf_go_gene_dct)
 
 def main():
-    if len(sys.argv) != 2:
-        print 'Usage:python %s run_num' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage:python %s objective_function run_num' % sys.argv[0]
         exit()
-    run_num = sys.argv[1]
+    objective_function = sys.argv[1]
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    run_num = sys.argv[2]
 
     go_dct_list = read_go_dictionaries()
 
-    for domain_index in range(3):
+    for domain_index in range(len(go_dct_list)):
+
         go_dct = go_dct_list[domain_index]
 
-        # GO network.
-        cluster_fname = './results/clusters_go/clusters_go_clean_%s_%d.txt' % (
-            run_num, domain_index)
-        go_fname = './results/cluster_enrichment_terms_go/cluster_enrichment_t'
-        go_fname += 'erms_go_%s_%d.txt' % (run_num, domain_index)
-        write_enrichment_files(cluster_fname, go_fname, go_dct)
-
         # No GO network.
-        no_go_cluster_fname = './results/clusters_no_go/clusters_no_go_%s.txt' % (
-            run_num)
-        no_go_fname = './results/cluster_enrichment_terms_no_go/cluster_enrichment'
-        no_go_fname += '_terms_no_go_%s_%d.txt' % (run_num, domain_index)
+        no_go_cluster_fname = './results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
+            objective_function, run_num)
+        no_go_fname = './results/%s/cluster_enrichment_terms_no_go/cluster_' % (
+            objective_function)
+        no_go_fname += 'enrichment_terms_no_go_%s_%d.txt' % (run_num,
+            domain_index)
         write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
+
+        # GO network.
+        cluster_fname = './results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+            objective_function, run_num, domain_index)
+        go_fname = './results/%s/cluster_enrichment_terms_go/cluster_' % (
+            objective_function)
+        go_fname += 'enrichment_terms_go_%s_%d.txt' % (run_num, domain_index)
+        write_enrichment_files(cluster_fname, go_fname, go_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

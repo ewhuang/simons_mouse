@@ -41,11 +41,11 @@ def get_embedding_genes():
 
 # Takes a clustered file from simulated annealing and outputs a clean file
 # without the GO nodes.
-def create_clean_go_file(run_num, go_domain_num):
-    f = open('./results/clusters_go/clusters_go_%s_%d.txt' % (run_num,
-        go_domain_num), 'r')
-    out = open('./results/clusters_go/clusters_go_clean_%s_%d.txt' % (run_num,
-        go_domain_num), 'w')
+def create_clean_go_file(objective_function, run_num, go_domain_num):
+    f = open('./results/%s/clusters_go/clusters_go_%s_%d.txt' % (
+        objective_function, run_num, go_domain_num), 'r')
+    out = open('./results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+        objective_function, run_num, go_domain_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)

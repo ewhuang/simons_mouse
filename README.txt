@@ -59,7 +59,8 @@ Execute clustering code on the created networks.
 
 4. Run the simulated annealing clustering code.
 
-$ python simulated_annealing.py RUNNUM go/no_go optional:go_num
+$ python simulated_annealing.py objective_function RUNNUM go/no_go 
+    go_num <optional>
 
 Only run the clustering on networks without GO only once, as it will be the
 same network for any given percentage of the raw network, since we use a random
@@ -67,7 +68,7 @@ seed.
 
 7. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
 
-$ python evaluate_clustering.py RUNNUM
+$ python evaluate_clustering.py objective_function RUNNUM
 
 Outputs cluster evaluation information in ./results/cluster_eval_go/no_go_RUNNUM
 Make sure to copy over clusters_no_go.txt if we didn't cluster the network
@@ -78,7 +79,7 @@ Compute GO enrichment of each of the clusterings.
 
 8. Compute GO enrichments for each clustering.
 
-$ python compute_go_enrichment.py RUNNUM
+$ python compute_go_enrichment.py objective_function RUNNUM
 
 9. Analyze the properties of the clusterings.
 

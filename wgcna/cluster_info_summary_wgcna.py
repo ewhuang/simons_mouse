@@ -100,7 +100,7 @@ def main():
     go_method = sys.argv[1]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
 
-    num_genes_net, num_gg_net = get_network_statistics(42)
+    num_genes_net, num_gg_net = get_network_statistics(1)
 
     domain_list = ['bp', 'cc', 'mf']
     

@@ -11,7 +11,7 @@ setwd("C:/Users/ewhuang3/Documents/simons_mouse")
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
-hb_mrsb_cpm = read.table("mm_mrsb_log2_expression_mf.tsv", sep="\t", header=T)
+hb_mrsb_cpm = read.table("mm_mrsb_log2_expression_genes_only.tsv", sep="\t", header=T)
 # hb_mrsb_cpm <- read.table("mm_mrsb_log2_expression.tsv", sep="\t", header=T)
 gene_id = hb_mrsb_cpm$gene_id
 hb_mrsb_cpm$gene_id = NULL
@@ -68,4 +68,4 @@ for (i in 1:nrow(hb_mrsb_module_membership)) {
 
 # write.table(hb_mrsb_cpm_gsg$goodGenes, file="good_gene_booleans_WGCNA.txt", sep="\t", row.names=FALSE, col.names=FALSE)
 
-write.table(hb_mrsb_module_membership, file="module_membership_mf.txt", sep="\t", row.names=FALSE)
+write.table(hb_mrsb_module_membership, file="module_membership_genes_only.txt", sep="\t", row.names=FALSE)

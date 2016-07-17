@@ -11,7 +11,7 @@ import time
 ### WGCNA. It looks at the networks we have previously built, finds all the
 ### genes used in those networks, and then preserves only the rows in the 
 ### original file that matches those genes.
-### Run time: 42 seconds.
+### Run time: 9 seconds.
 
 def get_high_std_genes():
     '''
@@ -21,13 +21,13 @@ def get_high_std_genes():
     high_std_genes = []
     f = open('../data/high_std_genes.txt', 'r')
     for line in f:
-        gene = line.strip()        
+        gene = line.strip()
         assert 'ENSMUSG' in gene
         high_std_genes += [gene]
     f.close()
     return high_std_genes
 
-def get_go_gene_dct(go_domain):
+# def get_go_gene_dct(go_domain):
     '''
     Returns the three GO dictionaries corresponding to each biological process.
     '''
@@ -61,15 +61,15 @@ def main():
         # for go_domain_train in go_domain_list_train:
         #     go_gene_dct.update(get_go_gene_dct(go_domain_train))
 
-        # This line is to both train and evaluate on the same domain.
-        if go_domain != 'genes_only':
-            go_gene_dct = get_go_gene_dct(go_domain)
+        # # This line is to both train and evaluate on the same domain.
+        # if go_domain != 'genes_only':
+        #     go_gene_dct = get_go_gene_dct(go_domain)
 
         f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
         out = open('./data/mm_mrsb_log2_expression_%s.tsv' % go_domain, 'w')
 
         # Write out the gene expression vectors for genes.
-        gene_expression_dct = {}
+        # gene_expression_dct = {}
         for i, line in enumerate(f):
             # Directly write out the header file.
             if i == 0:
@@ -83,47 +83,47 @@ def main():
             if gene not in high_std_genes:
                 continue
             out.write(line)
-            exp_vals = [float(val) for val in exp_vals]
-            assert gene not in gene_expression_dct
-            gene_expression_dct[gene] = exp_vals
+            # exp_vals = [float(val) for val in exp_vals]
+            # assert gene not in gene_expression_dct
+            # gene_expression_dct[gene] = exp_vals
         f.close()
 
-        if go_domain == 'genes_only':
-            break
+        # if go_domain == 'genes_only':
+        #     break
 
-        # Run PCA and generate gene expression vectors for GO terms.
-        for go_term in go_gene_dct:
-            annotated_gene_list = go_gene_dct[go_term]
+        # # Run PCA and generate gene expression vectors for GO terms.
+        # for go_term in go_gene_dct:
+        #     annotated_gene_list = go_gene_dct[go_term]
 
-            # Skip bad GO terms.
-            num_annotated_gene_list = len(annotated_gene_list)
-            if num_annotated_gene_list < 10 or num_annotated_gene_list > 1000:
-                continue
+        #     # Skip bad GO terms.
+        #     num_annotated_gene_list = len(annotated_gene_list)
+        #     if num_annotated_gene_list < 10 or num_annotated_gene_list > 1000:
+        #         continue
 
-            # Construct expression matrix for a GO term on the genes it
-            # annotates.
-            super_gene_matrix = []
-            for annotated_gene in annotated_gene_list:
-                ann_gene_expression = gene_expression_dct[annotated_gene]
-                super_gene_matrix += [ann_gene_expression]
+        #     # Construct expression matrix for a GO term on the genes it
+        #     # annotates.
+        #     super_gene_matrix = []
+        #     for annotated_gene in annotated_gene_list:
+        #         ann_gene_expression = gene_expression_dct[annotated_gene]
+        #         super_gene_matrix += [ann_gene_expression]
             
-            if go_method == 'mean':
-                # Get the average across each sample.
-                super_gene_matrix = np.array(super_gene_matrix)
-                super_gene = np.mean(super_gene_matrix, axis=0)
-            elif go_method == 'pca':
-                # Get most principal component.
-                pca = PCA()
-                pca.fit(super_gene_matrix)
-                super_gene = pca.components_[0] + pca.mean_
-            elif go_method == 'median':
-                # Get median across each sample.
-                super_gene_matrix = np.array(super_gene_matrix)
-                super_gene = np.median(super_gene_matrix, axis=0)
+        #     if go_method == 'mean':
+        #         # Get the average across each sample.
+        #         super_gene_matrix = np.array(super_gene_matrix)
+        #         super_gene = np.mean(super_gene_matrix, axis=0)
+        #     elif go_method == 'pca':
+        #         # Get most principal component.
+        #         pca = PCA()
+        #         pca.fit(super_gene_matrix)
+        #         super_gene = pca.components_[0] + pca.mean_
+        #     elif go_method == 'median':
+        #         # Get median across each sample.
+        #         super_gene_matrix = np.array(super_gene_matrix)
+        #         super_gene = np.median(super_gene_matrix, axis=0)
 
-            # Write out the vector to file.
-            out.write(go_term + '\t')
-            out.write('\t'.join(map(str, super_gene)) + '\n')
+        #     # Write out the vector to file.
+        #     out.write(go_term + '\t')
+        #     out.write('\t'.join(map(str, super_gene)) + '\n')
 
         out.close()
         f.close()

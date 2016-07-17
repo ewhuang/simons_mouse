@@ -63,41 +63,46 @@ def write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
     out.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage:python %s run_num' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage:python %s objective_function run_num' % sys.argv[0]
         exit()
-    run_num = sys.argv[1]
+    objective_function = sys.argv[1]
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    run_num = sys.argv[2]
 
     start_time = time.time()
 
     # No GO filenames.
-    clus_fname = './results/clusters_no_go/clusters_no_go_%s.txt' % run_num
+    clus_fname = './results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
+        objective_function, run_num)
     net_fname = './data/networks_no_go/network_no_go_%s.txt' % run_num
-    eval_fname = './results/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
-        run_num)
+    eval_fname = './results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
+        objective_function, run_num)
 
     # Get GO summaries.
-    for domain_index in range(3):
-        clus_fname = './results/clusters_go/clusters_go_%s_%d.txt' % (run_num,
-            domain_index)
+    for domain_index in range(2):
+        clus_fname = './results/%s/clusters_go/clusters_go_%s_%d.txt' % (
+            objective_function, run_num, domain_index)
         net_fname = './data/networks_go/network_go_%s_%d.txt' % (run_num,
             domain_index)
-        eval_fname = './results/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
-            run_num, domain_index)
-        enrich_fname = './results/cluster_enrichment_terms_go/'
+        eval_fname = './results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
+            objective_function, run_num, domain_index)
+        enrich_fname = './results/%s/cluster_enrichment_terms_go/' % (
+            objective_function)
         enrich_fname += 'cluster_enrichment_terms_go_%s_%d.txt' % (run_num,
             domain_index)
-        out_fname = './results/clus_info_go/clus_info_go_%s_%d.txt' % (run_num,
-            domain_index)
+        out_fname = './results/%s/clus_info_go/clus_info_go_%s_%d.txt' % (
+            objective_function, run_num, domain_index)
         write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 
         # Get no GO summaries.
-        enrich_fname = './results/cluster_enrichment_terms_no_go/'
+        enrich_fname = './results/%s/cluster_enrichment_terms_no_go/' % (
+            objective_function)
         enrich_fname += 'cluster_enrichment_terms_no_go_%s_%d.txt' % (run_num,
             domain_index)
-        out_fname = './results/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
-            run_num, domain_index)
+        out_fname = './results/%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
+            objective_function, run_num, domain_index)
         write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 
