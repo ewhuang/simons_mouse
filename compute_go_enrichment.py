@@ -17,25 +17,21 @@ import time
 ### sacrificing in-density.
 ### Run time: 2 minutes.
 
-MAX_GO_SIZE = 1000
-MIN_GO_SIZE = 10
-
-gene_universe = file_operations.get_high_std_genes()
+gene_universe = []
 
 def get_sorted_fisher_dct(clus_genes, go_dct):
     '''
     Returns a dictionary, where keys=GO terms, values=p-values of Fisher's test
     GO enrichment for the set of genes in the cluster.
     '''
-
     # Keys are GO terms, and values are the enrichment p-values.
     fisher_dct = {}
     for go_label in go_dct:
         go_genes = set(go_dct[go_label])
 
-        # Skip bad GO terms.
-        if len(go_genes) > MAX_GO_SIZE or len(go_genes) < MIN_GO_SIZE:
-            continue
+        # # Skip bad GO terms.
+        # if len(go_genes) > MAX_GO_SIZE or len(go_genes) < MIN_GO_SIZE:
+        #     continue
 
         # Compute the four sets for Fisher's test.
         clus_and_go = len(clus_genes.intersection(go_genes))
@@ -86,45 +82,49 @@ def write_enrichment_files(in_fname, out_fname, go_dct):
     cluster_dct = file_operations.get_cluster_dictionary(in_fname)
     compute_go_enrichments(out_fname, cluster_dct, go_dct)
 
-def read_go_dictionaries():
-    with open('./data/bp_ensmusg.json', 'r') as fp:
+def read_go_dictionaries(data_type):
+    with open('./data/bp_%s.json' % data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/mf_ensmusg.json', 'r') as fp:
+    with open('./data/mf_%s.json' % data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
     return (bp_go_gene_dct, mf_go_gene_dct)
 
 def main():
-    if len(sys.argv) != 3:
-        print 'Usage:python %s objective_function run_num' % sys.argv[0]
+    if len(sys.argv) != 4:
+        print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
-    objective_function = sys.argv[1]
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
-    run_num = sys.argv[2]
+    run_num = sys.argv[3]
+    assert run_num.isdigit()
 
-    go_dct_list = read_go_dictionaries()
-
-    for domain_index in range(len(go_dct_list)):
-
+    go_dct_list = read_go_dictionaries(data_type)
+    global gene_universe
+    gene_universe = file_operations.get_high_std_genes(data_type)
+    # for domain_index in range(len(go_dct_list)):
+    for domain_index in [0]:
         go_dct = go_dct_list[domain_index]
 
         # No GO network.
-        no_go_cluster_fname = './results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
-            objective_function, run_num)
-        no_go_fname = './results/%s/cluster_enrichment_terms_no_go/cluster_' % (
-            objective_function)
+        no_go_cluster_fname = './%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
+            data_type, objective_function, run_num)
+        no_go_fname = './%s_results/%s/cluster_enrichment_terms_no_go/cluster_' % (
+            data_type, objective_function)
         no_go_fname += 'enrichment_terms_no_go_%s_%d.txt' % (run_num,
             domain_index)
         write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
 
         # GO network.
-        cluster_fname = './results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
-            objective_function, run_num, domain_index)
-        go_fname = './results/%s/cluster_enrichment_terms_go/cluster_' % (
-            objective_function)
+        cluster_fname = './%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+            data_type, objective_function, run_num, domain_index)
+        go_fname = './%s_results/%s/cluster_enrichment_terms_go/cluster_' % (
+            data_type, objective_function)
         go_fname += 'enrichment_terms_go_%s_%d.txt' % (run_num, domain_index)
         write_enrichment_files(cluster_fname, go_fname, go_dct)
 

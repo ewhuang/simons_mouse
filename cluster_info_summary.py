@@ -26,7 +26,7 @@ def write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
     out = open(out_fname, 'w')
     out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
     out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
-    out.write('cluster_number\tin_dens\tout_dens\t')
+    out.write('cluster_number\tin_dens\tout_dens\tratio\t')
     out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
     out.write('top_enrichment_p\n')
     for cid in density_dct:
@@ -63,46 +63,50 @@ def write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
     out.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print 'Usage:python %s objective_function run_num' % sys.argv[0]
+    if len(sys.argv) != 4:
+        print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
-    objective_function = sys.argv[1]
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
-    run_num = sys.argv[2]
+    run_num = sys.argv[3]
+    assert run_num.isdigit()
 
     start_time = time.time()
 
     # No GO filenames.
-    clus_fname = './results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
-        objective_function, run_num)
-    net_fname = './data/networks_no_go/network_no_go_%s.txt' % run_num
-    eval_fname = './results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
-        objective_function, run_num)
+    clus_fname = './%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
+        data_type, objective_function, run_num)
+    net_fname = './data/%s_networks_no_go/network_no_go_%s.txt' % (data_type,
+        run_num)
+    eval_fname = './%s_results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
+        data_type, objective_function, run_num)
 
     # Get GO summaries.
-    for domain_index in range(2):
-        clus_fname = './results/%s/clusters_go/clusters_go_%s_%d.txt' % (
-            objective_function, run_num, domain_index)
-        net_fname = './data/networks_go/network_go_%s_%d.txt' % (run_num,
-            domain_index)
-        eval_fname = './results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
-            objective_function, run_num, domain_index)
-        enrich_fname = './results/%s/cluster_enrichment_terms_go/' % (
-            objective_function)
+    for domain_index in [0]:
+        clus_fname = './%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
+            data_type, objective_function, run_num, domain_index)
+        net_fname = './data/%s_networks_go/network_go_%s_%d.txt' % (data_type,
+            run_num, domain_index)
+        eval_fname = './%s_results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
+            data_type, objective_function, run_num, domain_index)
+        enrich_fname = './%s_results/%s/cluster_enrichment_terms_go/' % (
+            data_type, objective_function)
         enrich_fname += 'cluster_enrichment_terms_go_%s_%d.txt' % (run_num,
             domain_index)
-        out_fname = './results/%s/clus_info_go/clus_info_go_%s_%d.txt' % (
-            objective_function, run_num, domain_index)
+        out_fname = './%s_results/%s/clus_info_go/clus_info_go_%s_%d.txt' % (
+            data_type, objective_function, run_num, domain_index)
         write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 
         # Get no GO summaries.
-        enrich_fname = './results/%s/cluster_enrichment_terms_no_go/' % (
-            objective_function)
+        enrich_fname = './%s_results/%s/cluster_enrichment_terms_no_go/' % (
+            data_type, objective_function)
         enrich_fname += 'cluster_enrichment_terms_no_go_%s_%d.txt' % (run_num,
             domain_index)
-        out_fname = './results/%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
-            objective_function, run_num, domain_index)
+        out_fname = './%s_results/%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
+            data_type, objective_function, run_num, domain_index)
         write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 

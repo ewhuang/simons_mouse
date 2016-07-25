@@ -4,19 +4,19 @@ Simons Foundation Mouse Project
 ___________________________CREATING THE GENE NETWORK____________________________
 1. Plot the standard deviation distribution of the genes, and write to file.
 
-$ python standard_deviation_hist.py
+$ python standard_deviation_hist.py mouse/tcga
 
 2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
 values are lists of ENSMUSG ID's.
 
-$ python dump_go_dictionary_files.py.
+$ python dump_go_dictionary_files.py mouse/tcga
 
 3. Compute pearson coefficients between gene expression values to find
 correlated genes. We can specify a parameter, pearson_threshold, which
 determines the cutoff coefficient for an edge to exist. Output file is
 high_std_network.txt.
 
-$ python gene_edge_weights.py
+$ python gene_edge_weights.py mouse/tcga
 
 Output format:
 gene_a  gene_b  edge_weight
@@ -25,23 +25,23 @@ The edges are not repeated.
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 4. Create 4 files overall, a network and real network each for a network with
 and without GO labels.
-Output files network_go_RUNNUM_FOLD.txt, where RUNNUM indicates the run
+Output files network_go_run_num_FOLD.txt, where run_num indicates the run
 number, and FOLD indicates the fold number, as we separate the GO terms into
 the three categories: biological process, molecular function, and cellular
 component.
 Other files:
-real_network_go_RUNNUM_FOLD.txt.
-network_no_go_RUNNUM_FOLD.txt, and
-real_network_no_go_RUNNUM.txt
+real_network_go_run_num_FOLD.txt.
+network_no_go_run_num_FOLD.txt, and
+real_network_no_go_run_num.txt
 
-$ python create_clustering_input.py RUNNUM
+$ python create_clustering_input.py data_type run_num -b <bootstrap-optional>
 
-Output format for network_go.txt/network_no_go_RUNNUM.txt:
+Output format for network_go.txt/network_no_go_run_num.txt:
 0
 NUM_NODES
 gene_a  gene_b  edge_weight
 gene_b  gene_a  edge_weight
-Output format for real_network_no_go_RUNNUM.txt/real_network_go_RUNNUM.txt:
+Output format for real_network_no_go_run_num.txt/real_network_go_run_num.txt:
 Real network
 0   gene_a  gene_b  edge_weight
 0   gene_b  gene_a  edge_weight
@@ -59,8 +59,8 @@ Execute clustering code on the created networks.
 
 4. Run the simulated annealing clustering code.
 
-$ python simulated_annealing.py objective_function RUNNUM go/no_go 
-    go_num <optional>
+$ python simulated_annealing.py data_type objective_function run_num go/no_go
+            go_num <if go>
 
 Only run the clustering on networks without GO only once, as it will be the
 same network for any given percentage of the raw network, since we use a random
@@ -68,45 +68,41 @@ seed.
 
 7. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
 
-$ python evaluate_clustering.py objective_function RUNNUM
-
-Outputs cluster evaluation information in ./results/cluster_eval_go/no_go_RUNNUM
-Make sure to copy over clusters_no_go.txt if we didn't cluster the network
-without GO.
+$ python evaluate_clustering.py data_type objective_function run_num
 
 ________________________________CLUSTER ANALYSIS________________________________
 Compute GO enrichment of each of the clusterings.
 
 8. Compute GO enrichments for each clustering.
 
-$ python compute_go_enrichment.py objective_function RUNNUM
+$ python compute_go_enrichment.py data_type objective_function run_num
 
 9. Analyze the properties of the clusterings.
 
-$ python cluster_info_summary.py RUNNUM
+$ python cluster_info_summary.py data_type objective_function run_num
 
 10. Perform the wilcoxon rank-sum test on the clusters
 
-$ python wilcoxon_clusters.py RUNNUM
+$ python wilcoxon_clusters.py run_num
 
 Prints out the score and p-value of the test.
 
 11. Objective function analysis.
 
 This script looks at the output files from analyze_clusters.py. First we look at
-clus_inf_no_go_RUNNUM.txt, and then find the median of the in-density for all of
+clus_inf_no_go_run_num.txt, and then find the median of the in-density for all of
 the clusters. We take a threshold of that median, and then look at the lusters 
 with GO that meet that threshold. We then count the number of GO terms in these 
 clusters, and print that information out.
 
-$ python objective_function.py RUNNUM
+$ python objective_function.py run_num
 
 No output file, but if the numbers are bigger than 1, then we can say that the
 clusters are reasonable.
 
 12. Plotting in-density versus top GO enrichment.
 
-$ python plot_indensity_vs_enrich.py RUN_NUM
+$ python plot_indensity_vs_enrich.py data_type run_num
 
 
 _____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
@@ -133,7 +129,7 @@ Simply add an extra keyword, the literal string 'predicted', to
 create_clustering_input.py to adjust the network to add in the predicted GO
 edges.
 
-$ python create_clustering_input.py RUNNUM lambda subgraph_decimal "predicted"
+$ python create_clustering_input.py run_num lambda subgraph_decimal "predicted"
 
 CREATING MATRIX FOR SHENG'S MATLAB CODE.
 1. $ python top_left.py

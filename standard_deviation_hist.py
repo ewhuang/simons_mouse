@@ -39,6 +39,7 @@ def main():
         print 'Usage:python %s mouse/tcga' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
 
     gene_expression_dct = file_operations.get_gene_expression_dct(data_type)
     if data_type == 'mouse':

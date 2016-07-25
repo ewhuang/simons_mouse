@@ -152,6 +152,10 @@ def main():
     # high standard deviation genes.
     # for gene_type in ['index', 'ensmusg']:
     bp_go_gene_dct, mf_go_gene_dct = get_go_domains(data_type)
+    if '' in bp_go_gene_dct:
+        del bp_go_gene_dct['']
+    if '' in mf_go_gene_dct:
+        del mf_go_gene_dct['']
 
     # Dump each dictionary out to file.
     with open('./data/bp_%s.json' % data_type, 'w') as fp:

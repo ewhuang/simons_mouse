@@ -18,9 +18,6 @@ import time
 ### Run time: Depends on the Pearson coefficient threshold set in gene_gene_edge
 ### weights.py. 1-15 minutes.
 
-MIN_GO_SIZE = 10
-MAX_GO_SIZE = 1000
-
 def get_genes_from_edges(edges):
     '''
     Return the set of genes from a set of edges.
@@ -31,11 +28,11 @@ def get_genes_from_edges(edges):
         genes.add(gene_b)
     return genes
 
-def write_no_go_files(run_num, edge_genes, edge_dct):
+def write_no_go_files(run_num, data_type, edge_genes, edge_dct):
     '''
     Writes the networks without GO.
     '''
-    no_go_folder = './data/networks_no_go/'
+    no_go_folder = './data/%s_networks_no_go/' % data_type
 
     # Regular network file for clustering.
     no_go_out = open('%snetwork_no_go_%s.txt' % (no_go_folder, run_num), 'w')
@@ -53,43 +50,30 @@ def write_no_go_files(run_num, edge_genes, edge_dct):
     no_go_out.close()
     ng_real.close()
 
-def find_max_go_size(go_dct):
+def compute_go_weight(lamb, largest_go_size, num_go_genes):
     '''
-    Find the size of the largest GO term. The second argument is the set of
-    terms to actually iterate over.
+    Compute the GO weight. Weights are at least 1.0.
     '''
-    max_go_size = 0
-    for go in go_dct:
-        num_go_genes = len(go_dct[go])
-        if num_go_genes < MIN_GO_SIZE or num_go_genes > MAX_GO_SIZE:
-            continue
-        max_go_size = max(max_go_size, num_go_genes)
-    return max_go_size
+    return max(lamb * math.log(largest_go_size / float(num_go_genes)), 1.0)
 
-def compute_go_weight(lamb, max_go_size, num_go_genes):
-    '''
-    Compute the GO weight. Weights are at least 0.5.
-    '''
-    return lamb * math.log(max_go_size / float(num_go_genes))
+# def merge_two_dicts(x, y):
+#     '''Given two dicts, merge them into a new dict as a shallow copy.'''
+#     z = {}
+#     z.update(x)
+#     z.update(y)
+#     return z
 
-def merge_two_dicts(x, y):
-    '''Given two dicts, merge them into a new dict as a shallow copy.'''
-    z = {}
-    z.update(x)
-    z.update(y)
-    return z
-
-def get_go_dictionaries():
+def get_go_dictionaries(data_type):
     '''
     Fetches the GO dictionaries from the three domains. Returns a list of the
     dictionaries, by alphabetical order.
     '''
     # First, load all of the GO dictionaries.
-    with open('./data/bp_ensmusg.json', 'r') as fp:
+    with open('./data/bp_%s.json' % data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/mf_ensmusg.json', 'r') as fp:
+    with open('./data/mf_%s.json' % data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
@@ -102,30 +86,34 @@ def bootstrap_reduce_go_dct(go_dct, edge_genes):
         new_go_dct[go_term] = set(edge_genes).intersection(original_gene_set)
     return new_go_dct
 
-def read_go_overlap():
+def read_go_overlap(data_type):
     '''
     Gets the BP and MF GO terms that are too similar to each other. We exclude
     them from training, but still use them to evaluate.
     '''
     overlap_list = []
-    f = open('./data/overlapping_bp_mf_go_labels.txt', 'r')
+    f = open('./data/overlapping_bp_mf_go_labels_%s.txt' % data_type, 'r')
     for line in f:
-        bp_label, mf_label, p_value = line.split()
+        bp_label, mf_label, p_value = line.strip().split('\t')
         overlap_list += [(bp_label, mf_label)]
     f.close()
     return overlap_list
 
-def write_go_files(run_num, edge_genes, edge_dct, lamb, bootstrap):
+def write_go_files(run_num, data_type, edge_genes, edge_dct, lamb, bootstrap,
+    min_go_size, max_go_size):
     '''
     Writes the networks with GO.
     '''
     # Extract the three GO dictionaries.
-    domain_dictionary_list = get_go_dictionaries()
-    overlap_list = read_go_overlap()
+    domain_dictionary_list = get_go_dictionaries(data_type)
+    overlap_list = read_go_overlap(data_type)
 
-    # Each domain contains GO terms.
-    for domain_index in range(len(domain_dictionary_list)):
-        # This line assumes we only use two domains.
+    # Each domain contains GO terms. domain_index indicates the index of the GO
+    # domain we are evaluating on.
+    # for domain_index in range(len(domain_dictionary_list)):
+    for domain_index in [0]:
+        # This line assumes we only use two domains. Train on the GO domain that
+        # we aren't evaluating on.
         go_dct = domain_dictionary_list[1 - domain_index]
 
         overlapping_go_terms = set([tup[1 - domain_index] for tup in
@@ -137,25 +125,25 @@ def write_go_files(run_num, edge_genes, edge_dct, lamb, bootstrap):
             go_dct = bootstrap_reduce_go_dct(go_dct, edge_genes)
 
         go_size_dct = {} # Keys are GO terms, values are the sizes of the terms.
-        max_go_size = 0 # Find the size of the largest GO term.
+        largest_go_size = 0 # Find the size of the largest GO term.
         for go in go_dct:
             num_go_genes = len(go_dct[go])
-            if num_go_genes < MIN_GO_SIZE or num_go_genes > MAX_GO_SIZE:
+            if num_go_genes < min_go_size or num_go_genes > max_go_size:
                 continue
 
             go_size_dct[go] = num_go_genes
             # Update the largest GO size.
-            max_go_size = max(max_go_size, num_go_genes)
+            largest_go_size = max(largest_go_size, num_go_genes)
 
         # Open up and initialize the network files for the current domain.
         if bootstrap[0]:
-            go_folder = './data/bootstrapped_networks_go/'
+            go_folder = './data/bootstrapped_%s_networks_go/' % data_type
             go_out = open('%snetwork_go_%s_%d_%d.txt' % (go_folder, run_num,
                 domain_index, bootstrap[1]), 'w')
             g_real = open('%sreal_network_go_%s_%d_%d.txt' % (go_folder,
                 run_num, domain_index, bootstrap[1]), 'w')
         else:
-            go_folder = './data/networks_go/'
+            go_folder = './data/%s_networks_go/' % data_type
             go_out = open('%snetwork_go_%s_%d.txt' % (go_folder, run_num,
                 domain_index), 'w')
             g_real = open('%sreal_network_go_%s_%d.txt' % (go_folder, run_num,
@@ -169,7 +157,8 @@ def write_go_files(run_num, edge_genes, edge_dct, lamb, bootstrap):
             for gene in go_dct[go]:
                 if gene not in edge_genes:
                     continue
-                go_weight = compute_go_weight(lamb, max_go_size, num_go_genes)
+                go_weight = compute_go_weight(lamb, largest_go_size,
+                    num_go_genes)
                 go_out.write('%s\t%s\t%f\n' % (gene, go, go_weight))
                 go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
                 g_real.write('0\t%s\t%s\t%f\n' % (gene, go, go_weight))
@@ -187,38 +176,41 @@ def write_go_files(run_num, edge_genes, edge_dct, lamb, bootstrap):
         g_real.close()
 
 def main():
-    if len(sys.argv) not in [2, 3]:
-        print 'Usage:python %s run_num -b <bootstrap>' % sys.argv[0]
+    if len(sys.argv) not in [3, 4]:
+        print 'Usage:python %s data_type run_num -b <bootstrap>' % sys.argv[0]
         exit()
-    run_num = sys.argv[1]
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    run_num = sys.argv[2]
+    assert run_num.isdigit()
     bootstrap = '-b' in sys.argv
 
     # Extracting configuration options.
-    config_dct = file_operations.read_config_file()[run_num]
-    lamb = float(config_dct['lamb'])
+    config_dct = file_operations.read_config_file(data_type)[run_num]
+    lamb = config_dct['lamb']
+    max_go_size = config_dct['max_go_size']
+    min_go_size = config_dct['min_go_size']
     edge_method = config_dct['edge_method']
     assert edge_method in ['pearson', 'embedding']
 
-    high_std_edge_dct = file_operations.get_high_std_edge_dct()
+    high_std_edge_dct = file_operations.get_high_std_edge_dct(data_type)
     
     # Count the number of unique genes in the network.
     edge_genes = list(get_genes_from_edges(high_std_edge_dct.keys()))
-
-    # if edge_method == 'embedding':
-    #     edge_dct = file_operations.get_embedding_edge_dct()
 
     if bootstrap:
         for i in range(1000):
             # If in bootstrap mode, sample 90% of the edges.
             new_high_std_edge_dct = dict(random.sample(
                 high_std_edge_dct.items(), int(0.9 * len(high_std_edge_dct))))
-            write_go_files(run_num, edge_genes, new_high_std_edge_dct, lamb,
-                (bootstrap, i))
+            write_go_files(run_num, data_type, edge_genes,
+                new_high_std_edge_dct, lamb, (bootstrap, i), min_go_size,
+                max_go_size)
     else:
         # Write networks without GO.
-        write_no_go_files(run_num, edge_genes, high_std_edge_dct)
-        write_go_files(run_num, edge_genes, high_std_edge_dct, lamb, (bootstrap,
-            0))
+        write_no_go_files(run_num, data_type, edge_genes, high_std_edge_dct)
+        write_go_files(run_num, data_type, edge_genes, high_std_edge_dct, lamb,
+            (bootstrap, 0), min_go_size, max_go_size)
 
 if __name__ == '__main__':
     start_time = time.time()

@@ -3,6 +3,7 @@
 import file_operations
 import numpy as np
 from scipy.stats import pearsonr, betai
+import sys
 import time
 
 ### This file generates the base file that we use to create the network with
@@ -12,7 +13,10 @@ import time
 ### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE".
 ### Run time: 7 minutes.
 
-P_VALUE_THRESHOLD = 0.9
+# Good threshold for mouse data: 0.8+.
+# Good threshold for TCGA data: < 0.5
+PCC_THRESOLD = 0.45
+# P_VALUE_THRESOLD = 0.0001
 
 def corrcoef(matrix):
     '''
@@ -42,6 +46,7 @@ def main():
         print 'Usage:python %s mouse/tcga' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
 
     # Read in the tsv file.
     gene_exp_dct = file_operations.get_gene_expression_dct(data_type)
@@ -52,13 +57,14 @@ def main():
     r, p = corrcoef(gene_exp_matrix)
 
     out = open('./data/high_std_%s_network.txt' % data_type, 'w')
-    for row_index, row in enumerate(r):
-        for col_index, pcc in enumerate(row):
-            if col_index <= row_index or pcc < P_VALUE_THRESHOLD or pcc == 1:
+    for row_idx, row in enumerate(r):
+        for col_idx, pcc in enumerate(row):
+            if col_idx <= row_idx or pcc < PCC_THRESOLD or pcc == 1:
                 continue
+            # if p[row_idx][col_idx] > P_VALUE_THRESOLD:
+            #     continue
             # Write out gene information.
-            gene_a, gene_b = (high_std_genes[row_index], high_std_genes[
-                col_index])
+            gene_a, gene_b = (high_std_genes[row_idx], high_std_genes[col_idx])
             out.write('%s\t%s\t%f\n' % (gene_a, gene_b, abs(pcc)))
     out.close()
 

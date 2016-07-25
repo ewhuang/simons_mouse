@@ -4,19 +4,23 @@ from collections import OrderedDict
 import math
 
 # standard_deviation_hist.py
-def get_gene_expression_dct():
+# gene_edge_weights.py
+def get_gene_expression_dct(data_type):
     '''
     Returns dictionary where keys are genes, and values are gene expression
     vectors.
     '''
-    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
-    gene_expression_dct = {}
+    if data_type == 'mouse':
+        f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
+    else:
+        f = open('./data/tcga_expr.txt', 'r')
+    gene_expression_dct = OrderedDict({})
     for i, line in enumerate(f):
         if i == 0:
             continue
         line = line.split()
         gene, exp_vals = line[0], line[1:]
-        assert 'ENSMUSG' in gene
+        assert 'ENSMUSG' in gene or 'ENSG' in gene
         exp_vals = [float(val) for val in exp_vals]
         assert gene not in gene_expression_dct
         gene_expression_dct[gene] = exp_vals
@@ -39,20 +43,22 @@ def get_embedding_genes():
     f.close()
     return embedding_genes
 
-# Takes a clustered file from simulated annealing and outputs a clean file
-# without the GO nodes.
-def create_clean_go_file(objective_function, run_num, go_domain_num):
-    f = open('./results/%s/clusters_go/clusters_go_%s_%d.txt' % (
-        objective_function, run_num, go_domain_num), 'r')
-    out = open('./results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
-        objective_function, run_num, go_domain_num), 'w')
+# evaluate_clustering.py
+def create_clean_go_file(data_type, objective_function, run_num, go_domain_num):
+    '''
+    Takes a clustered file from simulated annealing and outputs a clean file
+    without the GO nodes.
+    '''
+    f = open('./%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
+        data_type, objective_function, run_num, go_domain_num), 'r')
+    out = open('./%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+        data_type, objective_function, run_num, go_domain_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)
             continue
         # Skip GO terms in clusters.
-        if 'ENSMUSG' not in line:
-            assert 'GO:' in line
+        if 'ENSMUSG' not in line or 'ENSG' not in line:
             continue
         out.write(line)
     out.close()
@@ -273,46 +279,49 @@ def get_network_stats(network_fname):
 #     return embedding_edge_dct
 
 # gene_edge_weights.py
+# dump_go_dictionary_files.py
 # compute_go_enrichment.py
-def get_high_std_genes():
+def get_high_std_genes(data_type):
     '''
     Retrieves the list of genes that have high standard deviations across their
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('./data/high_std_genes.txt', 'r')
+    f = open('./data/%s_high_std_genes.txt' % data_type, 'r')
     for line in f:
-        gene = line.strip()        
-        assert 'ENSMUSG' in gene
+        gene = line.strip()
+        assert 'ENSMUSG' in gene or 'ENSG' in gene
         high_std_genes += [gene]
     f.close()
     return high_std_genes
 
 # create_clustering_input.py
-def get_high_std_edge_dct():
+def get_high_std_edge_dct(data_type):
     '''
     Returns edges between high standard deviation genes that have very
     correlated gene expression vectors.
     '''
     high_std_edge_dct = {}
-    f = open('./data/high_std_ensmusg_network.txt', 'r')
+    f = open('./data/high_std_%s_network.txt' % data_type, 'r')
     for i, line in enumerate(f):
         gene_a, gene_b, pcc = line.split()
         high_std_edge_dct[(gene_a, gene_b)] = pcc
     f.close()
     return high_std_edge_dct
 
-def read_config_file():
+# create_clustering_input.py
+# simulated_annealing.py
+def read_config_file(data_type):
     '''
     Returns dictionary. Keys are run_num strings, values are dicts of config
     options. Each dct has key of subgraph_decimal, temp, min_go_size,
     max_go_size, pearson/embedding edges, lambda, num_clusters.
     '''
-    NUM_OPTIONS = 8
+    num_options = 8
     config_dct = {}
-    f = open('config.txt', 'r')
+    f = open('%s_config.txt' % data_type, 'r')
     for i, line in enumerate(f):
-        config_num = i % (NUM_OPTIONS + 1)
+        config_num = i % (num_options + 1)
         if config_num == 0:
             run_num = line.split(' ')[1].strip()
             config_dct[run_num] = {}
@@ -324,16 +333,16 @@ def read_config_file():
             config_dct[run_num]['temp'] = temp
         elif config_num == 3:
             min_go_size = line.split()[2].strip()
-            config_dct[run_num]['min_go_size'] = min_go_size
+            config_dct[run_num]['min_go_size'] = int(min_go_size)
         elif config_num == 4:
             max_go_size = line.split()[2].strip()
-            config_dct[run_num]['max_go_size'] = max_go_size
+            config_dct[run_num]['max_go_size'] = int(max_go_size)
         elif config_num == 5:
             edge_method = line.strip()
             config_dct[run_num]['edge_method'] = edge_method
         elif config_num == 6:
             lamb = line.split()[2].strip()
-            config_dct[run_num]['lamb'] = lamb
+            config_dct[run_num]['lamb'] = float(lamb)
         elif config_num == 7:
             num_clusters = line.split()[1].strip()
             config_dct[run_num]['num_clusters'] = num_clusters

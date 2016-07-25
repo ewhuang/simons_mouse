@@ -14,11 +14,14 @@ THRESHOLD_MULT = 0.8
 import pylab
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print 'Usage: %s run_num' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage: %s data_type run_num' % sys.argv[0]
         exit()
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    run_num = sys.argv[2]
+    assert run_num.isdigit()
     go_domain_list = ['bp', 'mf']
-    run_num = sys.argv[1]
 
     for go_domain_index in [0]:
         go_domain = go_domain_list[go_domain_index]
@@ -37,17 +40,18 @@ if __name__ == '__main__':
                 f = open('./wgcna/genes_only_results/clus_info_genes_only_%s.txt' %(
                     go_domain), 'r')
             elif mode == 'wlogv_go':
-                f = open('./results/wlogv/' + go_fname, 'r')
+                f = open('./%s_results/wlogv/' % data_type + go_fname, 'r')
             elif mode == 'wlogv_no_go':
-                f = open('./results/wlogv/' + no_go_fname, 'r')
+                f = open('./%s_results/wlogv/' % data_type + no_go_fname, 'r')
             elif mode == 'oclode_go':
-                f = open('./results/oclode/' + go_fname, 'r')
+                f = open('./%s_results/oclode/' % data_type + go_fname, 'r')
             elif mode == 'oclode_no_go':
-                f = open('./results/oclode/' + no_go_fname, 'r')
+                f = open('./%s_results/oclode/' % data_type + no_go_fname, 'r')
             elif mode == 'schaeffer_go':
-                f = open('./results/schaeffer/' + go_fname, 'r')
+                f = open('./%s_results/schaeffer/' % data_type + go_fname, 'r')
             elif mode == 'schaeffer_no_go':
-                f = open('./results/schaeffer/' + no_go_fname, 'r')
+                f = open('./%s_results/schaeffer/' % data_type + no_go_fname,
+                    'r')
 
             for i, line in enumerate(f):
                 if i < 3:
@@ -84,6 +88,6 @@ if __name__ == '__main__':
         matplotlib.pyplot.ylim(0, 1.2)
         matplotlib.pyplot.xlim(0, 50)
         matplotlib.pyplot.show()
-        pylab.savefig('./results/comparison_plots/comparison_plot_%s_%s.png' % (
-            go_domain, run_num))
+        pylab.savefig('./%s_results/comparison_plots/comparison_plot_%s_%s.png' % (
+            data_type, go_domain, run_num))
         matplotlib.pyplot.close()
