@@ -38,15 +38,20 @@ def create_gene_exp_matrix(gene_exp_dct, high_std_genes):
     return np.array(gene_exp_matrix)
 
 def main():
+    if len(sys.argv) != 2:
+        print 'Usage:python %s mouse/tcga' % sys.argv[0]
+        exit()
+    data_type = sys.argv[1]
+
     # Read in the tsv file.
-    gene_exp_dct = file_operations.get_gene_expression_dct()
-    high_std_genes = file_operations.get_high_std_genes()
+    gene_exp_dct = file_operations.get_gene_expression_dct(data_type)
+    high_std_genes = file_operations.get_high_std_genes(data_type)
 
     gene_exp_matrix = create_gene_exp_matrix(gene_exp_dct, high_std_genes)
 
     r, p = corrcoef(gene_exp_matrix)
 
-    out = open('./data/high_std_ensmusg_network.txt', 'w')
+    out = open('./data/high_std_%s_network.txt' % data_type, 'w')
     for row_index, row in enumerate(r):
         for col_index, pcc in enumerate(row):
             if col_index <= row_index or pcc < P_VALUE_THRESHOLD or pcc == 1:
