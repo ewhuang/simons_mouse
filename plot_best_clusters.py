@@ -37,8 +37,8 @@ if __name__ == '__main__':
                 run_num, go_domain_index)
 
             if mode == 'wgcna':
-                f = open('./wgcna/genes_only_results/clus_info_genes_only_%s.txt' %(
-                    go_domain), 'r')
+                f = open('./wgcna/%s_results/genes_only/clus_info_genes_only_%s.txt' %(
+                    data_type, go_domain), 'r')
             elif mode == 'wlogv_go':
                 f = open('./%s_results/wlogv/' % data_type + go_fname, 'r')
             elif mode == 'wlogv_no_go':

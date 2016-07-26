@@ -7,8 +7,7 @@ import time
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
 
-def write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
-    out_fname):
+def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
     # Get cluster dictionary. Values are lists of genes.
     clst_go_dct = file_operations.get_cluster_dictionary(clus_fname)
 
@@ -66,6 +65,7 @@ if __name__ == '__main__':
     if len(sys.argv) != 4:
         print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
+    global data_type, objective_function, run_num
     data_type = sys.argv[1]
     assert data_type in ['mouse', 'tcga']
     objective_function = sys.argv[2]
@@ -97,7 +97,7 @@ if __name__ == '__main__':
             domain_index)
         out_fname = './%s_results/%s/clus_info_go/clus_info_go_%s_%d.txt' % (
             data_type, objective_function, run_num, domain_index)
-        write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
+        write_summary(clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 
         # Get no GO summaries.
@@ -107,7 +107,7 @@ if __name__ == '__main__':
             domain_index)
         out_fname = './%s_results/%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
             data_type, objective_function, run_num, domain_index)
-        write_summary(run_num, clus_fname, net_fname, eval_fname, enrich_fname,
+        write_summary(clus_fname, net_fname, eval_fname, enrich_fname,
             out_fname)
 
     print("--- %s seconds ---" % (time.time() - start_time))

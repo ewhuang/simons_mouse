@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import pylab
 
 # Plotting GO enrichment histograms.
-def plot_histogram(std_list, data_type):
+def plot_histogram(std_list):
     bins = np.linspace(0, 5, 50)
     matplotlib.pyplot.hist(std_list, bins, alpha=0.5, label='GO')
 
@@ -28,7 +28,7 @@ def plot_histogram(std_list, data_type):
     pylab.savefig('./data/%s_gene_standard_deviation_hist.png' % data_type)
 
 # Writing out genes with high standard deviation.
-def write_genes_to_file(high_std_genes, data_type):
+def write_genes_to_file(high_std_genes):
     out = open('./data/%s_high_std_genes.txt' % data_type, 'w')
     for gene in high_std_genes:
         out.write(gene + '\n')
@@ -38,6 +38,7 @@ def main():
     if len(sys.argv) != 2:
         print 'Usage:python %s mouse/tcga' % sys.argv[0]
         exit()
+    global data_type
     data_type = sys.argv[1]
     assert data_type in ['mouse', 'tcga']
 
@@ -72,9 +73,8 @@ def main():
             high_std_genes += [gene]
         std_list += [gene_std]
 
-    write_genes_to_file(high_std_genes, data_type)
-
-    plot_histogram(std_list, data_type)
+    write_genes_to_file(high_std_genes)
+    plot_histogram(std_list)
 
 if __name__ == '__main__':
     start_time = time.time()

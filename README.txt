@@ -4,21 +4,21 @@ Simons Foundation Mouse Project
 ___________________________CREATING THE GENE NETWORK____________________________
 1. Plot the standard deviation distribution of the genes, and write to file.
 
-$ python standard_deviation_hist.py mouse/tcga
+$ python standard_deviation_hist.py data_type
 
 2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
 values are lists of ENSMUSG ID's. GO terms must not have spaces in the names (
 convert to underscores) or else simulated_annealing will make a node for each
 word in the term.
 
-$ python dump_go_dictionary_files.py mouse/tcga
+$ python dump_go_dictionary_files.py data_type
 
 3. Compute pearson coefficients between gene expression values to find
 correlated genes. We can specify a parameter, pearson_threshold, which
 determines the cutoff coefficient for an edge to exist. Output file is
 high_std_network.txt.
 
-$ python gene_edge_weights.py mouse/tcga
+$ python gene_edge_weights.py data_type
 
 Output format:
 gene_a  gene_b  edge_weight
@@ -36,7 +36,7 @@ real_network_go_run_num_FOLD.txt.
 network_no_go_run_num_FOLD.txt, and
 real_network_no_go_run_num.txt
 
-$ python create_clustering_input.py data_type run_num -b <bootstrap-optional>
+$ python create_clustering_input.py data_type run_num -b<bootstrap-optional>
 
 Output format for network_go.txt/network_no_go_run_num.txt:
 0
@@ -152,7 +152,7 @@ edges between genes with weights computed by embedding.
 ___________________________________WGCNA________________________________________
 1.
 cd wgcna/
-$ python preprocess_WGCNA.py genes_only/pca/mean/median
+$ python preprocess_WGCNA.py data_type genes_only/pca/mean/median
 
 2.
 Move results from preprocessing to working directory of R.
@@ -161,14 +161,14 @@ file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
 Takes about 55 minutes.
 
 3.
-$ python clean_WGCNA_module_results.py genes_only/pca/mean/median
+$ python clean_WGCNA_module_results.py data_type genes_only/pca/mean/median
 
 4.
 Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
-python evaluate_clustering_wgcna genes_only/pca/mean/median
+python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median
 
 5.
-$ python compute_go_enrichment_wgcna.py genes_only/pca/mean/median
+$ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
 
 6.
 $ python cluster_info_summary_WGCNA.py genes_only/pca/mean/median

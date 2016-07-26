@@ -13,24 +13,25 @@ import time
 ### their p-values.
 ### Run time: 52 seconds.
 
-def get_go_gene_dct(go_domain):
+def get_go_gene_dct(go_domain, data_type):
     '''
    Gets the GO dictionary corresponding to the GO domain.
     '''
     # First, load all of the GO dictionaries.
-    with open('../data/%s_ensmusg.json' % go_domain, 'r') as fp:
+    with open('../data/%s_%s.json' % (go_domain, data_type), 'r') as fp:
         go_gene_dct = json.load(fp)
     fp.close()
 
     return go_gene_dct
 
-def get_cluster_dictionary(network_type, go_domain):
+def get_cluster_dictionary(data_type, network_type, go_domain):
     '''
     Returns a dictionary, keys=cluster ID's, values=lists of genes in the
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./%s_results/clusters_%s.txt' % (network_type, go_domain), 'r')
+    f = open('./%s_results/%s/clusters_%s.txt' % (data_type, network_type,
+        go_domain), 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -48,16 +49,16 @@ def get_cluster_dictionary(network_type, go_domain):
     f.close()
     return cluster_wgcna_dct
 
-def get_high_std_genes():
+def get_high_std_genes(data_type):
     '''
     Retrieves the list of genes that have high standard deviations across their
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('../data/high_std_genes.txt', 'r')
+    f = open('../data/%s_high_std_genes.txt' % data_type, 'r')
     for line in f:
-        gene = line.strip()        
-        assert 'ENSMUSG' in gene
+        gene = line.strip()
+        assert 'ENSMUSG' in gene or 'ENSG' in gene
         high_std_genes += [gene]
     f.close()
     return high_std_genes
@@ -73,10 +74,6 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
     for go_label in go_dct:
         go_genes = set(go_dct[go_label])
 
-        # Skip bad GO terms.
-        if len(go_genes) > 1000 or len(go_genes) < 10:
-            continue
-
         # Compute the four sets for Fisher's test.
         clus_and_go = len(clus_genes.intersection(go_genes))
         clus_not_go = len(clus_genes.difference(go_genes))
@@ -91,11 +88,12 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
 
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
-def compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct, go_domain):
-    gene_universe = get_high_std_genes()
+def compute_go_enrichments(data_type, network_type, go_dct, cluster_wgcna_dct,
+    go_domain):
+    gene_universe = get_high_std_genes(data_type)
 
-    out = open('./%s_results/cluster_enrichment_terms_%s_%s.txt' % (
-        network_type, network_type, go_domain), 'w')
+    out = open('./%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (
+        data_type, network_type, network_type, go_domain), 'w')
 
     # Loop through the clusters.
     for clus_id in cluster_wgcna_dct:
@@ -114,22 +112,24 @@ def compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct, go_domain):
     out.close()
 
 def main():
-    if len(sys.argv) != 2:
-        print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
-    network_type = sys.argv[1]
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']        
+    network_type = sys.argv[2]
     assert network_type in ['genes_only', 'pca', 'mean', 'median']
 
-    for go_domain in ['bp', 'cc', 'mf']:
-        go_dct = get_go_gene_dct(go_domain)
+    for go_domain in ['bp', 'mf']:
+        go_dct = get_go_gene_dct(go_domain, data_type)
         if network_type == 'genes_only':
-            cluster_wgcna_dct = get_cluster_dictionary(network_type,
+            cluster_wgcna_dct = get_cluster_dictionary(data_type, network_type,
                 network_type)
         else:
-            cluster_wgcna_dct = get_cluster_dictionary(network_type, go_domain)
-
-        compute_go_enrichments(network_type, go_dct, cluster_wgcna_dct,
-            go_domain)
+            cluster_wgcna_dct = get_cluster_dictionary(data_type, network_type,
+                go_domain)
+        compute_go_enrichments(data_type, network_type, go_dct,
+            cluster_wgcna_dct, go_domain)
 
 if __name__ == '__main__':
     start_time = time.time()

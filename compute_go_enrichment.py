@@ -2,7 +2,6 @@
 
 import file_operations
 import json
-import math
 import operator
 from scipy.stats import fisher_exact
 import sys
@@ -16,8 +15,6 @@ import time
 ### as a whole going from coexpression network to GO network without
 ### sacrificing in-density.
 ### Run time: 2 minutes.
-
-gene_universe = []
 
 def get_sorted_fisher_dct(clus_genes, go_dct):
     '''
@@ -82,7 +79,7 @@ def write_enrichment_files(in_fname, out_fname, go_dct):
     cluster_dct = file_operations.get_cluster_dictionary(in_fname)
     compute_go_enrichments(out_fname, cluster_dct, go_dct)
 
-def read_go_dictionaries(data_type):
+def read_go_dictionaries():
     with open('./data/bp_%s.json' % data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
@@ -97,6 +94,7 @@ def main():
     if len(sys.argv) != 4:
         print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
+    global data_type, objective_function, run_num
     data_type = sys.argv[1]
     assert data_type in ['mouse', 'tcga']
     objective_function = sys.argv[2]
@@ -104,7 +102,7 @@ def main():
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
-    go_dct_list = read_go_dictionaries(data_type)
+    go_dct_list = read_go_dictionaries()
     global gene_universe
     gene_universe = file_operations.get_high_std_genes(data_type)
     # for domain_index in range(len(go_dct_list)):

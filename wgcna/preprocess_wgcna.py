@@ -13,37 +13,39 @@ import time
 ### original file that matches those genes.
 ### Run time: 9 seconds.
 
-def get_high_std_genes():
+def get_high_std_genes(data_type):
     '''
     Retrieves the list of genes that have high standard deviations across their
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('../data/high_std_genes.txt', 'r')
+    f = open('../data/%s_high_std_genes.txt' % data_type, 'r')
     for line in f:
         gene = line.strip()
-        assert 'ENSMUSG' in gene
+        assert 'ENSMUSG' in gene or 'ENSG' in gene
         high_std_genes += [gene]
     f.close()
     return high_std_genes
 
 # def get_go_gene_dct(go_domain):
-    '''
-    Returns the three GO dictionaries corresponding to each biological process.
-    '''
-    with open('../data/%s_ensmusg.json' % go_domain, 'r') as fp:
-        go_gene_dct = json.load(fp)
-    fp.close()
-    return go_gene_dct
+#     '''
+#     Returns the three GO dictionaries corresponding to each biological process.
+#     '''
+#     with open('../data/%s_ensmusg.json' % go_domain, 'r') as fp:
+#         go_gene_dct = json.load(fp)
+#     fp.close()
+#     return go_gene_dct
 
 def main():
-    if len(sys.argv) != 2:
-        print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
-    go_method = sys.argv[1]
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    go_method = sys.argv[2]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
 
-    high_std_genes = get_high_std_genes()
+    high_std_genes = get_high_std_genes(data_type)
 
     if go_method == 'genes_only':
         go_domain_list = [go_method]
@@ -65,8 +67,12 @@ def main():
         # if go_domain != 'genes_only':
         #     go_gene_dct = get_go_gene_dct(go_domain)
 
-        f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
-        out = open('./data/mm_mrsb_log2_expression_%s.tsv' % go_domain, 'w')
+        if data_type == 'mouse':
+            f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
+            out = open('./data/mm_mrsb_log2_expression_%s.tsv' % go_domain, 'w')
+        elif data_type == 'tcga':
+            f = open('../data/tcga_expr.txt', 'r')
+            out = open('./data/tcga_expr_%s.txt' % go_domain, 'w')
 
         # Write out the gene expression vectors for genes.
         # gene_expression_dct = {}
@@ -77,7 +83,7 @@ def main():
                 continue
             split_line = line.split()
             gene, exp_vals = split_line[0], split_line[1:]
-            assert 'ENSMUSG' in gene
+            assert 'ENSMUSG' in gene or 'ENSG' in gene
             
             # Skip genes with low standard deviation.
             if gene not in high_std_genes:
