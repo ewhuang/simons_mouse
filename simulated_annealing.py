@@ -34,7 +34,8 @@ def main():
         binary = './WlogV/makedir/WlogVImplement'
 
     # Build the command.
-    command = '%s %s 1 0 ./data/orth.txt 1 ' % (binary, num_clusters)
+    command = '%s %s 1 0 ./data/orth_%s.txt 1 ' % (binary, num_clusters,
+        data_type)
     command += './data/%s_networks_%s/network_%s_%s' % (data_type, network,
         network, run_num)
 

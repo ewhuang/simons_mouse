@@ -29,8 +29,8 @@ def main():
     subprocess.call(command, shell=True)
 
     # Evaluate clusters.
-    command = 'python evaluate_clustering.py %s %s' % (objective_function,
-        run_num)
+    command = 'python evaluate_clustering.py %s %s %s' % (data_type,
+        objective_function, run_num)
     subprocess.call(command, shell=True)
 
     # Computing GO enrichments.

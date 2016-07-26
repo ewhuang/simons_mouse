@@ -7,7 +7,9 @@ ___________________________CREATING THE GENE NETWORK____________________________
 $ python standard_deviation_hist.py mouse/tcga
 
 2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
-values are lists of ENSMUSG ID's.
+values are lists of ENSMUSG ID's. GO terms must not have spaces in the names (
+convert to underscores) or else simulated_annealing will make a node for each
+word in the term.
 
 $ python dump_go_dictionary_files.py mouse/tcga
 

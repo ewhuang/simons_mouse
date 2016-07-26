@@ -58,7 +58,7 @@ def create_clean_go_file(data_type, objective_function, run_num, go_domain_num):
             out.write(line)
             continue
         # Skip GO terms in clusters.
-        if 'ENSMUSG' not in line or 'ENSG' not in line:
+        if 'ENSMUSG' not in line and 'ENSG' not in line:
             continue
         out.write(line)
     out.close()

@@ -45,7 +45,7 @@ def process_go_term_list(go_term_list):
         # go_term = go_term[go_term.rfind("(") + 1:go_term.rfind(")")]
         # assert len(go_term) == 10
         go_term = go_term[:go_term.index('(')]
-
+        go_term = '_'.join(go_term.split())
         go_id_list += [go_term]
 
     return go_id_list

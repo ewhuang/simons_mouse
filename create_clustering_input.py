@@ -56,13 +56,6 @@ def compute_go_weight(lamb, largest_go_size, num_go_genes):
     '''
     return max(lamb * math.log(largest_go_size / float(num_go_genes)), 1.0)
 
-# def merge_two_dicts(x, y):
-#     '''Given two dicts, merge them into a new dict as a shallow copy.'''
-#     z = {}
-#     z.update(x)
-#     z.update(y)
-#     return z
-
 def get_go_dictionaries(data_type):
     '''
     Fetches the GO dictionaries from the three domains. Returns a list of the
