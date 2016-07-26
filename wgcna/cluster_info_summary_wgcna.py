@@ -13,7 +13,8 @@ def get_cluster_dictionary(go_method, go_domain):
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./%s_results/clusters_%s.txt' % (go_method, go_domain), 'r')
+    f = open('./%s_results/%s/clusters_%s.txt' % (data_type, go_method,
+        go_domain), 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -39,7 +40,8 @@ def get_density_dct(go_method, go_domain):
     Values: (in-density, out-density, number of in-cluster edges)
     '''
     density_dct = {}
-    f = open('./%s_results/cluster_eval_%s.txt' % (go_method, go_domain), 'r')
+    f = open('./%s_results/%s/cluster_eval_%s.txt' % (data_type, go_method,
+        go_domain), 'r')
     for i, line in enumerate(f):
         if line[:7] != 'Cluster':
             continue
@@ -59,7 +61,8 @@ def get_network_statistics(run_num):
     '''
     num_genes_net = 0
     num_gg_net = 0
-    f = open('../data/networks_no_go/network_no_go_%d.txt' % run_num, 'r')
+    f = open('../data/%s_networks_no_go/network_no_go_%d.txt' % (data_type, 
+        run_num), 'r')
     for i, line in enumerate(f):
         if i == 0:
             continue
@@ -77,8 +80,8 @@ def get_enrichment_dct(go_method, go_domain):
     Find the best p-value GO enrichments for each cluster.
     '''
     enrichment_dct = {}
-    f = open('./%s_results/cluster_enrichment_terms_%s_%s.txt' % (go_method,
-        go_method, go_domain), 'r')
+    f = open('./%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (data_type,
+        go_method, go_method, go_domain), 'r')
     while True:
         line = f.readline()
         if line == '':
@@ -94,15 +97,18 @@ def get_enrichment_dct(go_method, go_domain):
     return enrichment_dct
 
 def main():
-    if len(sys.argv) != 2:
-        print 'Usage: %s genes_only/pca/mean/median' % sys.argv[0]
+    if len(sys.argv) != 3:
+        print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
-    go_method = sys.argv[1]
+    global data_type
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga']
+    go_method = sys.argv[2]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
 
     num_genes_net, num_gg_net = get_network_statistics(1)
 
-    domain_list = ['bp', 'cc', 'mf']
+    domain_list = ['bp']
     
     for go_domain in domain_list:
         if go_method == 'genes_only':
@@ -113,8 +119,8 @@ def main():
             density_dct = get_density_dct(go_method, go_domain)
 
         enrichment_dct = get_enrichment_dct(go_method, go_domain)
-        out = open('./%s_results/clus_info_%s_%s.txt' % (go_method, go_method,
-            go_domain), 'w')
+        out = open('./%s_results/%s/clus_info_%s_%s.txt' % (data_type, 
+            go_method, go_method, go_domain), 'w')
 
         # Write out to file.
         out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')

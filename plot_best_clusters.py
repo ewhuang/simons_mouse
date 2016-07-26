@@ -86,7 +86,10 @@ if __name__ == '__main__':
         matplotlib.pyplot.ylabel('in-density/(in-density + out-density)')
         matplotlib.pyplot.legend(loc='lower right')
         matplotlib.pyplot.ylim(0, 1.2)
-        matplotlib.pyplot.xlim(0, 50)
+        if data_type == 'mouse':
+            matplotlib.pyplot.xlim(0, 50)
+        elif data_type == 'tcga':
+            matplotlib.pyplot.xlim(0, 150)            
         matplotlib.pyplot.show()
         pylab.savefig('./%s_results/comparison_plots/comparison_plot_%s_%s.png' % (
             data_type, go_domain, run_num))

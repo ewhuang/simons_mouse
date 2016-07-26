@@ -69,6 +69,7 @@ same network for any given percentage of the raw network, since we use a random
 seed.
 
 7. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
+Illegal division by zero usually means a file doesn't exist.
 
 $ python evaluate_clustering.py data_type objective_function run_num
 
@@ -171,7 +172,7 @@ python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median
 $ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
 
 6.
-$ python cluster_info_summary_WGCNA.py genes_only/pca/mean/median
+$ python cluster_info_summary_WGCNA.py data_type genes_only/pca/mean/median
 
 7.
 $ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf

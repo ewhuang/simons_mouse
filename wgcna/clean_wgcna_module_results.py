@@ -21,7 +21,8 @@ def main():
 
     for go_domain in domain_list:
         folder = './%s_results/%s/' % (data_type, go_method)
-        f = open('%smodule_membership_%s.txt' % (folder, go_domain), 'r')
+        f = open('%s%s_module_membership_%s.txt' % (folder, data_type,
+            go_domain), 'r')
         out = open('%sclusters_%s.txt' % (folder, go_domain), 'w')
         # Write dummy header line.
         out.write('dummy_header\n')

@@ -18,13 +18,13 @@ if __name__ == '__main__':
     if go_method == 'genes_only':
         go_domain_list = ['genes_only']
     else:
-        go_domain_list = ['bp', 'cc', 'mf']
+        go_domain_list = ['bp']
 
     for go_domain in go_domain_list:
         command = 'perl ../evaluate_clustering.pl ./%s_results/%s/' % (
             data_type, go_method)
         command += 'clusters_%s.txt ../data/%s_networks_no_go/real_network_no' % (
-            data_type, go_domain)
+            go_domain, data_type)
         command += '_go_1.txt > ./%s_results/%s/cluster_eval_%s.txt' % (
             data_type, go_method, go_domain)
 
