@@ -24,6 +24,9 @@ Output format:
 gene_a  gene_b  edge_weight
 The edges are not repeated.
 
+We can run everything at once and ignore steps 4-12.
+python full_pipeline.py data_type objective_function run_num
+
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 4. Create 4 files overall, a network and real network each for a network with
 and without GO labels.
