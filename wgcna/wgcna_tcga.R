@@ -11,7 +11,7 @@ setwd("C:/Users/ewhuang3/Documents/simons_mouse")
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
-hb_mrsb_cpm = read.table("tcga_expr_genes_only.txt", sep="\t", header=T)
+hb_mrsb_cpm = read.table("liver_hepatocellular_carcinoma_expr_genes_only.txt", sep="\t", header=T)
 gene_id = hb_mrsb_cpm[1]
 hb_mrsb_cpm[1] = NULL
 hb_mrsb_cpm_t <- t(hb_mrsb_cpm)
@@ -41,7 +41,7 @@ stopifnot(goodSamplesGenes(hb_mrsb_wgcna_in, verbose = 3)$allOK)
 # text(hb_mrsb_sft$fitIndices$Power, hb_mrsb_sft$fitIndices$mean.k., labels = powers, 
 #     col = "#333333")
 
-hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 12, networkType = "signed", 
+hb_mrsb_modules = blockwiseModules(hb_mrsb_wgcna_in, power = 14, networkType = "signed", 
     minModuleSize = 30, corType = "pearson", maxBlockSize = 30000, numericLabels = TRUE, 
     saveTOMs = FALSE, verbose = 3)
 
@@ -68,4 +68,4 @@ for (i in 1:nrow(hb_mrsb_module_membership)) {
 
 # write.table(hb_mrsb_module_membership, file="tcga_module_membership_genes_only.txt", sep="\t", row.names=FALSE, col.names=TRUE)
 # TODO
-write.table(cbind(hb_mrsb_module_membership$ID, hb_mrsb_module_membership$module, hb_mrsb_module_membership$color, hb_mrsb_module_membership$module_membership ), file="tcga_module_membership_genes_only.txt", sep="\t", row.names=FALSE, col.names=TRUE)
+write.table(cbind(hb_mrsb_module_membership$ID, hb_mrsb_module_membership$module, hb_mrsb_module_membership$color, hb_mrsb_module_membership$module_membership ), file="liver_hepatocellular_carcinoma_module_membership_genes_only.txt", sep="\t", row.names=FALSE, col.names=TRUE)

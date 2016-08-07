@@ -19,7 +19,7 @@ def get_high_std_genes(data_type):
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('../data/%s_high_std_genes.txt' % data_type, 'r')
+    f = open('../data/%s_data/high_std_genes.txt' % data_type, 'r')
     for line in f:
         gene = line.strip()
         assert 'ENSMUSG' in gene or 'ENSG' in gene
@@ -27,21 +27,12 @@ def get_high_std_genes(data_type):
     f.close()
     return high_std_genes
 
-# def get_go_gene_dct(go_domain):
-#     '''
-#     Returns the three GO dictionaries corresponding to each biological process.
-#     '''
-#     with open('../data/%s_ensmusg.json' % go_domain, 'r') as fp:
-#         go_gene_dct = json.load(fp)
-#     fp.close()
-#     return go_gene_dct
-
 def main():
     if len(sys.argv) != 3:
         print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
+    # assert data_type in ['mouse', 'tcga']
     go_method = sys.argv[2]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
 
@@ -68,11 +59,11 @@ def main():
         #     go_gene_dct = get_go_gene_dct(go_domain)
 
         if data_type == 'mouse':
-            f = open('../data/mm_mrsb_log2_expression.tsv', 'r')
+            f = open('../data/mouse_data/mm_mrsb_log2_expression.tsv', 'r')
             out = open('./data/mm_mrsb_log2_expression_%s.tsv' % go_domain, 'w')
-        elif data_type == 'tcga':
-            f = open('../data/tcga_expr.txt', 'r')
-            out = open('./data/tcga_expr_%s.txt' % go_domain, 'w')
+        else:
+            f = open('../data/%s_data/expr.txt' % data_type, 'r')
+            out = open('./data/%s_expr_%s.txt' % (data_type, go_domain), 'w')
 
         # Write out the gene expression vectors for genes.
         # gene_expression_dct = {}
