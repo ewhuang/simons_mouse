@@ -14,16 +14,6 @@ import time
 ### pantherGeneList.txt. Rename with a _mouse or _tcga suffix.
 ### Run time: 700 seconds.
 
-def get_gene_to_index_dct(genes):
-    '''
-    Takes a list of genes, and returns a dictionary where keys are the genes,
-    and the values are their corresponding indices in the lists.
-    '''
-    gene_to_index_dct = {}
-    for index, gene in enumerate(genes):
-        gene_to_index_dct[gene] = str(index)
-    return gene_to_index_dct
-
 def process_go_term_list(go_term_list):
     '''
     Takes as input a string of GO terms, and processes them into a list of GO
@@ -62,21 +52,22 @@ def add_to_dictionary(gene, term_list, go_dct):
         else:
             go_dct[term] = [gene]
 
-# def get_go_domains(data_type, gene_type):
 def get_go_domains(data_type):
     '''
     Returns three dictionaries, one corresponding to each GO domain. Keys are
     genes, and values are GO terms.
     '''
     high_std_genes = file_operations.get_high_std_genes(data_type)
-    # # Map the gene ensembl ID's to indices.
-    # gene_to_index_dct = get_gene_to_index_dct(high_std_genes)
 
     # bp = biological process, mf = molecular function.
     bp_go_gene_dct = {}
     mf_go_gene_dct = {}
 
-    f = open('./data/pantherGeneList_%s.txt' % data_type, 'r')
+    if data_type == 'mouse':
+        f = open('./data/mouse_data/pantherGeneList_mouse.txt', 'r')
+    else:
+        f = open('./data/tcga_data/pantherGeneList_tcga.txt', 'r')
+
     for line in f:
         (gene_id, ensembl_id_list, ortholog, family, protein_class, species,
             bp_term_list, mf_term_list) = line.split('\t')
@@ -88,8 +79,9 @@ def get_go_domains(data_type):
         # Associate each GO term list with the corresponding gene.
         ensembl_id_list = ensembl_id_list.split(',')
         for gene in ensembl_id_list:
-            assert ('ENSMUSG' in gene or 'ENSG' in gene) and (gene in
-                high_std_genes)
+            assert ('ENSMUSG' in gene or 'ENSG' in gene)
+            if gene not in high_std_genes:
+                continue
             # if gene_type == 'index':
             #     gene = gene_to_index_dct[gene]
             add_to_dictionary(gene, bp_term_list, bp_go_gene_dct)
@@ -134,7 +126,8 @@ def write_go_overlap(bp_go_gene_dct, mf_go_gene_dct, data_type):
             fisher_dct[(bp_label, mf_label)] = p_value
 
     fisher_dct = sorted(fisher_dct.items(), key=operator.itemgetter(1))
-    out = open('./data/overlapping_bp_mf_go_labels_%s.txt' % data_type, 'w')
+    out = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type,
+        'w')
     for (bp_label, mf_label), p_value in fisher_dct:
         out.write(bp_label + '\t' + mf_label + '\t' + str(p_value) + '\n')
         if p_value > 1e-10:
@@ -143,26 +136,24 @@ def write_go_overlap(bp_go_gene_dct, mf_go_gene_dct, data_type):
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_cancers' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
 
-    # Write out two types of values: ensembl ID's and their indices in the
-    # high standard deviation genes.
-    # for gene_type in ['index', 'ensmusg']:
     bp_go_gene_dct, mf_go_gene_dct = get_go_domains(data_type)
+
+    # Delete empty keys.
     if '' in bp_go_gene_dct:
         del bp_go_gene_dct['']
     if '' in mf_go_gene_dct:
         del mf_go_gene_dct['']
 
     # Dump each dictionary out to file.
-    with open('./data/bp_%s.json' % data_type, 'w') as fp:
+    with open('./data/%s_data/bp_dct.json' % data_type, 'w') as fp:
         json.dump(bp_go_gene_dct, fp)
     fp.close()
 
-    with open('./data/mf_%s.json' % data_type, 'w') as fp:
+    with open('./data/%s_data/mf_dct.json' % data_type, 'w') as fp:
         json.dump(mf_go_gene_dct, fp)
     fp.close()
 

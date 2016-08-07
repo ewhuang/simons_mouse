@@ -1,24 +1,29 @@
 Author: Edward Huang
 Simons Foundation Mouse Project
 
+For TCGA data, before anything else, run
+$ python parse_tcga_dataset.py
+This splits the TCGA dataset into multiple networks, each corresponding to a
+specific type of cancer.
+
 ___________________________CREATING THE GENE NETWORK____________________________
 1. Plot the standard deviation distribution of the genes, and write to file.
 
-$ python standard_deviation_hist.py data_type
+$ python standard_deviation_hist.py mouse/tcga
 
 2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
 values are lists of ENSMUSG ID's. GO terms must not have spaces in the names (
 convert to underscores) or else simulated_annealing will make a node for each
 word in the term.
 
-$ python dump_go_dictionary_files.py data_type
+$ python dump_go_dictionary_files.py mouse/tcga_cancers
 
 3. Compute pearson coefficients between gene expression values to find
 correlated genes. We can specify a parameter, pearson_threshold, which
 determines the cutoff coefficient for an edge to exist. Output file is
 high_std_network.txt.
 
-$ python gene_edge_weights.py data_type
+$ python gene_edge_weights.py mouse/tcga_cancers
 
 Output format:
 gene_a  gene_b  edge_weight
@@ -39,7 +44,8 @@ real_network_go_run_num_FOLD.txt.
 network_no_go_run_num_FOLD.txt, and
 real_network_no_go_run_num.txt
 
-$ python create_clustering_input.py data_type run_num -b<bootstrap-optional>
+$ python create_clustering_input.py mouse/tcga_cancers run_num
+                                        -b<bootstrap-optional>
 
 Output format for network_go.txt/network_no_go_run_num.txt:
 0
@@ -87,28 +93,9 @@ $ python compute_go_enrichment.py data_type objective_function run_num
 
 $ python cluster_info_summary.py data_type objective_function run_num
 
-10. Perform the wilcoxon rank-sum test on the clusters
+10. Plotting in-density versus top GO enrichment.
 
-$ python wilcoxon_clusters.py run_num
-
-Prints out the score and p-value of the test.
-
-11. Objective function analysis.
-
-This script looks at the output files from analyze_clusters.py. First we look at
-clus_inf_no_go_run_num.txt, and then find the median of the in-density for all of
-the clusters. We take a threshold of that median, and then look at the lusters 
-with GO that meet that threshold. We then count the number of GO terms in these 
-clusters, and print that information out.
-
-$ python objective_function.py run_num
-
-No output file, but if the numbers are bigger than 1, then we can say that the
-clusters are reasonable.
-
-12. Plotting in-density versus top GO enrichment.
-
-$ python plot_indensity_vs_enrich.py data_type run_num
+$ python plot_best_clusters.py data_type run_num
 
 
 _____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
@@ -179,3 +166,27 @@ $ python cluster_info_summary_WGCNA.py data_type genes_only/pca/mean/median
 
 7.
 $ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf
+
+
+old stuff
+
+___
+Perform the wilcoxon rank-sum test on the clusters
+
+$ python wilcoxon_clusters.py run_num
+
+Prints out the score and p-value of the test.
+
+___
+Objective function analysis.
+
+This script looks at the output files from analyze_clusters.py. First we look at
+clus_inf_no_go_run_num.txt, and then find the median of the in-density for all of
+the clusters. We take a threshold of that median, and then look at the lusters 
+with GO that meet that threshold. We then count the number of GO terms in these 
+clusters, and print that information out.
+
+$ python objective_function.py run_num
+
+No output file, but if the numbers are bigger than 1, then we can say that the
+clusters are reasonable.

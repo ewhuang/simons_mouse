@@ -13,9 +13,6 @@ import time
 ### set threshold. Each line is "GENE_1\tGENE_2\tPEARSON_SCORE".
 ### Run time: 7 minutes.
 
-# Good threshold for mouse data: 0.8+.
-# Good threshold for TCGA data: < 0.5
-PCC_THRESOLD = 0.45
 # P_VALUE_THRESOLD = 0.0001
 
 def corrcoef(matrix):
@@ -43,10 +40,15 @@ def create_gene_exp_matrix(gene_exp_dct, high_std_genes):
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_cancers' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
+
+    if data_type == 'mouse':
+        pcc_threshold = 0.9
+    else:
+        # TCGA coefficients are worse.
+        pcc_threshold = 0.5
 
     # Read in the tsv file.
     gene_exp_dct = file_operations.get_gene_expression_dct(data_type)
@@ -56,10 +58,10 @@ def main():
 
     r, p = corrcoef(gene_exp_matrix)
 
-    out = open('./data/high_std_%s_network.txt' % data_type, 'w')
+    out = open('./data/%s_data/high_std_network.txt' % data_type, 'w')
     for row_idx, row in enumerate(r):
         for col_idx, pcc in enumerate(row):
-            if col_idx <= row_idx or pcc < PCC_THRESOLD or pcc == 1:
+            if col_idx <= row_idx or pcc < pcc_threshold or pcc == 1:
                 continue
             # if p[row_idx][col_idx] > P_VALUE_THRESOLD:
             #     continue

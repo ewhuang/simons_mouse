@@ -80,11 +80,11 @@ def write_enrichment_files(in_fname, out_fname, go_dct):
     compute_go_enrichments(out_fname, cluster_dct, go_dct)
 
 def read_go_dictionaries():
-    with open('./data/bp_%s.json' % data_type, 'r') as fp:
+    with open('./data/%s_data/bp_dct.json' % data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/mf_%s.json' % data_type, 'r') as fp:
+    with open('./data/%s_data/mf_dct.json' % data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
@@ -96,7 +96,7 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
+    # assert data_type in ['mouse', 'tcga']
     objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     run_num = sys.argv[3]
@@ -105,23 +105,24 @@ def main():
     go_dct_list = read_go_dictionaries()
     global gene_universe
     gene_universe = file_operations.get_high_std_genes(data_type)
-    # for domain_index in range(len(go_dct_list)):
+
+    # Only evaluate on BP for now.
     for domain_index in [0]:
         go_dct = go_dct_list[domain_index]
 
         # No GO network.
-        no_go_cluster_fname = './%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
+        no_go_cluster_fname = './results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
             data_type, objective_function, run_num)
-        no_go_fname = './%s_results/%s/cluster_enrichment_terms_no_go/cluster_' % (
+        no_go_fname = './results/%s_results/%s/cluster_enrichment_terms_no_go/cluster_' % (
             data_type, objective_function)
         no_go_fname += 'enrichment_terms_no_go_%s_%d.txt' % (run_num,
             domain_index)
         write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
 
         # GO network.
-        cluster_fname = './%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+        cluster_fname = './results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
             data_type, objective_function, run_num, domain_index)
-        go_fname = './%s_results/%s/cluster_enrichment_terms_go/cluster_' % (
+        go_fname = './results/%s_results/%s/cluster_enrichment_terms_go/cluster_' % (
             data_type, objective_function)
         go_fname += 'enrichment_terms_go_%s_%d.txt' % (run_num, domain_index)
         write_enrichment_files(cluster_fname, go_fname, go_dct)

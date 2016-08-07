@@ -8,12 +8,12 @@ import math
 def get_gene_expression_dct(data_type):
     '''
     Returns dictionary where keys are genes, and values are gene expression
-    vectors.
+    vectors. data_type can be either mouse or any on of the TCGA diseases.
     '''
     if data_type == 'mouse':
-        f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
+        f = open('./data/mouse_data/mm_mrsb_log2_expression.tsv', 'r')
     else:
-        f = open('./data/tcga_expr.txt', 'r')
+        f = open('./data/%s_data/expr.txt' % data_type, 'r')
     gene_expression_dct = OrderedDict({})
     for i, line in enumerate(f):
         if i == 0:
@@ -49,9 +49,9 @@ def create_clean_go_file(data_type, objective_function, run_num, go_domain_num):
     Takes a clustered file from simulated annealing and outputs a clean file
     without the GO nodes.
     '''
-    f = open('./%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
+    f = open('./results/%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
         data_type, objective_function, run_num, go_domain_num), 'r')
-    out = open('./%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+    out = open('./results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
         data_type, objective_function, run_num, go_domain_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
@@ -65,6 +65,7 @@ def create_clean_go_file(data_type, objective_function, run_num, go_domain_num):
     f.close()
 
 # compute_go_enrichment.py
+# cluster_info_summary.py
 def get_cluster_dictionary(filename):
     '''
     Returns a dictionary, keys=cluster ID's, values=lists of genes in the
@@ -278,8 +279,8 @@ def get_network_stats(network_fname):
 #     f.close()
 #     return embedding_edge_dct
 
-# gene_edge_weights.py
 # dump_go_dictionary_files.py
+# gene_edge_weights.py
 # compute_go_enrichment.py
 def get_high_std_genes(data_type):
     '''
@@ -287,7 +288,7 @@ def get_high_std_genes(data_type):
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('./data/%s_high_std_genes.txt' % data_type, 'r')
+    f = open('./data/%s_data/high_std_genes.txt' % data_type, 'r')
     for line in f:
         gene = line.strip()
         assert 'ENSMUSG' in gene or 'ENSG' in gene
@@ -302,7 +303,7 @@ def get_high_std_edge_dct(data_type):
     correlated gene expression vectors.
     '''
     high_std_edge_dct = {}
-    f = open('./data/high_std_%s_network.txt' % data_type, 'r')
+    f = open('./data/%s_data/high_std_network.txt' % data_type, 'r')
     for i, line in enumerate(f):
         gene_a, gene_b, pcc = line.split()
         high_std_edge_dct[(gene_a, gene_b)] = pcc
@@ -319,7 +320,10 @@ def read_config_file(data_type):
     '''
     num_options = 8
     config_dct = {}
-    f = open('%s_config.txt' % data_type, 'r')
+    if data_type == 'mouse':
+        f = open('%s_config.txt' % data_type, 'r')
+    else:
+        f = open('tcga_config.txt', 'r')
     for i, line in enumerate(f):
         config_num = i % (num_options + 1)
         if config_num == 0:
@@ -348,3 +352,15 @@ def read_config_file(data_type):
             config_dct[run_num]['num_clusters'] = num_clusters
     f.close()
     return config_dct
+
+# standard_deviation_hist.py
+def get_tcga_diseases():
+    '''
+    Get the list of valid diseases from the TCGA dataset.
+    '''
+    tcga_disease_list = []
+    f = open('./data/tcga_data/tcga_diseases.txt', 'r')
+    for line in f:
+        tcga_disease_list += [line.strip()]
+    f.close()
+    return tcga_disease_list

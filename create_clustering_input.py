@@ -36,7 +36,7 @@ def write_no_go_files(edge_genes, edge_dct):
     '''
     Writes the networks without GO.
     '''
-    no_go_folder = './data/%s_networks_no_go/' % data_type
+    no_go_folder = './data/%s_data/networks_no_go/' % data_type
 
     # Regular network file for clustering.
     no_go_out = open('%snetwork_no_go_%s.txt' % (no_go_folder, run_num), 'w')
@@ -53,6 +53,10 @@ def write_no_go_files(edge_genes, edge_dct):
         ng_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
     no_go_out.close()
     ng_real.close()
+    # Write out the orth file.
+    orth_out = open('./data/%s_data/orth.txt' % data_type, 'w')
+    orth_out.write('0\t0\t%s\t%s' % (gene_a, gene_a))
+    orth_out.close()
 
 def compute_go_weight(largest_go_size, num_go_genes):
     '''
@@ -66,11 +70,11 @@ def get_go_dictionaries():
     dictionaries, by alphabetical order.
     '''
     # First, load all of the GO dictionaries.
-    with open('./data/bp_%s.json' % data_type, 'r') as fp:
+    with open('./data/%s_data/bp_dct.json' % data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/mf_%s.json' % data_type, 'r') as fp:
+    with open('./data/%s_data/mf_dct.json' % data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
@@ -89,7 +93,7 @@ def read_go_overlap():
     them from training, but still use them to evaluate.
     '''
     overlap_list = []
-    f = open('./data/overlapping_bp_mf_go_labels_%s.txt' % data_type, 'r')
+    f = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type, 'r')
     for line in f:
         bp_label, mf_label, p_value = line.strip().split('\t')
         overlap_list += [(bp_label, mf_label)]
@@ -134,13 +138,13 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
 
         # Open up and initialize the network files for the current domain.
         if bootstrap:
-            go_folder = './data/bootstrapped_%s_networks_go/' % data_type
+            go_folder = './data/%s_data/bootstrapped_networks_go/' % data_type
             go_out = open('%snetwork_go_%s_%d_%d.txt' % (go_folder, run_num,
                 domain_index, bootstrap_idx), 'w')
             g_real = open('%sreal_network_go_%s_%d_%d.txt' % (go_folder,
                 run_num, domain_index, bootstrap_idx), 'w')
         else:
-            go_folder = './data/%s_networks_go/' % data_type
+            go_folder = './data/%s_data/networks_go/' % data_type
             go_out = open('%snetwork_go_%s_%d.txt' % (go_folder, run_num,
                 domain_index), 'w')
             g_real = open('%sreal_network_go_%s_%d.txt' % (go_folder, run_num,
@@ -177,7 +181,7 @@ def main():
         exit()
     global data_type, run_num, bootstrap, lamb, max_go_size, min_go_size
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
+    # assert data_type in ['mouse', 'tcga']
     run_num = sys.argv[2]
     assert run_num.isdigit()
     bootstrap = '-b' in sys.argv

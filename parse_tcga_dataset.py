@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import os
 import time
 
@@ -8,6 +9,7 @@ import time
 ### http://knowcloud.cse.illinois.edu/index.php/s/DSuJffKJR2hIhAa
 ### and download the clinical_data file and the expr_converted.txt file. Rename
 ### expression file to tcga_expr.txt
+### Run time: 70 seconds.
 
 def read_clinical_data():
     '''
@@ -20,7 +22,7 @@ def read_clinical_data():
     dct_2 value: number of samples for the primary disease -> int
     '''
     disease_to_id_dct, disease_count_dct = {}, {}
-    f = open('./data/clinical_data', 'r')
+    f = open('./data/tcga_data/clinical_data', 'r')
     for i, line in enumerate(f):
         # Skip header.
         if i == 0:
@@ -51,10 +53,9 @@ def create_disease_directories(disease_to_id_dct):
     Create a directory for every disease with at least 100 samples, if one
     doesn't already exist.
     '''
-    subfolder = './data/'
     for disease in disease_to_id_dct:
-        go_dir = subfolder + disease + '_networks_go'
-        no_go_dir = subfolder + disease + '_networks_no_go'
+        go_dir = './data/%s_data/networks_go' % disease
+        no_go_dir = './data/%s_data/networks_no_go' % disease
         if not os.path.exists(go_dir):
             os.makedirs(go_dir)
         if not os.path.exists(no_go_dir):
@@ -73,16 +74,19 @@ def split_expression_data(disease_to_id_dct):
 
     # Read the TCGA data.
     gene_list = []
-    f = open('./data/tcga_expr.txt', 'r')
+    f = open('./data/tcga_data/tcga_expr.txt', 'r')
     for i, line in enumerate(f):
         line = line.split()
         if i == 0:
             sample_list = line
-            # Find the indices we should pull for each disease.
+            # Find the sample indices we should pull for each disease.
             for disease in disease_to_id_dct:
                 index_list = [sample_list.index(sample
                     ) for sample in disease_to_id_dct[disease] if (sample in
                     sample_list)]
+                if len(index_list) == 0:
+                    del disease_expr_dct[disease]
+                    continue
                 disease_sample_index_dct[disease] = index_list
             continue
         gene, expression_line = line[0], line[1:]
@@ -96,23 +100,35 @@ def split_expression_data(disease_to_id_dct):
     # Make sure every disease matrix is of the same length.
     for disease in disease_expr_dct:
         assert len(disease_expr_dct[disease]) == len(gene_list)
+        disease_folder = './data/%s_data/' % disease
+        if not os.path.exists(disease_folder):
+            os.makedirs(disease_folder)
 
+    tcga_folder = './data/tcga_data/'
+    if not os.path.exists(tcga_folder):
+        os.makedirs(tcga_folder)
     # Make a new expression file for each disease.
     for disease in disease_expr_dct:
         disease_exp_matrix = disease_expr_dct[disease]
-        out = open('./data/%s_expr.txt' % disease, 'w')
+        out = open('./data/%s_data/expr.txt' % disease, 'w')
         out.write('\t%s\n' % '\t'.join([sample_list[i] for i in
             disease_sample_index_dct[disease]]))
         for i, row in enumerate(disease_exp_matrix):
             out.write('%s\t%s\n' % (gene_list[i], '\t'.join(map(str, row))))
         out.close()
 
+    # Write out the list of valid diseases.
+    out = open('%stcga_diseases.txt' % tcga_folder, 'w')
+    for disease in disease_expr_dct:
+        out.write(disease + '\n')
+    out.close()
+
     return disease_expr_dct
 
 def main():
     disease_to_id_dct = read_clinical_data()
-    # disease_expr_dct = split_expression_data(disease_to_id_dct)
-    create_disease_directories(disease_to_id_dct)
+    disease_expr_dct = split_expression_data(disease_to_id_dct)
+    create_disease_directories(disease_expr_dct)
 
 if __name__ == '__main__':
     start_time = time.time()
