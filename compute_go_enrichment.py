@@ -38,7 +38,7 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
 
         # Run Fisher's test.
         f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
-        o_r, p_value = fisher_exact(f_table)
+        o_r, p_value = fisher_exact(f_table, alternative='greater')
 
         # Handle overflow issues.
         p_value = max(p_value, 1e-300)

@@ -54,22 +54,22 @@ def main():
         binary = './WlogV/makedir/WlogVImplement'
 
     # Build the command.
-    command = '%s %s 1 0 ./data/%s_data/orth.txt 1 ' % (binary, num_clusters,
+    command = '%s %s 1 0 "./data/%s_data/orth.txt" 1 ' % (binary, num_clusters,
         data_type)
-    command += './data/%s_data/networks_%s/network_%s_%s' % (data_type, network,
+    command += '"./data/%s_data/networks_%s/network_%s_%s' % (data_type, network,
         network, run_num)
 
     if network == 'go':
         go_num = sys.argv[5]
         command += '_%s' % go_num
 
-    command += '.txt -t %s 2>log > ./results/%s_results/%s/clusters_%s/clusters_%s_%s' % (
+    command += '.txt" -t %s 2>log > "./results/%s_results/%s/clusters_%s/clusters_%s_%s' % (
         temp, data_type, objective_function, network, network, run_num)
 
     if network == 'go':
         command += '_%s' % go_num
 
-    command += '.txt'
+    command += '.txt"'
 
     # Execute the command in the shell.
     print command

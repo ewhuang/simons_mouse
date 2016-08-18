@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import json
 import numpy as np
 from sklearn.decomposition import PCA
@@ -32,9 +33,12 @@ def main():
         print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     go_method = sys.argv[2]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
+
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     high_std_genes = get_high_std_genes(data_type)
 

@@ -25,21 +25,21 @@ def main():
         # First, get a clean cluster file.
         file_operations.create_clean_go_file(data_type, objective_function,
             run_num, go_domain_num)
-        command += './results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt ' % (
+        command += '"./results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt" ' % (
             data_type, objective_function, run_num, go_domain_num)
-        command += './data/%s_data/networks_go/real_network_go_%s_%d.txt ' % (
+        command += '"./data/%s_data/networks_go/real_network_go_%s_%d.txt" ' % (
             data_type, run_num, go_domain_num)
-        command += '> ./results/%s_results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
+        command += '> "./results/%s_results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt"' % (
             data_type, objective_function, run_num, go_domain_num)
         subprocess.call(command, shell=True)
 
     # No GO term command.
     command = 'perl ./evaluate_clustering.pl '
-    command += './results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt ' % (
+    command += '"./results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt" ' % (
         data_type, objective_function, run_num)
-    command += './data/%s_data/networks_no_go/real_network_no_go_%s.txt ' % (
+    command += '"./data/%s_data/networks_no_go/real_network_no_go_%s.txt" ' % (
         data_type, run_num)
-    command += '> ./results/%s_results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
+    command += '> "./results/%s_results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt"' % (
         data_type, objective_function, run_num)
     subprocess.call(command, shell=True)
 

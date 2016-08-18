@@ -27,15 +27,17 @@ def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
     out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
     out.write('cluster_number\tin_dens\tout_dens\tratio\t')
     out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
-    out.write('top_enrichment_p\n')
+    out.write('top_enrichment_p\tgo_terms_in\n')
     for cid in density_dct:
+        cluster_go_terms = []
         # cid = str(i + 1)
         clus = clst_go_dct[cid]
         num_genes = len(clus)
         num_go, num_gg, num_ggo = 0, 0, 0
         for node in clus:
-            if 'ENSMUSG' not in node:
+            if ('ENSMUSG' not in node and 'ENSG' not in node):
                 num_go += 1
+                cluster_go_terms += [node]
         # for edge in edge_list_go:
         #     node_a, node_b = edge
         #     if node_a in clus and node_b in clus:
@@ -58,7 +60,8 @@ def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
         # ratio = in_dens / (in_dens + out_dens)
         out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
         out.write('%d\t%d\t%d\t%d\t' % (num_genes, num_go, num_gg, num_ggo))
-        out.write('%s\n' % enrichment_dct[cid])
+        out.write('%s\t%s\n' % (enrichment_dct[cid], '\t'.join(
+            cluster_go_terms)))
     out.close()
 
 if __name__ == '__main__':

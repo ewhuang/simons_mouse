@@ -11,7 +11,9 @@ setwd("C:/Users/ewhuang3/Documents/simons_mouse")
 options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
-hb_mrsb_cpm = read.table("liver_hepatocellular_carcinoma_expr_genes_only.txt", sep="\t", header=T)
+cancer <- "breast_invasive_carcinoma"
+
+hb_mrsb_cpm = read.table(paste(cancer, "_expr_genes_only.txt", sep=""), sep="\t", header=T)
 gene_id = hb_mrsb_cpm[1]
 hb_mrsb_cpm[1] = NULL
 hb_mrsb_cpm_t <- t(hb_mrsb_cpm)
@@ -68,4 +70,6 @@ for (i in 1:nrow(hb_mrsb_module_membership)) {
 
 # write.table(hb_mrsb_module_membership, file="tcga_module_membership_genes_only.txt", sep="\t", row.names=FALSE, col.names=TRUE)
 # TODO
-write.table(cbind(hb_mrsb_module_membership$ID, hb_mrsb_module_membership$module, hb_mrsb_module_membership$color, hb_mrsb_module_membership$module_membership ), file="liver_hepatocellular_carcinoma_module_membership_genes_only.txt", sep="\t", row.names=FALSE, col.names=TRUE)
+write.table(cbind(
+    hb_mrsb_module_membership$ID, hb_mrsb_module_membership$module, hb_mrsb_module_membership$color, hb_mrsb_module_membership$module_membership
+    ), file=paste(cancer, "_module_membership_genes_only.txt", sep=""), sep="\t", row.names=FALSE, col.names=TRUE)

@@ -118,7 +118,7 @@ def write_go_overlap(bp_go_gene_dct, mf_go_gene_dct, data_type):
 
             # Run Fisher's test.
             f_table = ([[bp_and_mf, bp_not_mf], [mf_not_bp, neither]])
-            o_r, p_value = fisher_exact(f_table)
+            o_r, p_value = fisher_exact(f_table, alternative='greater')
 
             # Handle overflow issues.
             p_value = max(p_value, 1e-300)

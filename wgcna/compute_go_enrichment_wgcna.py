@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import json
 import math
 import operator
@@ -18,7 +19,7 @@ def get_go_gene_dct(go_domain, data_type):
    Gets the GO dictionary corresponding to the GO domain.
     '''
     # First, load all of the GO dictionaries.
-    with open('../data/%s_%s.json' % (go_domain, data_type), 'r') as fp:
+    with open('../data/%s_data/%s_dct.json' % (data_type, go_domain), 'r') as fp:
         go_gene_dct = json.load(fp)
     fp.close()
 
@@ -30,7 +31,7 @@ def get_cluster_dictionary(data_type, network_type, go_domain):
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./%s_results/%s/clusters_%s.txt' % (data_type, network_type,
+    f = open('./results/%s_results/%s/clusters_%s.txt' % (data_type, network_type,
         go_domain), 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
@@ -55,7 +56,7 @@ def get_high_std_genes(data_type):
     gene expression vectors.
     '''
     high_std_genes = []
-    f = open('../data/%s_high_std_genes.txt' % data_type, 'r')
+    f = open('../data/%s_data/high_std_genes.txt' % data_type, 'r')
     for line in f:
         gene = line.strip()
         assert 'ENSMUSG' in gene or 'ENSG' in gene
@@ -82,7 +83,7 @@ def get_sorted_fisher_dct(clus_genes, go_dct, gene_universe):
 
         # Run Fisher's test.
         f_table = ([[clus_and_go, clus_not_go], [go_not_clus, neither]])
-        o_r, p_value = fisher_exact(f_table)
+        o_r, p_value = fisher_exact(f_table, alternative='greater')
 
         fisher_dct[go_label] = p_value
 
@@ -92,7 +93,7 @@ def compute_go_enrichments(data_type, network_type, go_dct, cluster_wgcna_dct,
     go_domain):
     gene_universe = get_high_std_genes(data_type)
 
-    out = open('./%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (
+    out = open('./results/%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (
         data_type, network_type, network_type, go_domain), 'w')
 
     # Loop through the clusters.
@@ -116,9 +117,12 @@ def main():
         print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']        
+    assert data_type == 'mouse' or data_type.isdigit()
     network_type = sys.argv[2]
     assert network_type in ['genes_only', 'pca', 'mean', 'median']
+
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     for go_domain in ['bp', 'mf']:
         go_dct = get_go_gene_dct(go_domain, data_type)

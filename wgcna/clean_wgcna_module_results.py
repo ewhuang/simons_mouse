@@ -1,5 +1,7 @@
 ### Author: Edward Huang
 
+import file_operations
+import os
 import sys
 
 ### Reformats the output of WGCNA for running through simulated annealing
@@ -10,20 +12,29 @@ def main():
         print 'Usage: %s data_type genes_only/pca/mean/median' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     go_method = sys.argv[2]
     assert go_method in ['genes_only', 'pca', 'mean', 'median']
+
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     if go_method == 'genes_only':
         domain_list = [go_method]
     else:
         domain_list = ['bp', 'cc', 'mf']
 
+    results_folder = './results/%s_results/' % data_type
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+    results_folder = './results/%s_results/%s/' % (data_type, go_method)
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+
     for go_domain in domain_list:
-        folder = './%s_results/%s/' % (data_type, go_method)
-        f = open('%s%s_module_membership_%s.txt' % (folder, data_type,
-            go_domain), 'r')
-        out = open('%sclusters_%s.txt' % (folder, go_domain), 'w')
+        f = open('./data/%s_module_membership_%s.txt' % (data_type, go_domain),
+            'r')
+        out = open('%sclusters_%s.txt' % (results_folder, go_domain), 'w')
         # Write dummy header line.
         out.write('dummy_header\n')
 

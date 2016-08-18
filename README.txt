@@ -29,7 +29,8 @@ Output format:
 gene_a  gene_b  edge_weight
 The edges are not repeated.
 
-We can run everything at once and ignore steps 4-12.
+We can run everything at once and ignore steps 4-12. Must run the WGCNA pipeline
+first in order to compare WlogV to it.
 python full_pipeline.py data_type objective_function run_num
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
@@ -63,7 +64,10 @@ ___________________________________CLUSTERING___________________________________
 If static error for EdgeWeightThreshold, add static in front of its declaration
 in cs-grn.h.
 
-$ g++ -O3 -o bin/cs-grn -Wno-deprecated -std=c++0x *.cpp
+cd makedir
+rm *
+cmake ..
+make
 
 orth.txt just needs to contain at least one gene in the network.
 Execute clustering code on the created networks.
@@ -142,6 +146,8 @@ edges between genes with weights computed by embedding.
 
 ___________________________________WGCNA________________________________________
 1.
+data_type can either be 'genes_only' or an integer denoting a TCGA disease.
+
 cd wgcna/
 $ python preprocess_WGCNA.py data_type genes_only/pca/mean/median
 
@@ -150,26 +156,30 @@ Move results from preprocessing to working directory of R.
 Run wgcna.R in 64-bit R. Move output (module_membership_WGCNA.txt) to results
 file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
 Takes about 55 minutes.
+For TCGA, run wgcna_tcga.R. Change line 14 to suit the type of cancer.
+
+____$ python full_pipeline_wgcna.py data_type genes_only/pca/... network_num
+____This runs steps 3-6. network_num should be 20 for mouse, and 1 for TCGA.
+____This is because we optimized for mouse, and keep the same parameters for
+____TCGA.
 
 3.
-$ python clean_WGCNA_module_results.py data_type genes_only/pca/mean/median
+$ python clean_wgcna_module_results.py data_type genes_only/pca/mean/median
 
 4.
 Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
-python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median
+python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median network_number
 
 5.
 $ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
 
 6.
-$ python cluster_info_summary_WGCNA.py data_type genes_only/pca/mean/median
+$ python cluster_info_summary_wgcna.py data_type genes_only/pca/mean/median network_number
 
 7.
 $ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf
 
-
 old stuff
-
 ___
 Perform the wilcoxon rank-sum test on the clusters
 

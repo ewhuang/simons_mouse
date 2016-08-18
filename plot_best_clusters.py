@@ -1,5 +1,6 @@
 ### Author: Edward Huang
 
+import file_operations
 import math
 import sys
 import matplotlib
@@ -18,10 +19,14 @@ if __name__ == '__main__':
         print 'Usage: %s data_type run_num' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     run_num = sys.argv[2]
     assert run_num.isdigit()
     go_domain_list = ['bp', 'mf']
+
+    tcga_disease_list = file_operations.get_tcga_diseases()
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_diseases()[int(data_type)]
 
     for go_domain_index in [0]:
         go_domain = go_domain_list[go_domain_index]
@@ -37,7 +42,7 @@ if __name__ == '__main__':
                 run_num, go_domain_index)
 
             if mode == 'wgcna':
-                f = open('./wgcna/%s_results/genes_only/clus_info_genes_only_%s.txt' %(
+                f = open('./wgcna/results/%s_results/genes_only/clus_info_genes_only_%s.txt' %(
                     data_type, go_domain), 'r')
             elif mode == 'wlogv_go':
                 f = open('./results/%s_results/wlogv/' % data_type + go_fname, 'r')
@@ -88,8 +93,9 @@ if __name__ == '__main__':
         matplotlib.pyplot.ylim(0, 1.2)
         if data_type == 'mouse':
             matplotlib.pyplot.xlim(0, 50)
-        elif data_type == 'tcga':
-            matplotlib.pyplot.xlim(0, 150)            
+        # elif data_type == 'tcga':
+        else:
+            matplotlib.pyplot.xlim(0, 250)            
         matplotlib.pyplot.show()
         pylab.savefig('./results/%s_results/comparison_plots/comparison_plot_%s_%s.png' % (
             data_type, go_domain, run_num))
