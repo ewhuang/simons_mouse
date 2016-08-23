@@ -12,7 +12,7 @@ import time
 ### Customize Gene List: Add GO Database CC/BP/MF Complete to "Columns sorted
 ### using user preferences". Send list to file. It will download as
 ### pantherGeneList.txt. Rename with a _mouse or _tcga suffix.
-### Run time: 700 seconds.
+### Run time: 3 seconds.
 
 def process_go_term_list(go_term_list):
     '''
@@ -32,8 +32,6 @@ def process_go_term_list(go_term_list):
         assert 'GO:' in go_term
         
         # Extract the GO ID between parentheses.
-        # go_term = go_term[go_term.rfind("(") + 1:go_term.rfind(")")]
-        # assert len(go_term) == 10
         go_term = go_term[:go_term.index('(')]
         go_term = '_'.join(go_term.split())
         go_id_list += [go_term]
@@ -82,63 +80,20 @@ def get_go_domains(data_type):
             assert ('ENSMUSG' in gene or 'ENSG' in gene)
             if gene not in high_std_genes:
                 continue
-            # if gene_type == 'index':
-            #     gene = gene_to_index_dct[gene]
             add_to_dictionary(gene, bp_term_list, bp_go_gene_dct)
             add_to_dictionary(gene, mf_term_list, mf_go_gene_dct)
     f.close()
 
     return bp_go_gene_dct, mf_go_gene_dct
 
-def write_go_overlap(bp_go_gene_dct, mf_go_gene_dct, data_type):
-    '''
-    Given two dictionaries of GO terms, find the overlapping terms' Fisher's
-    test p-values.
-    '''
-    gene_universe = set([item for sublist in bp_go_gene_dct.values() for item
-        in sublist]).union([item for sublist in mf_go_gene_dct.values() for
-        item in sublist])
-
-    fisher_dct = {}
-    for bp_label in bp_go_gene_dct:
-        bp_genes = set(bp_go_gene_dct[bp_label])
-        if len(bp_genes) > 1000 or len(bp_genes) < 10:
-            continue
-
-        for mf_label in mf_go_gene_dct:
-            mf_genes = set(mf_go_gene_dct[mf_label])
-            if len(mf_genes) > 1000 or len(mf_genes) < 10:
-                continue
-
-            # Compute the four sets for Fisher's test.
-            bp_and_mf = len(bp_genes.intersection(mf_genes))
-            bp_not_mf = len(bp_genes.difference(mf_genes))
-            mf_not_bp = len(mf_genes.difference(bp_genes))
-            neither = len(gene_universe) - len(mf_genes.union(bp_genes))
-
-            # Run Fisher's test.
-            f_table = ([[bp_and_mf, bp_not_mf], [mf_not_bp, neither]])
-            o_r, p_value = fisher_exact(f_table, alternative='greater')
-
-            # Handle overflow issues.
-            p_value = max(p_value, 1e-300)
-
-            fisher_dct[(bp_label, mf_label)] = p_value
-
-    fisher_dct = sorted(fisher_dct.items(), key=operator.itemgetter(1))
-    out = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type,
-        'w')
-    for (bp_label, mf_label), p_value in fisher_dct:
-        out.write(bp_label + '\t' + mf_label + '\t' + str(p_value) + '\n')
-        if p_value > 1e-10:
-            break
-    out.close()
-
 def main():
     if len(sys.argv) != 2:
         print 'Usage:python %s mouse/tcga_cancers' % sys.argv[0]
         exit()
-    data_type = sys.argv[1]
+    data_type = sys.argv[1]    
+    assert data_type == 'mouse' or data_type.isdigit()
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     bp_go_gene_dct, mf_go_gene_dct = get_go_domains(data_type)
 
@@ -156,8 +111,6 @@ def main():
     with open('./data/%s_data/mf_dct.json' % data_type, 'w') as fp:
         json.dump(mf_go_gene_dct, fp)
     fp.close()
-
-    write_go_overlap(bp_go_gene_dct, mf_go_gene_dct, data_type)
 
 if __name__ == '__main__':
     start_time = time.time()

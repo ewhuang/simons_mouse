@@ -70,12 +70,15 @@ if __name__ == '__main__':
         exit()
     global data_type, objective_function, run_num
     data_type = sys.argv[1]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        
     start_time = time.time()
 
     # No GO filenames.

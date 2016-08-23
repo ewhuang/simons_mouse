@@ -40,9 +40,12 @@ def create_gene_exp_matrix(gene_exp_dct, high_std_genes):
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga_cancers' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_cancer_index' % sys.argv[0]
         exit()
-    data_type = sys.argv[1]
+    data_type = sys.argv[1]    
+    assert data_type == 'mouse' or data_type.isdigit()
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     if data_type == 'mouse':
         pcc_threshold = 0.9

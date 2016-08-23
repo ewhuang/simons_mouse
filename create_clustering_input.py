@@ -177,14 +177,17 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
 
 def main():
     if len(sys.argv) not in [3, 4]:
-        print 'Usage:python %s data_type run_num -b <bootstrap>' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_cancer_index run_num -b <bootstrap>' % sys.argv[0]
         exit()
     global data_type, run_num, bootstrap, lamb, max_go_size, min_go_size
     data_type = sys.argv[1]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     run_num = sys.argv[2]
     assert run_num.isdigit()
     bootstrap = '-b' in sys.argv
+
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_diseases()[int(data_type)]
 
     # Extracting configuration options.
     config_dct = file_operations.read_config_file(data_type)[run_num]

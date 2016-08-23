@@ -17,10 +17,13 @@ def main():
 
     # Sort out command line arguments.
     data_type, objective_function, run_num, network = sys.argv[1:5]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     assert run_num.isdigit()
     assert network in ['go', 'no_go']
+
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_diseases()[int(data_type)]
 
     # Construct the results folders if it's the first time.
     results_folder = './results/%s_results/' % data_type

@@ -96,12 +96,15 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type = sys.argv[1]
-    # assert data_type in ['mouse', 'tcga']
+    assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
+    if data_type.isdigit():
+        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        
     go_dct_list = read_go_dictionaries()
     global gene_universe
     gene_universe = file_operations.get_high_std_genes(data_type)

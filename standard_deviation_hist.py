@@ -48,7 +48,7 @@ def main():
     if category == 'mouse':
         data_type_list = ['mouse']
     elif category == 'tcga':
-         data_type_list = file_operations.get_tcga_diseases()
+         data_type_list = file_operations.get_tcga_disease_list()
 
     # Loop through the data type list. data_type can be 'mouse' or any of the
     # TCGA cancers.

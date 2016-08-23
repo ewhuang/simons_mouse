@@ -1,8 +1,11 @@
 ### Author: Edward Huang
 
+import file_operations
 import subprocess
 import sys
 import time
+
+### Run time: About half an hour.
 
 def get_tcga_disease_list():
     disease_list = []
@@ -14,20 +17,14 @@ def get_tcga_disease_list():
 
 def main():
     if len(sys.argv) != 4:
-        print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_cancer_index objective_function run_num' % sys.argv[0]
         exit()
-    input_data_type = sys.argv[1]
-    assert input_data_type == 'mouse' or input_data_type.isdigit()
+    data_type = sys.argv[1]
+    assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
     assert objective_function in ['wlogv', 'schaeffer', 'oclode']
     run_num = sys.argv[3]
     assert run_num.isdigit()
-
-    if input_data_type.isdigit():
-        data_type = get_tcga_disease_list()[int(input_data_type)]
-
-    if '&' in data_type:
-        data_type = "'" + data_type + "'"
 
     # Create clustering input.
     command = 'python create_clustering_input.py %s %s' % (data_type, run_num)
@@ -58,7 +55,7 @@ def main():
     subprocess.call(command, shell=True)
 
     # Plotting.
-    command = 'python plot_best_clusters.py %s %s' % (input_data_type, run_num)
+    command = 'python plot_best_clusters.py %s %s' % (data_type, run_num)
     subprocess.call(command, shell=True)
 
 if __name__ == '__main__':

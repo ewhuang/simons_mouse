@@ -24,7 +24,6 @@ if __name__ == '__main__':
     assert run_num.isdigit()
     go_domain_list = ['bp', 'mf']
 
-    tcga_disease_list = file_operations.get_tcga_diseases()
     if data_type.isdigit():
         data_type = file_operations.get_tcga_diseases()[int(data_type)]
 

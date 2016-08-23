@@ -90,117 +90,6 @@ def get_cluster_dictionary(filename):
     f.close()
     return cluster_dct
 
-# make_gene_go_file.py
-def get_coexpression_genes():
-    '''
-    Reads the original co-expression matrix, and returns the set of genes that
-    appear in the matrix.
-    '''
-    coexpression_genes = set([])
-    f = open('./data/mm_mrsb_log2_expression.tsv', 'r')
-    gene_lst = []
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        gene = line.split()[0]
-        assert 'ENSMUSG' in gene
-        coexpression_genes.add(gene)
-    f.close()
-    return coexpression_genes
-
-# make_gene_go_file.py
-def get_gene_index_dct():
-    '''
-    Returns a dictionary that maps gene indices to their ENSMUSG id's.
-    '''
-    # We only want coexpression genes in gene-GO relationships.
-    coexpression_genes = get_coexpression_genes()
-
-    mgi_to_ensembl_dct = {}
-    f = open('./go_edge_prediction/prediction_data/mgi_to_ensembl.txt', 'r')
-    for i, line in enumerate(f):
-        # Skip the header line.
-        if i == 0:
-            continue
-        line = line.split()
-        if len(line) != 5 or line[1] != 'current':
-            continue
-        ensmusg_id = line[4]
-        assert 'ENSMUSG' in ensmusg_id
-        # Skip if a gene isn't in our coexpression network, or if it isn't up
-        # to date.
-        if ensmusg_id not in coexpression_genes:
-            continue
-        mgi_id = line[0]
-        if mgi_id in mgi_to_ensembl_dct:
-            mgi_to_ensembl_dct[mgi_id] += [ensmusg_id]
-        else:
-            mgi_to_ensembl_dct[mgi_id] = [ensmusg_id]
-    f.close()
-
-    # Keys are the indices in the edge weight matrix, values are the genes.
-    gene_index_dct = {}
-    f = open('./go_edge_prediction/prediction_data/noisogeneHash.txt', 'r')
-    for line in f:
-        mgi_id, row = line.split()
-        if mgi_id not in mgi_to_ensembl_dct:
-            continue
-        # Subtract 1 to change to list indices.
-        row_index = int(row) - 1
-        gene_index_dct[row_index] = mgi_to_ensembl_dct[mgi_id]
-    f.close()
-    # Make sure we indeed subtract 1 from the row indices.
-    assert -1 not in gene_index_dct
-    return gene_index_dct
-
-# create_clustering_input.py
-def get_go_id_to_name_dct():
-    '''
-    Returns a dictionary that maps GO ID's to their English names.
-    '''
-    go_id_to_name_dct = {}
-    f = open('./go_edge_prediction/prediction_data/go_to_name.txt', 'r')
-    while True:
-        line = f.readline()
-        if line == '':
-            break
-        if line.strip() == '[Term]':
-            go_id = f.readline().split()[1].lower()
-            go_name = '_'.join(f.readline()[len('name: '):].split())
-
-            assert go_id not in go_id_to_name_dct
-            go_id_to_name_dct[go_id] = go_name
-            f.readline()
-            next = f.readline()
-            while 'alt_id' in next:
-                go_alt_id = next.split()[1].lower()
-                assert go_alt_id not in go_id_to_name_dct
-                go_id_to_name_dct[go_alt_id] = go_name
-                next = f.readline()
-    f.close()
-    # Manual tests.
-    assert go_id_to_name_dct['go:0000001'] == 'mitochondrion_inheritance'
-    assert go_id_to_name_dct['go:0000011'] == 'vacuole_inheritance'
-    return go_id_to_name_dct
-
-# make_gene_go_file.py
-def get_go_index_to_id_dct():
-    '''
-    This function returns a dictionary where keys are GO id's, and values are
-    their corresponding indices.
-    '''
-    # Keys are the GO ids, values are the indices in the edge weight matrix.
-    go_index_dct = {}
-    f = open('./go_edge_prediction/prediction_data/noisogoHash.txt', 'r')
-    for line in f:
-        go_id, index = line.split()
-        # Subtract 1 to change to list indices.
-        go_index_dct[int(index) - 1] = go_id
-    f.close()
-    # Make sure we indeed subtract 1 from the indices.
-    assert -1 not in go_index_dct
-    return go_index_dct
-
 # cluster_info_summary.txt
 def get_cluster_densities(eval_fname):
     '''
@@ -267,17 +156,6 @@ def get_network_stats(network_fname):
     f.close()
     # Divide the two numbers by two to account for each edge in twice.
     return num_genes_net, num_gg_net / 2, num_ggo_net / 2
-
-# # Keyword is either 'full' or 'sampled'. Gets the respective embedding network.
-# def get_embedding_edge_dct(keyword):
-#     assert keyword in ['full', 'sampled']
-#     embedding_edge_dct = {}
-#     f = open('./data/embedding_%s_network.txt' % keyword, 'r')
-#     for line in f:
-#         gene_a, gene_b, weight = line.split()
-#         embedding_edge_dct[(gene_a, gene_b)] = weight
-#     f.close()
-#     return embedding_edge_dct
 
 # dump_go_dictionary_files.py
 # gene_edge_weights.py
@@ -353,8 +231,9 @@ def read_config_file(data_type):
     f.close()
     return config_dct
 
+# full_pipeline.py
 # standard_deviation_hist.py
-def get_tcga_diseases():
+def get_tcga_disease_list():
     '''
     Get the list of valid diseases from the TCGA dataset.
     '''
