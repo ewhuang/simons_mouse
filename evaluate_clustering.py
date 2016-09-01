@@ -16,12 +16,12 @@ def main():
     data_type = sys.argv[1]
     assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
     if data_type.isdigit():
-        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     for go_domain_num in [0]:
         command = 'perl ./evaluate_clustering.pl '

@@ -25,14 +25,15 @@ if __name__ == '__main__':
     go_domain_list = ['bp', 'mf']
 
     if data_type.isdigit():
-        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     for go_domain_index in [0]:
         go_domain = go_domain_list[go_domain_index]
         colors = ['blue', 'purple', 'red', 'black', 'orange', 'green', 'yellow']
         # for mode_index, mode in enumerate(['wgcna', 'wlogv_go', 'wlogv_no_go',
         #     'oclode_go', 'oclode_no_go', 'schaeffer_go', 'schaeffer_no_go']):
-        for mode_index, mode in enumerate(['wgcna', 'wlogv_go', 'wlogv_no_go']):
+        for mode_index, mode in enumerate(['wgcna', 'wlogv_go', 'wlogv_no_go',
+            'prosnet_go', 'prosnet_no_go']):
             pts = []
 
             no_go_fname = 'clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
@@ -51,10 +52,10 @@ if __name__ == '__main__':
                 f = open('./results/%s_results/oclode/' % data_type + go_fname, 'r')
             elif mode == 'oclode_no_go':
                 f = open('./results/%s_results/oclode/' % data_type + no_go_fname, 'r')
-            elif mode == 'schaeffer_go':
-                f = open('./results/%s_results/schaeffer/' % data_type + go_fname, 'r')
-            elif mode == 'schaeffer_no_go':
-                f = open('./results/%s_results/schaeffer/' % data_type + no_go_fname,
+            elif mode == 'prosnet_go':
+                f = open('./results/%s_results/prosnet/' % data_type + go_fname, 'r')
+            elif mode == 'prosnet_no_go':
+                f = open('./results/%s_results/prosnet/' % data_type + no_go_fname,
                     'r')
 
             for i, line in enumerate(f):
@@ -91,7 +92,7 @@ if __name__ == '__main__':
         matplotlib.pyplot.legend(loc='lower right')
         matplotlib.pyplot.ylim(0, 1.2)
         if data_type == 'mouse':
-            matplotlib.pyplot.xlim(0, 50)
+            matplotlib.pyplot.xlim(0, 20)
         # elif data_type == 'tcga':
         else:
             matplotlib.pyplot.xlim(0, 250)            

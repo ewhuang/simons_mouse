@@ -14,6 +14,23 @@ import time
 ### their p-values.
 ### Run time: 52 seconds.
 
+def read_go_overlap(data_type):
+    '''
+    Gets the BP and MF GO terms that are too similar to each other. We exclude
+    them from training, but still use them to evaluate.
+    '''
+    overlap_list = []
+    if data_type == 'mouse':
+        f = open('../data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type,
+            'r')
+    else:
+        f = open('../data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
+    for line in f:
+        bp_label, mf_label, p_value = line.strip().split('\t')
+        overlap_list += [(bp_label, mf_label)]
+    f.close()
+    return overlap_list
+
 def get_go_gene_dct(go_domain, data_type):
     '''
    Gets the GO dictionary corresponding to the GO domain.
@@ -124,8 +141,15 @@ def main():
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
-    for go_domain in ['bp', 'mf']:
+    for domain_index, go_domain in enumerate(['bp', 'mf']):
         go_dct = get_go_gene_dct(go_domain, data_type)
+        # Get the overlapping MF and BP terms.
+        overlap_list = read_go_overlap(data_type)
+        # Remove the overlapping BP terms.
+        overlapping_go_terms = set([tup[domain_index] for tup in overlap_list])
+        for overlapping_go in overlapping_go_terms:
+            del go_dct[overlapping_go]
+
         if network_type == 'genes_only':
             cluster_wgcna_dct = get_cluster_dictionary(data_type, network_type,
                 network_type)

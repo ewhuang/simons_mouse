@@ -4,6 +4,7 @@ import file_operations
 import json
 import math
 import operator
+import os
 import random
 import sys
 import time
@@ -36,14 +37,29 @@ def write_no_go_files(edge_genes, edge_dct):
     '''
     Writes the networks without GO.
     '''
-    no_go_folder = './data/%s_data/networks_no_go/' % data_type
+    # First, write out the genes in its own separate file for DCA.
+    # Make the folder if it doesn't exist.
+    dca_subfolder = './data/%s_data/dca_networks_no_go' % data_type
+    if not os.path.exists(dca_subfolder):
+        os.makedirs(dca_subfolder)
 
+    dca_genes_out = open('%s/dca_genes_%s.txt' % (dca_subfolder, run_num), 'w')
+    # Write out the genes in its own file.
+    for gene in edge_genes:
+        dca_genes_out.write('%s\tA\n' % gene)
+    dca_genes_out.close()
+
+    no_go_folder = './data/%s_data/networks_no_go' % data_type
     # Regular network file for clustering.
-    no_go_out = open('%snetwork_no_go_%s.txt' % (no_go_folder, run_num), 'w')
+    no_go_out = open('%s/network_no_go_%s.txt' % (no_go_folder, run_num), 'w')
     no_go_out.write('0\n%d\n' % len(edge_genes))
     # Real network file for cluster evaluation.
-    ng_real = open('%sreal_network_no_go_%s.txt' % (no_go_folder, run_num), 'w')
+    ng_real = open('%s/real_network_no_go_%s.txt' % (no_go_folder, run_num),
+        'w')
     ng_real.write('Real network\n')
+    # Edge network for DCA.
+    dca_edges_out = open('%s/dca_edges_%s.txt' % (dca_subfolder, run_num), 'w')
+
     for gene_a, gene_b in edge_dct:
         # Write in each edge twice to make it undirected. Edge weights are 1.
         edge_weight = edge_dct[(gene_a, gene_b)]
@@ -51,8 +67,11 @@ def write_no_go_files(edge_genes, edge_dct):
         no_go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
         ng_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, edge_weight))
         ng_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
+        dca_edges_out.write('%s\t%s\t%s\tn\n' % (gene_a, gene_b, edge_weight))
     no_go_out.close()
     ng_real.close()
+    dca_edges_out.close()
+
     # Write out the orth file.
     orth_out = open('./data/%s_data/orth.txt' % data_type, 'w')
     orth_out.write('0\t0\t%s\t%s' % (gene_a, gene_a))
@@ -80,6 +99,18 @@ def get_go_dictionaries():
 
     return [bp_go_gene_dct, mf_go_gene_dct]
 
+def get_go_go_edges():
+    '''
+    Returns a dictionary.
+    Key: GO:XXXXX -> str
+    Value: list of neighboring GO terms -> list(str)
+    '''
+    with open('./data/%s_data/mf_go_go_dct.json' % data_type, 'r') as fp:
+        mf_go_go_dct = json.load(fp)
+    fp.close()
+
+    return mf_go_go_dct
+
 def bootstrap_reduce_go_dct(go_dct, edge_genes):
     new_go_dct = {}
     for go_term in go_dct:
@@ -87,40 +118,47 @@ def bootstrap_reduce_go_dct(go_dct, edge_genes):
         new_go_dct[go_term] = set(edge_genes).intersection(original_gene_set)
     return new_go_dct
 
-def read_go_overlap():
-    '''
-    Gets the BP and MF GO terms that are too similar to each other. We exclude
-    them from training, but still use them to evaluate.
-    '''
-    overlap_list = []
-    f = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type, 'r')
-    for line in f:
-        bp_label, mf_label, p_value = line.strip().split('\t')
-        overlap_list += [(bp_label, mf_label)]
-    f.close()
-    return overlap_list
-
 def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
     '''
     Writes the networks with GO.
     '''
+    # First, write out the genes in its own separate file for DCA.
+    # Make the folder if it doesn't exist.
+    dca_subfolder = './data/%s_data/dca_networks_go' % data_type
+    if not os.path.exists(dca_subfolder):
+        os.makedirs(dca_subfolder)
+
+    # We specify MF go because the domain_index variable only loops through [0].
+    dca_genes_out = open('%s/dca_genes_mf_go_%s.txt' % (dca_subfolder, run_num),
+        'w')
+    # Write out the genes in its own file.
+    for gene in edge_genes:
+        dca_genes_out.write('%s\tA\n' % gene)
+    dca_edges_out = open('%s/dca_edges_mf_go_%s.txt' % (dca_subfolder, run_num),
+        'w')
+
     # Extract the three GO dictionaries.
     domain_dictionary_list = get_go_dictionaries()
-    overlap_list = read_go_overlap()
+    # TODO. Read overlap list in order to add in only partial MF terms.
+    # overlap_list = file_operations.read_go_overlap()
+
+    # Get the GO-GO edges.
+    mf_go_go_dct = get_go_go_edges()
 
     # Each domain contains GO terms. domain_index indicates the index of the GO
     # domain we are evaluating on.
-    # for domain_index in range(len(domain_dictionary_list)):
     for domain_index in [0]:
         # This line assumes we only use two domains. Train on the GO domain that
         # we aren't evaluating on.
         go_dct = domain_dictionary_list[1 - domain_index]
 
+        # TODO Right now, adding in all MF terms, and then evaluating on
+        # partial BP terms.
         # Remove the terms from MF that overlap too much with terms from BP.
-        overlapping_go_terms = set([tup[1 - domain_index] for tup in
-            overlap_list])
-        for overlapping_go in overlapping_go_terms:
-            del go_dct[overlapping_go]
+        # overlapping_go_terms = set([tup[1 - domain_index] for tup in
+        #     overlap_list])
+        # for overlapping_go in overlapping_go_terms:
+        #     del go_dct[overlapping_go]
 
         if bootstrap:
             go_dct = bootstrap_reduce_go_dct(go_dct, edge_genes)
@@ -152,8 +190,24 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
         go_out.write('0\n%d\n' % (len(edge_genes) + len(go_size_dct)))
         g_real.write('Real network\n')
 
+        # Write GO-GO edges.
+        for go in mf_go_go_dct:
+            if go not in go_size_dct:
+                continue
+            go_neighbor_list = mf_go_go_dct[go]
+            for go_neighbor in go_neighbor_list:
+                if go_neighbor not in go_size_dct:
+                    continue                
+                go_out.write('%s\t%s\t1\n' % (go, go_neighbor))
+                go_out.write('%s\t%s\t1\n' % (go_neighbor, go))
+                g_real.write('0\t%s\t%s\t1\n' % (go, go_neighbor))
+                g_real.write('0\t%s\t%s\t1\n' % (go_neighbor, go))
+                dca_edges_out.write('%s\t%s\t1\tg\n' % (go, go_neighbor))
+
         # Write gene-GO edges.
         for go in go_size_dct:
+            dca_genes_out.write('%s\tB\n' % go)
+
             num_go_genes = go_size_dct[go]
             for gene in go_dct[go]:
                 if gene not in edge_genes:
@@ -163,8 +217,10 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
                 go_out.write('%s\t%s\t%f\n' % (go, gene, go_weight))
                 g_real.write('0\t%s\t%s\t%f\n' % (gene, go, go_weight))
                 g_real.write('0\t%s\t%s\t%f\n' % (go, gene, go_weight))
+                dca_edges_out.write('%s\t%s\t%f\to\n' % (gene, go,
+                    go_weight))
 
-        # Write all of the gene-gene edges.
+        # Write gene-gene edges.
         for gene_a, gene_b in edge_dct:
             # Write in each edge twice to make it undirected.
             edge_weight = edge_dct[(gene_a, gene_b)]
@@ -172,8 +228,12 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
             go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
             g_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, edge_weight))
             g_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
+            dca_edges_out.write('%s\t%s\t%s\tn\n' % (gene_a, gene_b,
+                edge_weight))
         go_out.close()
         g_real.close()
+    dca_edges_out.close()
+    dca_genes_out.close()
 
 def main():
     if len(sys.argv) not in [3, 4]:
@@ -187,7 +247,7 @@ def main():
     bootstrap = '-b' in sys.argv
 
     if data_type.isdigit():
-        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     # Extracting configuration options.
     config_dct = file_operations.read_config_file(data_type)[run_num]
@@ -196,7 +256,7 @@ def main():
 
     high_std_edge_dct = file_operations.get_high_std_edge_dct(data_type)
     
-    # Count the number of unique genes in the network.
+    # Get the unique genes in the network.
     edge_genes = list(get_genes_from_edges(high_std_edge_dct.keys()))
 
     if bootstrap:

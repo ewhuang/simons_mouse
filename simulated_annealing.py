@@ -23,7 +23,7 @@ def main():
     assert network in ['go', 'no_go']
 
     if data_type.isdigit():
-        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     # Construct the results folders if it's the first time.
     results_folder = './results/%s_results/' % data_type

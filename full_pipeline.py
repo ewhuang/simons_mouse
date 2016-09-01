@@ -22,22 +22,27 @@ def main():
     data_type = sys.argv[1]
     assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
-    assert objective_function in ['wlogv', 'schaeffer', 'oclode']
+    assert objective_function in ['wlogv', 'schaeffer', 'oclode', 'prosnet']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
     # Create clustering input.
-    command = 'python create_clustering_input.py %s %s' % (data_type, run_num)
-    subprocess.call(command, shell=True)
+    if objective_function != 'prosnet':
+        command = 'python create_clustering_input.py %s %s' % (data_type, run_num)
+        subprocess.call(command, shell=True)
 
-    # Perform simulated annealing.
-    command = 'python simulated_annealing.py %s %s %s no_go' % (data_type,
-        objective_function, run_num)
-    subprocess.call(command, shell=True)
+        # Perform simulated annealing.
+        command = 'python simulated_annealing.py %s %s %s no_go' % (data_type,
+            objective_function, run_num)
+        subprocess.call(command, shell=True)
 
-    command = 'python simulated_annealing.py %s %s %s go 0' % (data_type,
-        objective_function, run_num)
-    subprocess.call(command, shell=True)
+        command = 'python simulated_annealing.py %s %s %s go 0' % (data_type,
+            objective_function, run_num)
+        subprocess.call(command, shell=True)
+    # PROSNET has its own clustering system.
+    else:
+        command = 'python prosnet_kmeans.py %s %s' % (data_type, run_num)
+        subprocess.call(command, shell=True)        
 
     # Evaluate clusters.
     command = 'python evaluate_clustering.py %s %s %s' % (data_type,

@@ -98,20 +98,28 @@ def main():
     data_type = sys.argv[1]
     assert data_type == 'mouse' or data_type.isdigit()
     objective_function = sys.argv[2]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
     if data_type.isdigit():
-        data_type = file_operations.get_tcga_diseases()[int(data_type)]
+        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
         
     go_dct_list = read_go_dictionaries()
     global gene_universe
     gene_universe = file_operations.get_high_std_genes(data_type)
 
+    # Get the overlapping MF and BP terms.
+    overlap_list = file_operations.read_go_overlap(data_type)
+
     # Only evaluate on BP for now.
     for domain_index in [0]:
         go_dct = go_dct_list[domain_index]
+
+        # Remove the overlapping BP terms.
+        overlapping_go_terms = set([tup[domain_index] for tup in overlap_list])
+        for overlapping_go in overlapping_go_terms:
+            del go_dct[overlapping_go]
 
         # No GO network.
         no_go_cluster_fname = './results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (

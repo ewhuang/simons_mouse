@@ -6,6 +6,30 @@ $ python parse_tcga_dataset.py
 This splits the TCGA dataset into multiple networks, each corresponding to a
 specific type of cancer.
 
+______________________________PARSING GO TERMS__________________________________
+1. Download mouse gene association zip file from
+http://geneontology.org/page/download-annotations
+
+Remove the first few description lines from the file.
+
+2. Extract genes from the file as a list of MGI ID's.
+$ python extract_genes_from_gene_associations.py mouse/tcga
+
+3. Upload the gene list to
+http://www.informatics.jax.org/batch
+Upload the file, select MGI Gene/Marker ID for input type, check only the
+Ensembl ID box, and click search. In the resulting window, click Export: 
+Text File. Rename the resulting files mgi_to_ensembl.txt
+
+Also download geneontology.org/ontology/go-basic.obo
+Move it to ./data/
+
+4. As it is right now, only creates the MF GO-GO dictionary.
+$ python dump_mgi_go_dictionaries.py mouse/tcga
+
+5. Find overlapping BP and MF terms.
+$ python find_go_overlaps.py mouse
+
 ___________________________CREATING THE GENE NETWORK____________________________
 1. Plot the standard deviation distribution of the genes, and write to file.
 
@@ -24,7 +48,10 @@ $ python dump_go_dictionary_files.py mouse/tcga_cancer_index
 Find GO terms from BP and MF that overlap with each other.
 $ python find_go_overlaps.py mouse/tcga
 
-4. Compute pearson coefficients between gene expression values to find
+4. Create the dictionary mapping GO terms to neighboring GO terms.
+$ python make_go_go_dictionary.py mouse
+
+5. Compute pearson coefficients between gene expression values to find
 correlated genes. We can specify a parameter, pearson_threshold, which
 determines the cutoff coefficient for an edge to exist. Output file is
 high_std_network.txt.
@@ -150,6 +177,24 @@ on the index from Sheng's data.
 3. $ python convert_embedding_matrix_to_edge_file.py
 Outputs a new network, ./data/embedding_edges.txt, which contains
 edges between genes with weights computed by embedding.
+
+__________________________________PROSNET_______________________________________
+Must first run create_clustering_input.py, and then let Sheng run.
+
+1. Run k-means on low-dimensional vector representations of genes and GO terms.
+$ python prosnet_kmeans.py mouse/tcga_cancer_index run_num
+
+2. Evaluate PROSNET.
+$ python evaluate_clustering.py mouse/tcga_cancer_index objective_function
+                                    run_num
+
+3. Compute GO enrichment
+$ python compute_go_enrichment.py mouse/tcga_cancer_index objective_function
+                                    run_num
+
+4. Summarize results.
+$ python cluster_info_summary.py mouse/tcga_cancer_index objective_function
+                                    run_num
 
 ___________________________________WGCNA________________________________________
 1.
