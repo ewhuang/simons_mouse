@@ -190,18 +190,15 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
         go_out.write('0\n%d\n' % (len(edge_genes) + len(go_size_dct)))
         g_real.write('Real network\n')
 
-        # Write GO-GO edges.
+        # Write GO-GO edges. Don't write them for simulated annealing.
         for go in mf_go_go_dct:
             if go not in go_size_dct:
                 continue
             go_neighbor_list = mf_go_go_dct[go]
             for go_neighbor in go_neighbor_list:
                 if go_neighbor not in go_size_dct:
-                    continue                
-                go_out.write('%s\t%s\t1\n' % (go, go_neighbor))
-                go_out.write('%s\t%s\t1\n' % (go_neighbor, go))
-                g_real.write('0\t%s\t%s\t1\n' % (go, go_neighbor))
-                g_real.write('0\t%s\t%s\t1\n' % (go_neighbor, go))
+                    continue
+                    # Can we add weights into DCA?
                 dca_edges_out.write('%s\t%s\t1\tg\n' % (go, go_neighbor))
 
         # Write gene-GO edges.
