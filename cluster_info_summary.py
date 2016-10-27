@@ -7,7 +7,8 @@ import time
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiment.
 
-def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
+def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname, 
+    dbgap_enrich_fname, out_fname):
     # Get cluster dictionary. Values are lists of genes.
     clst_go_dct = file_operations.get_cluster_dictionary(clus_fname)
 
@@ -19,7 +20,9 @@ def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
     density_dct = file_operations.get_cluster_densities(eval_fname)
 
     # Find the best p-value GO enrichments for each cluster.
-    enrichment_dct = file_operations.get_enrichment_dct(enrich_fname)
+    go_enrichment_dct = file_operations.get_enrichment_dct(go_enrich_fname)
+    dbgap_enrichment_dct = file_operations.get_enrichment_dct(
+        dbgap_enrich_fname)
 
     # Write out to file.
     out = open(out_fname, 'w')
@@ -60,8 +63,8 @@ def write_summary(clus_fname, net_fname, eval_fname, enrich_fname, out_fname):
         # ratio = in_dens / (in_dens + out_dens)
         out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio))
         out.write('%d\t%d\t%d\t%d\t' % (num_genes, num_go, num_gg, num_ggo))
-        out.write('%s\t%s\n' % (enrichment_dct[cid], '\t'.join(
-            cluster_go_terms)))
+        out.write('%s\t%s\t%s\n' % (go_enrichment_dct[cid],
+            dbgap_enrichment_dct[cid], '\t'.join(cluster_go_terms)))
     out.close()
 
 if __name__ == '__main__':
@@ -70,9 +73,9 @@ if __name__ == '__main__':
         exit()
     global data_type, objective_function, run_num
     data_type = sys.argv[1]
-    assert data_type == 'mouse' or data_type.isdigit()
+    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     objective_function = sys.argv[2]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
@@ -81,39 +84,42 @@ if __name__ == '__main__':
         
     start_time = time.time()
 
-    # No GO filenames.
-    clus_fname = './results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
-        data_type, objective_function, run_num)
-    net_fname = './data/%s_data/networks_no_go/network_no_go_%s.txt' % (data_type,
-        run_num)
-    eval_fname = './results/%s_results/%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
-        data_type, objective_function, run_num)
+    # Get BP as the domain index.
+    domain_index = 0
 
     # Get GO summaries.
-    for domain_index in [0]:
-        clus_fname = './results/%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
-            data_type, objective_function, run_num, domain_index)
-        net_fname = './data/%s_data/networks_go/network_go_%s_%d.txt' % (data_type,
-            run_num, domain_index)
-        eval_fname = './results/%s_results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
-            data_type, objective_function, run_num, domain_index)
-        enrich_fname = './results/%s_results/%s/cluster_enrichment_terms_go/' % (
-            data_type, objective_function)
-        enrich_fname += 'cluster_enrichment_terms_go_%s_%d.txt' % (run_num,
-            domain_index)
-        out_fname = './results/%s_results/%s/clus_info_go/clus_info_go_%s_%d.txt' % (
-            data_type, objective_function, run_num, domain_index)
-        write_summary(clus_fname, net_fname, eval_fname, enrich_fname,
-            out_fname)
+    results_folder = './results/%s_results/%s' % (data_type, objective_function)
+    clus_fname = '%s/clusters_go/clusters_go_%s_%d.txt' % (results_folder,
+        run_num, domain_index)
+    net_fname = './data/%s_data/networks_go/network_go_%s_%d.txt' % (data_type,
+        run_num, domain_index)
+    eval_fname = '%s/cluster_eval_go/cluster_eval_go_%s_%d.txt' % (
+        results_folder, run_num, domain_index)
+    go_enrich_fname = '%s/cluster_enrichment_terms_go/' % results_folder
+    go_enrich_fname += 'cluster_enrichment_terms_go_%s_%d.txt' % (run_num,
+        domain_index)
+    dbgap_enrich_fname = '%s/dbgap_enrichment_terms_go/' % results_folder
+    dbgap_enrich_fname += 'dbgap_enrichment_terms_go_%s.txt' % run_num
+    out_fname = '%s/clus_info_go/clus_info_go_%s_%d.txt' % (results_folder,
+        run_num, domain_index)
+    write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
+        dbgap_enrich_fname, out_fname)
 
-        # Get no GO summaries.
-        enrich_fname = './results/%s_results/%s/cluster_enrichment_terms_no_go/' % (
-            data_type, objective_function)
-        enrich_fname += 'cluster_enrichment_terms_no_go_%s_%d.txt' % (run_num,
-            domain_index)
-        out_fname = './results/%s_results/%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
-            data_type, objective_function, run_num, domain_index)
-        write_summary(clus_fname, net_fname, eval_fname, enrich_fname,
-            out_fname)
+    # Get no GO summaries.
+    clus_fname = '%s/clusters_no_go/clusters_no_go_%s.txt' % (results_folder,
+        run_num)
+    net_fname = './data/%s_data/networks_no_go/network_no_go_%s.txt' % (
+        data_type, run_num)
+    eval_fname = '%s/cluster_eval_no_go/cluster_eval_no_go_%s.txt' % (
+        results_folder, run_num)
+    go_enrich_fname = '%s/cluster_enrichment_terms_no_go/' % results_folder
+    go_enrich_fname += 'cluster_enrichment_terms_no_go_%s_%d.txt' % (run_num,
+        domain_index)
+    dbgap_enrich_fname = '%s/dbgap_enrichment_terms_no_go/' % results_folder
+    dbgap_enrich_fname += 'dbgap_enrichment_terms_no_go_%s.txt' % run_num
+    out_fname = '%s/clus_info_no_go/clus_info_no_go_%s_%d.txt' % (
+        results_folder, run_num, domain_index)
+    write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
+        dbgap_enrich_fname, out_fname)
 
     print("--- %s seconds ---" % (time.time() - start_time))

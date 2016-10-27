@@ -80,11 +80,15 @@ def write_enrichment_files(in_fname, out_fname, go_dct):
     compute_go_enrichments(out_fname, cluster_dct, go_dct)
 
 def read_go_dictionaries():
-    with open('./data/%s_data/bp_dct.json' % data_type, 'r') as fp:
+    if 'mouse' in data_type:
+        mod_data_type = 'mouse'
+    else:
+        mod_data_type = data_type
+    with open('./data/%s_data/bp_dct.json' % mod_data_type, 'r') as fp:
         bp_go_gene_dct = json.load(fp)
     fp.close()
 
-    with open('./data/%s_data/mf_dct.json' % data_type, 'r') as fp:
+    with open('./data/%s_data/mf_dct.json' % mod_data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
 
@@ -96,7 +100,7 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type = sys.argv[1]
-    assert data_type == 'mouse' or data_type.isdigit()
+    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     run_num = sys.argv[3]
@@ -104,10 +108,13 @@ def main():
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
-        
+
     go_dct_list = read_go_dictionaries()
     global gene_universe
-    gene_universe = file_operations.get_high_std_genes(data_type)
+    if 'mouse' in data_type:
+        gene_universe = file_operations.get_high_std_genes('mouse')
+    else:        
+        gene_universe = file_operations.get_high_std_genes(data_type)
 
     # Get the overlapping MF and BP terms.
     overlap_list = file_operations.read_go_overlap(data_type)
@@ -121,20 +128,22 @@ def main():
         for overlapping_go in overlapping_go_terms:
             del go_dct[overlapping_go]
 
+        results_folder = './results/%s_results/%s' % (data_type,
+            objective_function)
         # No GO network.
-        no_go_cluster_fname = './results/%s_results/%s/clusters_no_go/clusters_no_go_%s.txt' % (
-            data_type, objective_function, run_num)
-        no_go_fname = './results/%s_results/%s/cluster_enrichment_terms_no_go/cluster_' % (
-            data_type, objective_function)
+        no_go_cluster_fname = '%s/clusters_no_go/clusters_no_go_%s.txt' % (
+            results_folder, run_num)
+        no_go_fname = '%s/cluster_enrichment_terms_no_go/cluster_' % (
+            results_folder)
         no_go_fname += 'enrichment_terms_no_go_%s_%d.txt' % (run_num,
             domain_index)
         write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
 
         # GO network.
-        cluster_fname = './results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
-            data_type, objective_function, run_num, domain_index)
-        go_fname = './results/%s_results/%s/cluster_enrichment_terms_go/cluster_' % (
-            data_type, objective_function)
+        cluster_fname = '%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
+            results_folder, run_num, domain_index)
+        go_fname = '%s/cluster_enrichment_terms_go/cluster_' % (
+            results_folder)
         go_fname += 'enrichment_terms_go_%s_%d.txt' % (run_num, domain_index)
         write_enrichment_files(cluster_fname, go_fname, go_dct)
 

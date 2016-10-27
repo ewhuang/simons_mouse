@@ -169,7 +169,11 @@ sub DescriptiveStats {
 		    } 
 
 		    if ($incount{$spc}{$c} > 0){
-		    	$weighted_in_out_ratio{$spc}{$c} = ($indensity{$spc}{$c} / ($indensity{$spc}{$c} + $outdensity{$spc}{$c})) * ($cluster_size{$spc}{$c});
+		    	if ($indensity{$spc}{$c} eq 0 and $outdensity{$spc}{$c} eq 0) {
+		    		$weighted_in_out_ratio{$spc}{$c} = 0;
+		    	} else {
+			    	$weighted_in_out_ratio{$spc}{$c} = ($indensity{$spc}{$c} / ($indensity{$spc}{$c} + $outdensity{$spc}{$c})) * ($cluster_size{$spc}{$c});
+			    }
 		    }
 		    print "Cluster $c\tSpecies $spc\t Size $cluster_size{$spc}{$c} \t In-density $indensity{$spc}{$c}\tOut-density $outdensity{$spc}{$c}\t Cluster modularity $total_cluster_modularity{$spc}{$c} \t Cluster modularity weighted $total_cluster_modularity_weighted{$spc}{$c} \t Cluster modularity by Size $total_cluster_modularity_bySize{$spc}{$c} \t Total in-cluster edge $total_cluster_edge{$spc}{$c}\t Total in-cluster degree $total_cluster_degree{$spc}{$c} \t Weighted in/out density ratio $weighted_in_out_ratio{$spc}{$c}\n";
 		    $sumindensity += $cluster_size{$spc}{$c} * $indensity{$spc}{$c};
@@ -181,7 +185,11 @@ sub DescriptiveStats {
     }
     $sumindensity /= $countindensity;
     $sumoutdensity /= $countoutdensity;
-    my $out_in_ratio = $sumoutdensity/$sumindensity;
+    if ($sumindensity eq 0) {
+    	my $out_in_ratio = 0;
+    } else {
+    	my $out_in_ratio = $sumoutdensity/$sumindensity;
+	}
     # $sum_product_verDen_verIntro /= ($clusterNum * 3);
     print "All clusters on average have in-density of $sumindensity and out-density of $sumoutdensity and weighted ratio (out:in) ratio of and Sum of Modularity $sum_modularity_cluster_spc and Sum of Modularity Weighted $sum_modularity_cluster_spc_weighted and Sum of Modularity divided by Size $sum_modularity_cluster_spc_bySize and Weighted in/out density ratio $sum_weighted_in_out_ratio and Cluster num = $clusterNum\n";
 }

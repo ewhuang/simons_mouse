@@ -35,10 +35,7 @@ def get_prosnet_feature_matrix(network_type):
     '''
     assert network_type in ['go', 'no_go']
     prosnet_folder = './Sheng/prosnet/result'
-    if network_type == 'go':
-        f = open('%s/dca_genes_mf_go_%s.vec' % (prosnet_folder, run_num))
-    elif network_type == 'no_go':
-        f = open('%s/dca_genes_%s.vec' % (prosnet_folder, run_num))
+    f = open('%s/dca_genes_%s_%s.vec' % (prosnet_folder, network_type, run_num))
 
     node_list, node_vec_rep_list = [], []
     for i, line in enumerate(f):

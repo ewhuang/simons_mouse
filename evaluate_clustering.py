@@ -14,14 +14,19 @@ def main():
         print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
     data_type = sys.argv[1]
-    assert data_type == 'mouse' or data_type.isdigit()
+    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     objective_function = sys.argv[2]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     run_num = sys.argv[3]
     assert run_num.isdigit()
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+
+    # if 'mouse' in data_type:
+    #     evaluation_data = 'mouse'
+    # else:
+    #     evaluation_data = data_type
 
     for go_domain_num in [0]:
         command = 'perl ./evaluate_clustering.pl '
@@ -30,8 +35,11 @@ def main():
             run_num, go_domain_num)
         command += '"./results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt" ' % (
             data_type, objective_function, run_num, go_domain_num)
-        command += '"./data/%s_data/networks_go/real_network_go_%s_%d.txt" ' % (
-            data_type, run_num, go_domain_num)
+        # TODO: this block evaluates on the network without GO terms. Why is
+        # network without gene-gene edges not getting non-zero densities?
+        command += '"./data/%s_data/networks_go/real_network_go_%s_0.txt" ' % (
+            data_type, run_num)
+            
         command += '> "./results/%s_results/%s/cluster_eval_go/cluster_eval_go_%s_%d.txt"' % (
             data_type, objective_function, run_num, go_domain_num)
         subprocess.call(command, shell=True)

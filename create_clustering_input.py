@@ -43,7 +43,8 @@ def write_no_go_files(edge_genes, edge_dct):
     if not os.path.exists(dca_subfolder):
         os.makedirs(dca_subfolder)
 
-    dca_genes_out = open('%s/dca_genes_%s.txt' % (dca_subfolder, run_num), 'w')
+    dca_genes_out = open('%s/dca_genes_no_go_%s.txt' % (dca_subfolder, run_num),
+        'w')
     # Write out the genes in its own file.
     for gene in edge_genes:
         dca_genes_out.write('%s\tA\n' % gene)
@@ -58,7 +59,8 @@ def write_no_go_files(edge_genes, edge_dct):
         'w')
     ng_real.write('Real network\n')
     # Edge network for DCA.
-    dca_edges_out = open('%s/dca_edges_%s.txt' % (dca_subfolder, run_num), 'w')
+    dca_edges_out = open('%s/dca_edges_no_go_%s.txt' % (dca_subfolder, run_num),
+        'w')
 
     for gene_a, gene_b in edge_dct:
         # Write in each edge twice to make it undirected. Edge weights are 1.
@@ -129,12 +131,12 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
         os.makedirs(dca_subfolder)
 
     # We specify MF go because the domain_index variable only loops through [0].
-    dca_genes_out = open('%s/dca_genes_mf_go_%s.txt' % (dca_subfolder, run_num),
+    dca_genes_out = open('%s/dca_genes_go_%s.txt' % (dca_subfolder, run_num),
         'w')
     # Write out the genes in its own file.
     for gene in edge_genes:
         dca_genes_out.write('%s\tA\n' % gene)
-    dca_edges_out = open('%s/dca_edges_mf_go_%s.txt' % (dca_subfolder, run_num),
+    dca_edges_out = open('%s/dca_edges_go_%s.txt' % (dca_subfolder, run_num),
         'w')
 
     # Extract the three GO dictionaries.
@@ -220,12 +222,18 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
         # Write gene-gene edges.
         for gene_a, gene_b in edge_dct:
             # Write in each edge twice to make it undirected.
-            edge_weight = edge_dct[(gene_a, gene_b)]
-            go_out.write('%s\t%s\t%s\n' % (gene_a, gene_b, edge_weight))
-            go_out.write('%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
-            g_real.write('0\t%s\t%s\t%s\n' % (gene_a, gene_b, edge_weight))
-            g_real.write('0\t%s\t%s\t%s\n' % (gene_b, gene_a, edge_weight))
-            dca_edges_out.write('%s\t%s\t%s\tn\n' % (gene_a, gene_b,
+            
+            # TODO: change edge weights to have fixed coeff. linear interp.
+            edge_weight = float(edge_dct[(gene_a, gene_b)])
+            # edge_weight = float(edge_dct[(gene_a, gene_b)])
+
+            if edge_weight == 0:
+                continue
+            go_out.write('%s\t%s\t%f\n' % (gene_a, gene_b, edge_weight))
+            go_out.write('%s\t%s\t%f\n' % (gene_b, gene_a, edge_weight))
+            g_real.write('0\t%s\t%s\t%f\n' % (gene_a, gene_b, edge_weight))
+            g_real.write('0\t%s\t%s\t%f\n' % (gene_b, gene_a, edge_weight))
+            dca_edges_out.write('%s\t%s\t%f\tn\n' % (gene_a, gene_b,
                 edge_weight))
         go_out.close()
         g_real.close()

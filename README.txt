@@ -135,6 +135,10 @@ $ python cluster_info_summary.py data_type objective_function run_num
 
 $ python plot_best_clusters.py data_type run_num
 
+12. Plotting box plots. One for enrichment, one for in/in + out. 
+Plots for run_num's 1-10.
+
+$ python box_plot_density_and_enrichment.py data_type clustering_method
 
 _____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
 Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/
@@ -181,20 +185,30 @@ edges between genes with weights computed by embedding.
 __________________________________PROSNET_______________________________________
 Must first run create_clustering_input.py, and then let Sheng run.
 
-1. Run k-means on low-dimensional vector representations of genes and GO terms.
+1. Run prosnet on the networks created by create_clustering_input.py
+$ python low_dimensional_nodes_prosnet.py mouse/tcga_cancer run_num
+
+2. Run k-means on low-dimensional vector representations of genes and GO terms.
 $ python prosnet_kmeans.py mouse/tcga_cancer_index run_num
 
-2. Evaluate PROSNET.
+3. Evaluate PROSNET.
 $ python evaluate_clustering.py mouse/tcga_cancer_index objective_function
                                     run_num
 
-3. Compute GO enrichment
+4. Compute GO enrichment
 $ python compute_go_enrichment.py mouse/tcga_cancer_index objective_function
                                     run_num
 
-4. Summarize results.
+5. Summarize results.
 $ python cluster_info_summary.py mouse/tcga_cancer_index objective_function
                                     run_num
+
+___________________________________CO/MCL_______________________________________
+
+1. 
+$ python evaluate_co_and_mcl.py mouse/tcga_cancer_index run_num
+Runs the full pipeline after Sheng sends clusters in ./Sheng/Module/
+Does not plot.
 
 ___________________________________WGCNA________________________________________
 1.

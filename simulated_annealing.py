@@ -17,7 +17,7 @@ def main():
 
     # Sort out command line arguments.
     data_type, objective_function, run_num, network = sys.argv[1:5]
-    assert data_type == 'mouse' or data_type.isdigit()
+    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     assert run_num.isdigit()
     assert network in ['go', 'no_go']
@@ -36,6 +36,8 @@ def main():
         os.makedirs(obj_func_folder + 'clus_info_go/')
         os.makedirs(obj_func_folder + 'cluster_enrichment_terms_go/')
         os.makedirs(obj_func_folder + 'cluster_enrichment_terms_no_go/')
+        os.makedirs(obj_func_folder + 'dbgap_enrichment_terms_go/')
+        os.makedirs(obj_func_folder + 'dbgap_enrichment_terms_no_go/')
         os.makedirs(obj_func_folder + 'cluster_eval_no_go/')
         os.makedirs(obj_func_folder + 'clusters_go/')
         os.makedirs(obj_func_folder + 'cluster_eval_go/')
@@ -59,8 +61,8 @@ def main():
     # Build the command.
     command = '%s %s 1 0 "./data/%s_data/orth.txt" 1 ' % (binary, num_clusters,
         data_type)
-    command += '"./data/%s_data/networks_%s/network_%s_%s' % (data_type, network,
-        network, run_num)
+    command += '"./data/%s_data/networks_%s/network_%s_%s' % (data_type,
+        network, network, run_num)
 
     if network == 'go':
         go_num = sys.argv[5]

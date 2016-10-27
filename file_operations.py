@@ -51,9 +51,8 @@ def read_go_overlap(data_type):
     them from training, but still use them to evaluate.
     '''
     overlap_list = []
-    if data_type == 'mouse':
-        f = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % data_type,
-            'r')
+    if 'mouse' in data_type:
+        f = open('./data/mouse_data/overlapping_bp_mf_go_labels.txt', 'r')
     else:
         f = open('./data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
     for line in f:
@@ -217,8 +216,8 @@ def read_config_file(data_type):
     '''
     num_options = 8
     config_dct = {}
-    if data_type == 'mouse':
-        f = open('%s_config.txt' % data_type, 'r')
+    if 'mouse' in data_type:
+        f = open('mouse_config.txt', 'r')
     else:
         f = open('tcga_config.txt', 'r')
     for i, line in enumerate(f):
@@ -262,3 +261,50 @@ def get_tcga_disease_list():
         tcga_disease_list += [line.strip()]
     f.close()
     return tcga_disease_list
+
+# compute_dbgap_enrichment.py
+def read_dbgap_file():
+    '''
+    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
+    Key: DBGAP ID -> str
+    Value: list of ENSMUSG IDs -> list(str)
+    '''
+    def get_ensg_to_ensmusg_dct():
+        '''
+        Gets a dictionary mapping ENSG ID's to their mouse homologs.
+        Key: ENSG ID -> str
+        Value: list of ENSMUSG IDs -> list(str)
+        '''
+        ensg_to_ensmusg_dct = {}
+        f = open('./data/mouse_data/mart_export.txt', 'r')
+        for i, line in enumerate(f):
+            # Skip header.
+            if i == 0:
+                continue
+            ensg_id, ensmusg_id = line.split()
+            if ensg_id in ensg_to_ensmusg_dct:
+                ensg_to_ensmusg_dct[ensg_id] += [ensmusg_id]
+            else:
+                ensg_to_ensmusg_dct[ensg_id] = [ensmusg_id]
+        f.close()
+        return ensg_to_ensmusg_dct
+
+    ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
+
+    dbgap_to_ensmusg_dct = {}
+
+    f = open('./data/mouse_data/dbgap.txt', 'r')
+    for i, line in enumerate(f):
+        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
+        # Convert human to mouse homolog list.
+        if ensg_id not in ensg_to_ensmusg_dct:
+            continue
+        ensmusg_id_list = ensg_to_ensmusg_dct[ensg_id]
+
+        if dbgap_id in dbgap_to_ensmusg_dct:
+            dbgap_to_ensmusg_dct[dbgap_id] += ensmusg_id_list
+        else:
+            dbgap_to_ensmusg_dct[dbgap_id] = ensmusg_id_list
+
+    f.close()
+    return dbgap_to_ensmusg_dct

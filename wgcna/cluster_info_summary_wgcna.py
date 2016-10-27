@@ -81,8 +81,29 @@ def get_enrichment_dct(go_method, go_domain):
     Find the best p-value GO enrichments for each cluster.
     '''
     enrichment_dct = {}
-    f = open('./results/%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (data_type,
-        go_method, go_method, go_domain), 'r')
+    f = open('./results/%s_results/%s/cluster_enrichment_terms_%s_%s.txt' % (
+        data_type, go_method, go_method, go_domain), 'r')
+    while True:
+        line = f.readline()
+        if line == '':
+            break
+        line = line.split()
+        if line[0] == 'Cluster':
+            cid = line[1]
+            # Skip two lines, and read in the top p-value.
+            line = f.readline()
+            line = f.readline().split()
+            enrichment_dct[cid] = line[0]
+    f.close()
+    return enrichment_dct
+
+def get_dbgap_enrichment_dct(go_method):
+    '''
+    Find the best p-value DBGAP enrichments for each cluster.
+    '''
+    enrichment_dct = {}
+    f = open('./results/%s_results/%s/dbgap_enrichment_terms_%s.txt' % (
+        data_type, go_method, go_method), 'r')
     while True:
         line = f.readline()
         if line == '':
@@ -115,6 +136,8 @@ def main():
     num_genes_net, num_gg_net = get_network_statistics(int(comparing_network))
 
     domain_list = ['bp']
+
+    dbgap_enrichment_dct = get_dbgap_enrichment_dct(go_method)
     
     for go_domain in domain_list:
         if go_method == 'genes_only':
@@ -151,7 +174,8 @@ def main():
             out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens,
                 weighted_ratio))
             out.write('%d\t0\t%d\t0\t' % (num_genes, num_gg_edges))
-            out.write('%s\n' % enrichment_dct[cid])
+            out.write('%s\t%s\n' % (enrichment_dct[cid],
+                dbgap_enrichment_dct[cid]))
         out.close()
 
 if __name__ == '__main__':

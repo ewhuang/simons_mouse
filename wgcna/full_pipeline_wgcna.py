@@ -30,6 +30,10 @@ def main():
         go_type)
     subprocess.call(command, shell=True)
 
+    command = 'python compute_dbgap_enrichment_wgcna.py %s %s' % (data_type,
+        go_type)
+    subprocess.call(command, shell=True)
+
     command = 'python cluster_info_summary_wgcna.py %s %s %s' % (data_type,
         go_type, network_num)
     subprocess.call(command, shell=True)
