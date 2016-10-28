@@ -62,15 +62,16 @@ def read_go_overlap(data_type):
     return overlap_list
 
 # evaluate_clustering.py
-def create_clean_go_file(data_type, objective_function, run_num, go_domain_num):
+def create_clean_go_file(data_type, objective_function, run_num):
     '''
     Takes a clustered file from simulated annealing and outputs a clean file
     without the GO nodes.
     '''
-    f = open('./results/%s_results/%s/clusters_go/clusters_go_%s_%d.txt' % (
-        data_type, objective_function, run_num, go_domain_num), 'r')
-    out = open('./results/%s_results/%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
-        data_type, objective_function, run_num, go_domain_num), 'w')
+    results_folder = './results/%s_results/%s' % (data_type, objective_function)
+    f = open('%s/clusters_go/clusters_go_%s.txt' % (results_folder, run_num),
+        'r')
+    out = open('%s/clusters_go/clusters_go_clean_%s.txt' % (results_folder,
+        run_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)

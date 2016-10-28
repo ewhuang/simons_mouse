@@ -26,10 +26,6 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
     for go_label in go_dct:
         go_genes = set(go_dct[go_label])
 
-        # # Skip bad GO terms.
-        # if len(go_genes) > MAX_GO_SIZE or len(go_genes) < MIN_GO_SIZE:
-        #     continue
-
         # Compute the four sets for Fisher's test.
         clus_and_go = len(clus_genes.intersection(go_genes))
         clus_not_go = len(clus_genes.difference(go_genes))
@@ -52,7 +48,6 @@ def compute_go_enrichments(fname, cluster_dct, go_dct):
     Takes in a filename, a cluster dictionary, and a GO dictionary. Writes out
     to the filename the top 5 GO enrichments for each cluster.
     '''
-
     out = open(fname, 'w')
 
     # Loop through the clusters.
@@ -79,73 +74,60 @@ def write_enrichment_files(in_fname, out_fname, go_dct):
     cluster_dct = file_operations.get_cluster_dictionary(in_fname)
     compute_go_enrichments(out_fname, cluster_dct, go_dct)
 
-def read_go_dictionaries():
-    if 'mouse' in data_type:
-        mod_data_type = 'mouse'
-    else:
-        mod_data_type = data_type
-    with open('./data/%s_data/bp_dct.json' % mod_data_type, 'r') as fp:
-        bp_go_gene_dct = json.load(fp)
+def get_bp_dct(base_data_type):
+    '''
+    Fetch the BP dictionary, and remove GO terms that overlap too much with MF.
+    '''
+    with open('./data/%s_data/bp_dct.json' % base_data_type, 'r') as fp:
+        bp_dct = json.load(fp)
     fp.close()
 
-    with open('./data/%s_data/mf_dct.json' % mod_data_type, 'r') as fp:
-        mf_go_gene_dct = json.load(fp)
-    fp.close()
+    # Get the overlapping MF and BP terms.
+    overlap_list = file_operations.read_go_overlap(base_data_type)
 
-    return (bp_go_gene_dct, mf_go_gene_dct)
+    # Remove the overlapping BP terms.
+    overlapping_go_terms = set([tup[0] for tup in overlap_list])
+    for overlapping_go in overlapping_go_terms:
+        del bp_dct[overlapping_go]
+
+    return bp_dct
 
 def main():
     if len(sys.argv) != 4:
         print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
         exit()
     global data_type, objective_function, run_num
-    data_type = sys.argv[1]
+    data_type, objective_function, run_num = sys.argv[1:]
     assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
-    objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
-    run_num = sys.argv[3]
     assert run_num.isdigit()
+
+    if 'prosnet_' in data_type:
+        base_data_type = data_type[len('prosnet_'):]
+    else:
+        base_data_type = data_type
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
-    go_dct_list = read_go_dictionaries()
     global gene_universe
-    if 'mouse' in data_type:
-        gene_universe = file_operations.get_high_std_genes('mouse')
-    else:        
-        gene_universe = file_operations.get_high_std_genes(data_type)
+    gene_universe = file_operations.get_high_std_genes(base_data_type)
 
-    # Get the overlapping MF and BP terms.
-    overlap_list = file_operations.read_go_overlap(data_type)
+    bp_dct = get_bp_dct(base_data_type)
 
-    # Only evaluate on BP for now.
-    for domain_index in [0]:
-        go_dct = go_dct_list[domain_index]
-
-        # Remove the overlapping BP terms.
-        overlapping_go_terms = set([tup[domain_index] for tup in overlap_list])
-        for overlapping_go in overlapping_go_terms:
-            del go_dct[overlapping_go]
-
-        results_folder = './results/%s_results/%s' % (data_type,
-            objective_function)
-        # No GO network.
-        no_go_cluster_fname = '%s/clusters_no_go/clusters_no_go_%s.txt' % (
-            results_folder, run_num)
-        no_go_fname = '%s/cluster_enrichment_terms_no_go/cluster_' % (
-            results_folder)
-        no_go_fname += 'enrichment_terms_no_go_%s_%d.txt' % (run_num,
-            domain_index)
-        write_enrichment_files(no_go_cluster_fname, no_go_fname, go_dct)
-
-        # GO network.
-        cluster_fname = '%s/clusters_go/clusters_go_clean_%s_%d.txt' % (
-            results_folder, run_num, domain_index)
-        go_fname = '%s/cluster_enrichment_terms_go/cluster_' % (
-            results_folder)
-        go_fname += 'enrichment_terms_go_%s_%d.txt' % (run_num, domain_index)
-        write_enrichment_files(cluster_fname, go_fname, go_dct)
+    results_folder = './results/%s_results/%s' % (data_type, objective_function)
+    
+    for network in ['go', 'no_go']:
+        if network == 'go':
+            cluster_fname = '%s/clusters_%s/clusters_%s_clean_%s.txt' % (
+                results_folder, network, network, run_num)
+        else:
+            cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
+                results_folder, network, network, run_num)
+        out_fname = ('%s/cluster_enrichment_terms_%s/cluster_enrichment_terms_'
+                        '%s_%s.txt' % (results_folder, network, network,
+                            run_num))
+        write_enrichment_files(cluster_fname, out_fname, bp_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

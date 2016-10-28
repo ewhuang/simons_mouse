@@ -47,9 +47,7 @@ def compute_dbgap_enrichments(fname, cluster_dct):
     Takes in a filename, a cluster dictionary, and a GO dictionary. Writes out
     to the filename the top 5 GO enrichments for each cluster.
     '''
-
     out = open(fname, 'w')
-
     # Loop through the clusters.
     for clus_id in cluster_dct:
         clus_genes = set(cluster_dct[clus_id])
@@ -80,38 +78,38 @@ def main():
             sys.argv[0])
         exit()
     global data_type, objective_function, run_num
-    data_type = sys.argv[1]
+    data_type, objective_function, run_num = sys.argv[1:]
     assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
-    objective_function = sys.argv[2]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
-    run_num = sys.argv[3]
     assert run_num.isdigit()
+
+    if 'prosnet_' in data_type:
+        base_data_type = data_type[len('prosnet_'):]
+    else:
+        base_data_type = data_type
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     global gene_universe, dbgap_dct
-    if 'mouse' in data_type:
-        gene_universe = file_operations.get_high_std_genes('mouse')
-    else:        
-        gene_universe = file_operations.get_high_std_genes(data_type)
+    gene_universe = file_operations.get_high_std_genes(base_data_type)
 
     dbgap_dct = file_operations.read_dbgap_file()
 
     # No GO network.
-    results_folder = './results/%s_results/%s' % (data_type, objective_function)
-    no_go_cluster_fname = '%s/clusters_no_go/clusters_no_go_%s.txt' % (
-        results_folder, run_num)
-    no_go_fname = '%s/dbgap_enrichment_terms_no_go/dbgap_' % results_folder
-    no_go_fname += 'enrichment_terms_no_go_%s.txt' % run_num
-    write_enrichment_files(no_go_cluster_fname, no_go_fname)
 
-    # GO network.
-    cluster_fname = '%s/clusters_go/clusters_go_clean_%s_0.txt' % (
-        results_folder, run_num)
-    go_fname = '%s/dbgap_enrichment_terms_go/dbgap_' % results_folder
-    go_fname += 'enrichment_terms_go_%s.txt' % run_num
-    write_enrichment_files(cluster_fname, go_fname)
+    results_folder = './results/%s_results/%s' % (data_type, objective_function)
+    for network in ['go', 'no_go']:
+        if network == 'go':
+            cluster_fname = '%s/clusters_%s/clusters_%s_clean_%s.txt' % (
+                results_folder, network, network, run_num)
+        else:
+            cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
+                results_folder, network, network, run_num)
+        out_fname = ('%s/dbgap_enrichment_terms_%s/dbgap_enrichment_terms_'
+                        '%s_%s.txt' % (results_folder, network, network,
+                            run_num))
+        write_enrichment_files(cluster_fname, out_fname)
 
 if __name__ == '__main__':
     start_time = time.time()

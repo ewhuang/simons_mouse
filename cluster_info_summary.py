@@ -42,10 +42,10 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
                 cluster_go_terms += [node]
         in_dens, out_dens, ratio = density_dct[cid]
 
-        out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens, ratio)
-                    '%d\t%d\t%d\t%d\t' % (num_genes, num_go, num_gg, num_ggo)
-                    '%s\t%s\t%s\n' % (go_enrichment_dct[cid], 
-                        dbgap_enrichment_dct[cid], '\t'.join(cluster_go_terms)))
+        out.write('%s\t%g\t%g\t%g\t%d\t%d\t%d\t%d\t%s\t%s\t%s\n' % (cid,
+            in_dens, out_dens, ratio, num_genes, num_go, num_gg, num_ggo, 
+            go_enrichment_dct[cid], dbgap_enrichment_dct[cid], '\t'.join(
+                cluster_go_terms)))
     out.close()
 
 def generate_filenames():
@@ -61,7 +61,8 @@ def generate_filenames():
         # Simulated annealing cluster results filename.
         clus_fname = '%s/clusters_%s/clusters_%s_%s.txt' % format_str
         # Input network filename.
-        net_fname = './data/%s_data/networks_%s/network_%s_%s.txt' % format_str
+        net_fname = './data/%s_data/networks_%s/network_%s_%s.txt' % (data_type,
+            network_type, network_type, run_num)
         # Perl script evaluation results filename.
         eval_fname = '%s/cluster_eval_%s/cluster_eval_%s_%s.txt' % format_str
 
