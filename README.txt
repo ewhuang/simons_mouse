@@ -52,9 +52,7 @@ $ python find_go_overlaps.py mouse/tcga
 $ python make_go_go_dictionary.py mouse
 
 5. Compute pearson coefficients between gene expression values to find
-correlated genes. We can specify a parameter, pearson_threshold, which
-determines the cutoff coefficient for an edge to exist. Output file is
-high_std_network.txt.
+correlated genes. Output file is high_std_network.txt.
 
 $ python gene_edge_weights.py mouse/tcga_cancer_index
 
@@ -70,14 +68,12 @@ python full_pipeline.py mouse/tcga_cancer_index objective_function run_num
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
 5. Create 4 files overall, a network and real network each for a network with
 and without GO labels.
-Output files network_go_run_num_FOLD.txt, where run_num indicates the run
-number, and FOLD indicates the fold number, as we separate the GO terms into
-the three categories: biological process, molecular function, and cellular
-component.
+Output files network_go_RUNNUM.txt, where RUNNUM indicates the run
+number. For networks with GO labels, we add in the full set of MF terms.
 Other files:
-real_network_go_run_num_FOLD.txt.
-network_no_go_run_num_FOLD.txt, and
-real_network_no_go_run_num.txt
+real_network_go_RUNNUM.txt.
+network_no_go_RUNNUM.txt, and
+real_network_no_go_RUNNUM.txt
 
 $ python create_clustering_input.py mouse/tcga_cancers run_num
                                         -b<bootstrap-optional>

@@ -33,10 +33,7 @@ def get_genes_from_edges(edges):
         genes.add(gene_b)
     return genes
 
-def write_no_go_files(edge_genes, edge_dct):
-    '''
-    Writes the networks without GO.
-    '''
+def write_dca_gene_file(edge_genes):
     # First, write out the genes in its own separate file for DCA.
     # Make the folder if it doesn't exist.
     dca_subfolder = './data/%s_data/dca_networks_no_go' % data_type
@@ -50,6 +47,10 @@ def write_no_go_files(edge_genes, edge_dct):
         dca_genes_out.write('%s\tA\n' % gene)
     dca_genes_out.close()
 
+def write_no_go_files(edge_genes, edge_dct):
+    '''
+    Writes the networks without GO.
+    '''
     no_go_folder = './data/%s_data/networks_no_go' % data_type
     # Regular network file for clustering.
     no_go_out = open('%s/network_no_go_%s.txt' % (no_go_folder, run_num), 'w')
@@ -85,16 +86,10 @@ def compute_go_weight(largest_go_size, num_go_genes):
     '''
     return max(lamb * math.log(largest_go_size / float(num_go_genes)), 1.0)
 
-def get_go_dictionaries():
+def get_mf_dct():
     '''
-    Fetches the GO dictionaries from the three domains. Returns a list of the
-    dictionaries, by alphabetical order.
+    Returns the MF annotation dictionary.
     '''
-    # First, load all of the GO dictionaries.
-    with open('./data/%s_data/bp_dct.json' % data_type, 'r') as fp:
-        bp_go_gene_dct = json.load(fp)
-    fp.close()
-
     with open('./data/%s_data/mf_dct.json' % data_type, 'r') as fp:
         mf_go_gene_dct = json.load(fp)
     fp.close()
@@ -140,9 +135,7 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
         'w')
 
     # Extract the three GO dictionaries.
-    domain_dictionary_list = get_go_dictionaries()
-    # TODO. Read overlap list in order to add in only partial MF terms.
-    # overlap_list = file_operations.read_go_overlap()
+    mf_dct = get_mf_dct()
 
     # Get the GO-GO edges.
     mf_go_go_dct = get_go_go_edges()
@@ -246,13 +239,16 @@ def main():
         exit()
     global data_type, run_num, bootstrap, lamb, max_go_size, min_go_size
     data_type = sys.argv[1]
-    assert data_type == 'mouse' or data_type.isdigit()
+    assert 'mouse' in data_type or data_type.isdigit()
     run_num = sys.argv[2]
     assert run_num.isdigit()
     bootstrap = '-b' in sys.argv
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+    # If we're running prosnet_mouse, the clustering input is the same.
+    elif 'mouse' in data_type:
+        data_type = 'mouse'
 
     # Extracting configuration options.
     config_dct = file_operations.read_config_file(data_type)[run_num]
@@ -263,6 +259,8 @@ def main():
     
     # Get the unique genes in the network.
     edge_genes = list(get_genes_from_edges(high_std_edge_dct.keys()))
+    # Write out the DCA gene file for use with PROSNET.
+    write_dca_gene_file(edge_genes)
 
     if bootstrap:
         for bootstrap_idx in range(1000):

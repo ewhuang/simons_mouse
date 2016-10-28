@@ -58,7 +58,8 @@ def get_edge_dct(network_type):
             edge_genes.add(gene_a)
             edge_genes.add(gene_b)
     # Get the top million genes. TODO: Comment this line out. Return edge_dct.
-    sorted_edge_dct = dict(sorted(edge_dct.items(), key=operator.itemgetter(1))[:500000])
+    sorted_edge_dct = dict(sorted(edge_dct.items(), key=operator.itemgetter(1),
+        reverse=True)[:int(1e6)])
     return sorted_edge_dct, edge_genes
 
 def write_file(network_type):
