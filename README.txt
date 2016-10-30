@@ -1,31 +1,34 @@
 Author: Edward Huang
 Simons Foundation Mouse Project
 
-For TCGA data, before anything else, run
-$ python parse_tcga_dataset.py
-This splits the TCGA dataset into multiple networks, each corresponding to a
-specific type of cancer.
+_____________________________TCGA PRE-PROCESSING________________________________
+1.  For TCGA data, before anything else, run
+    
+    $ python parse_tcga_dataset.py
+    
+    This splits the TCGA dataset into multiple networks, each corresponding to a
+    specific type of cancer.
 
-______________________________PARSING GO TERMS__________________________________
-1. Download mouse gene association zip file from
-http://geneontology.org/page/download-annotations
+_____________________________DOWNLOADING GO TERMS_______________________________
+1.  Download GO annotations.
+    Go to http://www.ensembl.org/biomart/martview/
+    Choose database -> "Ensembl Genes 86" -> Mus musculus genes/Homo sapiens
+                                                                        genes
+    "Attributes" -> "Gene" -> uncheck "Ensembl Transcript ID"
+                 -> "External" -> check "GO Term Name" and "GO domain"
+    Hit "Results" at the top and export. Filenames will be mart_export.txt.
+    Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data.
+    Change human annotations to ensg_to_go.txt and move to ./data/tcga_data.
 
-Remove the first few description lines from the file.
+2.  Create GO dictionary JSON files for each gene type. Must run with argument
+    mf_go_go to create the the MF GO-GO dictionary.
 
-2. Extract genes from the file as a list of MGI ID's.
-$ python extract_genes_from_gene_associations.py mouse/tcga
+    $ python dump_go_dictionaries.py mouse/tcga/mf_go_go
 
-3. Upload the gene list to
-http://www.informatics.jax.org/batch
-Upload the file, select MGI Gene/Marker ID for input type, check only the
-Ensembl ID box, and click search. In the resulting window, click Export: 
-Text File. Rename the resulting files mgi_to_ensembl.txt
-
-Also download geneontology.org/ontology/go-basic.obo
+3. Create the MF GO-GO dictionary, shared by both mouse and TCGA data.
+Download geneontology.org/ontology/go-basic.obo
 Move it to ./data/
-
-4. As it is right now, only creates the MF GO-GO dictionary.
-$ python dump_mgi_go_dictionaries.py mouse/tcga
+python make_go_go_dictionary.py
 
 5. Find overlapping BP and MF terms.
 $ python find_go_overlaps.py mouse

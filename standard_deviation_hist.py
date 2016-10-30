@@ -3,6 +3,7 @@
 import file_operations
 import matplotlib
 import numpy as np
+import operator
 import sys
 import time
 
@@ -15,8 +16,6 @@ import time
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pylab
-
-STD_LOWER_BOUND = 0.1
 
 # Plotting GO enrichment histograms.
 def plot_histogram(data_type, std_list):
@@ -58,7 +57,7 @@ def main():
             embedding_genes = file_operations.get_embedding_genes()
 
         # Compute standard deviations for each gene.
-        std_list, high_std_genes = [], []
+        std_list, high_std_gene_dct = [], {}
         for gene in gene_expression_dct:
             if data_type == 'mouse' and gene not in embedding_genes:
                 continue
@@ -75,9 +74,14 @@ def main():
             if gene_std < 4.5e-15:
                 continue
             
-            if gene_std > STD_LOWER_BOUND:
-                high_std_genes += [gene]
+            high_std_gene_dct[gene] = gene_std
             std_list += [gene_std]
+
+        # Get the 15k genes with the highest standard deviations.
+        high_std_genes = sorted(high_std_gene_dct.items(),
+            key=operator.itemgetter(1), reverse=True)[:15000]
+        # Get just the gene names.
+        high_std_genes = [pair[0] for pair in high_std_genes]
 
         write_genes_to_file(data_type, high_std_genes)
         plot_histogram(data_type, std_list)

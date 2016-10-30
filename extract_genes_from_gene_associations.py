@@ -4,31 +4,32 @@ import sys
 import time
 
 ### This script reads the gene association file from either TCGA or MGI data
-### and then writes out a list for the gene sets for BP terms and for MF terms.
+### and then writes out a file of genes annotated by either BP terms MF terms.
+### The output is uploaded to find ensembl analogs.
+### Run time: a second.
 
 def read_gene_association_file():
     '''
     Reads the gene association file, whether it's human or mouse, and outputs
     a list of the unique ID's that appear in the association file. Returns
     one list for the genes associated with MF terms, and one for BP terms.
-    Returns MGI ID's for mouse genes.
+    Returns MGI IDs for mouse genes and UniProtKB IDs for human genes.
     '''
     gene_list = []
     if gene_type == 'mouse':
         f = open('./data/mouse_data/gene_association.mgi', 'r')
+    elif gene_type == 'tcga':
+        f = open('./data/tcga_data/goa_human.gaf', 'r')
     for line in f:
         line = line.strip().split('\t')
         # Ninth column is which ontology the GO term belongs to.
         aspect = line[8]
         assert aspect in ['P', 'F', 'C']
-        # Skip cellular process associations.
+        # Skip cellular component associations.
         if aspect == 'C':
             continue
-        # Second column is the MGI unique identifier.
-        mgi_gene_id = line[1]
-        assert 'MGI:' in mgi_gene_id
-        # Skip cellular component associations.
-        gene_list += [mgi_gene_id]
+        gene_id = line[1]
+        gene_list += [gene_id]
 
     f.close()
     return gene_list
