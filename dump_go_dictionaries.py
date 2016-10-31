@@ -21,7 +21,8 @@ def get_go_dictionaries(folder_name):
     def add_to_dictionary(go_dct, go_term, gene):
         # Augment a dictionary with a (go_term, gene) pair.
         if go_term in go_dct:
-            go_dct[go_term] += [gene]
+            if gene not in go_dct[go_term]:
+                go_dct[go_term] += [gene]
         else:
             go_dct[go_term] = [gene]
 

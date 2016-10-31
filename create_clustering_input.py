@@ -103,7 +103,7 @@ def get_go_go_edges():
     Key: GO:XXXXX -> str
     Value: list of neighboring GO terms -> list(str)
     '''
-    with open('./data/%s_data/mf_go_go_dct.json' % data_type, 'r') as fp:
+    with open('./data/mf_go_go_dct.json', 'r') as fp:
         mf_go_go_dct = json.load(fp)
     fp.close()
 

@@ -10,6 +10,7 @@ _____________________________TCGA PRE-PROCESSING________________________________
     specific type of cancer.
 
 _____________________________DOWNLOADING GO TERMS_______________________________
+
 1.  Download GO annotations.
     Go to http://www.ensembl.org/biomart/martview/
     Choose database -> "Ensembl Genes 86" -> Mus musculus genes/Homo sapiens
@@ -20,106 +21,81 @@ _____________________________DOWNLOADING GO TERMS_______________________________
     Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data.
     Change human annotations to ensg_to_go.txt and move to ./data/tcga_data.
 
+___________________________CREATING THE GENE NETWORK____________________________
+
+1.  Plot the standard deviation distribution of the genes, and write to file.
+
+    $ python standard_deviation_hist.py mouse/tcga
+
+    If input is 'tcga', runs for all TCGA cancer types.
+____
+
 2.  Create GO dictionary JSON files for each gene type. Must run with argument
     mf_go_go to create the the MF GO-GO dictionary.
 
     $ python dump_go_dictionaries.py mouse/tcga/mf_go_go
+____
 
-3. Create the MF GO-GO dictionary, shared by both mouse and TCGA data.
-Download geneontology.org/ontology/go-basic.obo
-Move it to ./data/
-python make_go_go_dictionary.py
+3.  Find overlapping BP and MF terms.
 
-5. Find overlapping BP and MF terms.
-$ python find_go_overlaps.py mouse
+    $ python find_go_overlaps.py mouse/tcga
+____
 
-___________________________CREATING THE GENE NETWORK____________________________
-1. Plot the standard deviation distribution of the genes, and write to file.
+4.  Compute pearson coefficients between gene expression values to find
+    correlated genes. Output file is high_std_network.txt.
 
-$ python standard_deviation_hist.py mouse/tcga
+    $ python gene_edge_weights.py mouse/tcga_index
 
-If input is 'tcga', runs for all TCGA cancer types.
+______________________________CLUSTERING PIPELINE_______________________________
 
-2. Makes three json files corresponding to the 3 GO domains. Keys are GO ID's,
-values are lists of ENSMUSG ID's. GO terms must not have spaces in the names (
-convert to underscores) or else simulated_annealing will make a node for each
-word in the term. Run this for each TCGA cancer.
-
-$ python dump_go_dictionary_files.py mouse/tcga_cancer_index
-
-3.
-Find GO terms from BP and MF that overlap with each other.
-$ python find_go_overlaps.py mouse/tcga
-
-4. Create the dictionary mapping GO terms to neighboring GO terms.
-$ python make_go_go_dictionary.py mouse
-
-5. Compute pearson coefficients between gene expression values to find
-correlated genes. Output file is high_std_network.txt.
-
-$ python gene_edge_weights.py mouse/tcga_cancer_index
-
-Output format:
-gene_a  gene_b  edge_weight
-The edges are not repeated.
-
-_______________________________FULL PIPELINE____________________________________
 We can run everything at once and ignore steps 4-12. Must run the WGCNA pipeline
 first in order to compare WlogV to it.
-python full_pipeline.py mouse/tcga_cancer_index objective_function run_num
+
+    $ python full_pipeline.py mouse/tcga_index objective_function run_num
 
 _________________ADDING GO NODES AND FORMATTING FOR CLUSTERING__________________
-5. Create 4 files overall, a network and real network each for a network with
-and without GO labels.
-Output files network_go_RUNNUM.txt, where RUNNUM indicates the run
-number. For networks with GO labels, we add in the full set of MF terms.
-Other files:
-real_network_go_RUNNUM.txt.
-network_no_go_RUNNUM.txt, and
-real_network_no_go_RUNNUM.txt
 
-$ python create_clustering_input.py mouse/tcga_cancers run_num
-                                        -b<bootstrap-optional>
+5.  Create 4 files, a network and real network each for a network with and
+    without GO labels.
+    Output files network_go_RUNNUM.txt, where RUNNUM indicates the run
+    number. For networks with GO labels, we add in the full set of MF terms.
+    Other files:
+        real_network_go_RUNNUM.txt.
+        network_no_go_RUNNUM.txt, and
+        real_network_no_go_RUNNUM.txt
 
-Output format for network_go.txt/network_no_go_run_num.txt:
-0
-NUM_NODES
-gene_a  gene_b  edge_weight
-gene_b  gene_a  edge_weight
-Output format for real_network_no_go_run_num.txt/real_network_go_run_num.txt:
-Real network
-0   gene_a  gene_b  edge_weight
-0   gene_b  gene_a  edge_weight
+    $ python create_clustering_input.py mouse/tcga_cancers run_num
+                                                        -b<bootstrap-optional>
 
 ___________________________________CLUSTERING___________________________________
 
-6. Compile clustering code inside sim_anneal folder.
-If static error for EdgeWeightThreshold, add static in front of its declaration
-in cs-grn.h.
+6.  Compile clustering code inside sim_anneal folder.
+    If static error for EdgeWeightThreshold, add static in front of its
+    declaration in cs-grn.h.
 
-cd makedir
-rm *
-cmake ..
-make
+        cd makedir
+        rm *
+        cmake ..
+        make
 
-orth.txt just needs to contain at least one gene in the network.
-Execute clustering code on the created networks.
+    orth.txt just needs to contain at least one gene in the network.
 
-7. Run the simulated annealing clustering code.
+7.  Run the simulated annealing clustering cod to cluster on the networks.
 
-$ python simulated_annealing.py data_type objective_function run_num go/no_go
-            go_num <if go>
+    $ python simulated_annealing.py data_type objective_function run_num go/
+                                        no_go go_num <if go>
 
-Only run the clustering on networks without GO only once, as it will be the
-same network for any given percentage of the raw network, since we use a random
-seed.
+    Only run the clustering on networks without GO only once, as it will be the
+    same network for any given percentage of the raw network, since we use a
+    random seed.
 
-8. Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
-Illegal division by zero usually means a file doesn't exist.
+8.  Runs the Perl script evaluate_clustering.pl to evaluate cluster densities.
+    Illegal division by zero usually means a file doesn't exist.
 
-$ python evaluate_clustering.py data_type objective_function run_num
+    $ python evaluate_clustering.py data_type objective_function run_num
 
 ________________________________CLUSTER ANALYSIS________________________________
+
 Compute GO enrichment of each of the clusterings.
 
 9. Compute GO enrichments for each clustering.

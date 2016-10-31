@@ -74,10 +74,10 @@ def write_sorted_edge_dct(sorted_edge_dct):
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga_cancer_index' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga_index' % sys.argv[0]
         exit()
     global data_type, gene_exp_dct, high_std_genes, gene_exp_matrix
-    data_type = sys.argv[1]    
+    data_type = sys.argv[1]
     assert data_type == 'mouse' or data_type.isdigit()
     # Converts to TCGA cancer name if data_type is a number.
     if data_type.isdigit():

@@ -13,7 +13,6 @@ import time
 ### clustering_input.py.
 ### Run time: 40 seconds.
 
-prosnet_folder = './Sheng/prosnet/result'
 
 def get_gene_matrix(network_type):
     '''
@@ -21,7 +20,7 @@ def get_gene_matrix(network_type):
     corresponds to a gene. List of genes returned as a second list.
     '''
     node_list, node_vec_rep_list = [], []
-
+    prosnet_folder = './Sheng/prosnet/result/%s' % data_type
     f = open('%s/dca_genes_%s_%s.vec' % (prosnet_folder, network_type, run_num))
     for i, line in enumerate(f):
         # Skip the header line.
@@ -106,7 +105,6 @@ def main():
         print 'Usage:python %s data_type run_num' % sys.argv[0]
         exit()
     global data_type, run_num
-
     data_type, run_num = sys.argv[1:]
     assert data_type == 'mouse' or data_type.isdigit()
     if data_type.isdigit():
