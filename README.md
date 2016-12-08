@@ -1,5 +1,5 @@
 # Simons Foundation Mouse Project
-# Author: Edward Huang
+Author: Edward Huang
 
 ## TCGA Preprocessing
 
@@ -13,9 +13,10 @@
 ## Downloading GO annotations
 
 1.  Download GO annotations.
-    Go to [biomart](http://www.ensembl.org/biomart/martview/)
-    Choose database -> "Ensembl Genes 86" -> Mus musculus genes/Homo sapiens genes
+    Go to [biomart](http://www.ensembl.org/biomart/martview/). Choose database -> "Ensembl Genes 86" -> Mus musculus genes/Homo sapiens genes
+
     "Attributes" -> "Gene" -> uncheck "Ensembl Transcript ID" -> "External" -> check "GO Term Name" and "GO domain"
+
     Hit "Results" at the top and export. Filenames will be mart_export.txt.
     Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data.
     Change human annotations to ensg_to_go.txt and move to ./data/tcga_data.
@@ -59,7 +60,7 @@ This script compiles everything below in this section.
     $ python full_pipeline.py mouse/tcga_index objective_function run_num
     ```
 
-# Adding GO nodes and formatting for clustering
+### Adding GO nodes and formatting for clustering
 
 1.  Create 4 files, a network and real network each for a network with and
     without GO labels.
@@ -74,7 +75,7 @@ This script compiles everything below in this section.
     $ python create_clustering_input.py mouse/tcga_cancers run_num -b<bootstrap-optional>
     ```
 
-# Clustering
+### Clustering
 
 2.  Compile clustering code inside sim_anneal folder.
     If static error for EdgeWeightThreshold, add static in front of its
@@ -105,7 +106,7 @@ This script compiles everything below in this section.
     $ python evaluate_clustering.py data_type objective_function run_num
     ```
 
-# Cluster analysis
+### Cluster analysis
 
 5.  Compute GO enrichments for each clustering.
 
