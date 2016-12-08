@@ -25,6 +25,10 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
     fisher_dct = {}
     for go_label in go_dct:
         go_genes = set(go_dct[go_label])
+        num_go_genes = len(go_genes)
+        if (num_go_genes > config_dct['max_go_size'] or num_go_genes < 
+            config_dct['min_go_size']):
+            continue
 
         # Compute the four sets for Fisher's test.
         clus_and_go = len(clus_genes.intersection(go_genes))
@@ -82,13 +86,17 @@ def get_bp_dct(base_data_type):
         bp_dct = json.load(fp)
     fp.close()
 
-    # Get the overlapping MF and BP terms.
-    overlap_list = file_operations.read_go_overlap(base_data_type)
+    # TODO: This block makes us evaluate on the partial BP terms.
+    # # Get the overlapping MF and BP terms.
+    # overlap_list = file_operations.read_go_overlap(base_data_type)
 
-    # Remove the overlapping BP terms.
-    overlapping_go_terms = set([tup[0] for tup in overlap_list])
-    for overlapping_go in overlapping_go_terms:
-        del bp_dct[overlapping_go]
+    # # Remove the overlapping BP terms.
+    # overlapping_go_terms = set([tup[0] for tup in overlap_list])
+    # for overlapping_go in overlapping_go_terms:
+    #     # GO might not be in BP dictionary because we computed overlap using
+    #     # full set of genes, but bp_dct only contains genes in the high_std.
+    #     if overlapping_go in bp_dct:
+    #         del bp_dct[overlapping_go]
 
     return bp_dct
 
@@ -98,20 +106,24 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
-    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     assert run_num.isdigit()
 
     if 'prosnet_' in data_type:
-        base_data_type = data_type[len('prosnet_'):]
+        base_data_type = data_type.split('_')[1]
+        if base_data_type.isdigit():
+            base_data_type = file_operations.get_tcga_disease_list()[int(
+                base_data_type)]
+        data_type = 'prosnet_' + base_data_type
     else:
+        if data_type.isdigit():
+            data_type = file_operations.get_tcga_disease_list()[int(data_type)]
         base_data_type = data_type
 
-    if data_type.isdigit():
-        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
-
-    global gene_universe
+    global gene_universe, config_dct
     gene_universe = file_operations.get_high_std_genes(base_data_type)
+
+    config_dct = file_operations.read_config_file(data_type)[run_num]
 
     bp_dct = get_bp_dct(base_data_type)
 

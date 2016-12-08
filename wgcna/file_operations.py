@@ -37,7 +37,7 @@ def read_dbgap_file():
 
     dbgap_to_ensmusg_dct = {}
 
-    f = open('../data/mouse_data/dbgap.txt', 'r')
+    f = open('../data/dbgap.txt', 'r')
     for i, line in enumerate(f):
         dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
         # Convert human to mouse homolog list.
@@ -52,3 +52,19 @@ def read_dbgap_file():
 
     f.close()
     return dbgap_to_ensmusg_dct
+
+def read_ensg_dbgap_file():
+    '''
+    Reads the dbgap dictionary for TCGA data.
+    '''
+    dbgap_to_ensg_dct = {}
+    f = open('../data/dbgap.txt', 'r')
+    for i, line in enumerate(f):
+        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
+        if dbgap_id in dbgap_to_ensg_dct:
+            dbgap_to_ensg_dct[dbgap_id] += [ensg_id]
+        else:
+            dbgap_to_ensg_dct[dbgap_id] = [ensg_id]
+
+    f.close()
+    return dbgap_to_ensg_dct

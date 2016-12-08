@@ -28,6 +28,7 @@ if __name__ == '__main__':
 
     # 8 and 9 are the indices of GO and DBGAP enrichments, respectively.
     for dbgap_or_go in [8, 9]:
+        highest_p = 0
         colors = ['blue', 'purple', 'red', 'black', 'orange', 'green', 'yellow']
         for mode_index, mode in enumerate(['wgcna', 'prosnet_go',
             'prosnet_no_go', 'wlogv_no_go', 'wlogv_go']):
@@ -40,9 +41,9 @@ if __name__ == '__main__':
                 f = open('./wgcna/results/%s_results/genes_only/clus_info_'
                             'genes_only_bp.txt' % data_type, 'r')
             elif mode == 'wlogv_go':
-                # TODO change mouse_results to something like data_type_results.
                 f = open('./results/%s_results/wlogv/' % data_type + go_fname,
                     'r')
+                cheating_pts = []
             elif mode == 'wlogv_no_go':
                 f = open('./results/%s_results/wlogv/' % data_type +
                     no_go_fname, 'r')                
@@ -60,16 +61,27 @@ if __name__ == '__main__':
                 # Skip the clusters with fewer than 50 genes.
                 if float(line[4]) < 10:
                     continue
-                weighted_in_out_ratio = math.log(float(line[3]), math.e)
+                ratio = float(line[3]) # For wlogv_go, ratio is a p-value.
                 in_dens = float(line[1])
                 out_dens = float(line[2])
                 in_out_ratio = in_dens / (in_dens + out_dens)
                 top_enrichment_p = -math.log(float(line[dbgap_or_go]), 10)
-                pts += [(top_enrichment_p, in_out_ratio)]
+                if mode == 'wlogv_go':
+                    if ratio < 1e-5:
+                        cheating_pts += [(top_enrichment_p, in_out_ratio)]
+                    else:
+                        pts += [(top_enrichment_p, in_out_ratio)]
+                else:
+                    pts += [(top_enrichment_p, in_out_ratio)]
             f.close()
+            highest_p = max(highest_p, max(pt[0] for pt in pts))
 
-            plt.scatter(*zip(*pts), color=colors[mode_index],
-                label=mode)
+            plt.scatter(*zip(*pts), color=colors[mode_index], label=mode)
+            if mode == 'wlogv_go':
+                if len(cheating_pts) == 0:
+                    continue
+                plt.scatter(*zip(*cheating_pts), color=colors[mode_index],
+                    label=mode, marker='>')                
 
             # WGCNA is our baseline, so get the median of their clusters' in-
             # densities and plot it as a horizontal line.
@@ -83,10 +95,7 @@ if __name__ == '__main__':
         plt.ylabel('in-density/(in-density + out-density)')
         plt.legend(loc='lower right')
         plt.ylim(0, 1.2)
-        if 'mouse' in data_type:
-            plt.xlim(0, 20)
-        else:
-            plt.xlim(0, 250)
+        plt.xlim(0, highest_p * 1.2)
         plt.show()
         if dbgap_or_go == 8:
             pylab.savefig('./results/%s_results/comparison_plots/go_comparison_'

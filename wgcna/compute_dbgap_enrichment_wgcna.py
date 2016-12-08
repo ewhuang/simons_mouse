@@ -114,7 +114,10 @@ def main():
 
     # Fetch the DBGAP dictionary.
     global dbgap_dct
-    dbgap_dct = file_operations.read_dbgap_file()
+    if 'mouse' in data_type:
+        dbgap_dct = file_operations.read_dbgap_file()
+    else:
+        dbgap_dct = file_operations.read_ensg_dbgap_file()
 
     if network_type == 'genes_only':
         cluster_wgcna_dct = get_cluster_dictionary()

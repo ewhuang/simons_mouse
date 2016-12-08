@@ -34,19 +34,24 @@ def make_folders():
         os.makedirs(plot_folder)
 
 def main():
-    if len(sys.argv) not in [5, 6]:
+    if len(sys.argv) != 5:
         print ('Usage:python %s data_type objective_function run_num '
                 'go/no_go' % sys.argv[0])
         exit()
     global data_type
     data_type, objective_function, run_num, network = sys.argv[1:5]
-    assert 'mouse' in data_type or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     assert run_num.isdigit()
     assert network in ['go', 'no_go']
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+    # Reconstruct data_type for TCGA. e.g., prosnet_0 to prosnet_carcinoma
+    if 'prosnet' in data_type:
+        data_type = data_type.split('_')[1]
+        if data_type.isdigit():
+            data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+        data_type = 'prosnet_' + data_type
 
     config_dct = file_operations.read_config_file(data_type)[run_num]
     temp, num_clusters = config_dct['temp'], config_dct['num_clusters']

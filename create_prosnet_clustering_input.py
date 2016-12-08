@@ -3,6 +3,7 @@
 import file_operations
 import numpy as np
 import operator
+import os
 from sklearn.metrics.pairwise import cosine_similarity
 import sys
 import time
@@ -64,7 +65,7 @@ def get_edge_dct(network_type):
             edge_genes.add(gene_b)
     # Get the top million genes.
     sorted_edge_dct = sorted(edge_dct.items(), key=operator.itemgetter(1),
-        reverse=True)[:int(1e6)]
+        reverse=True)[:int(1.5e6)]
     return sorted_edge_dct, edge_genes
 
 def write_file(network_type):
@@ -74,6 +75,8 @@ def write_file(network_type):
     sorted_edge_dct, edge_genes = get_edge_dct(network_type)
 
     out_folder = './data/%s_data/networks_%s' % (data_type, network_type)
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
 
     # Regular network file for clustering.
     out = open('%s/network_%s_%s.txt' % (out_folder, network_type, run_num),

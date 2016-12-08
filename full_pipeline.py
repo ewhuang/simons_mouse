@@ -38,7 +38,7 @@ def main():
     # Perform simulated annealing on coexpression network.
     command = 'python simulated_annealing.py %s %s %s no_go' % clus_format_str
     subprocess.call(command, shell=True)
-    command = 'python simulated_annealing.py %s %s %s go 0' % clus_format_str
+    command = 'python simulated_annealing.py %s %s %s go' % clus_format_str
     subprocess.call(command, shell=True)
 
     # Perform simulated annealing on prosnet network.
@@ -63,6 +63,10 @@ def main():
     command = 'python compute_dbgap_enrichment.py %s %s %s' % clus_format_str
     subprocess.call(command, shell=True)
     command = 'python compute_dbgap_enrichment.py %s %s %s' % prosnet_format
+    subprocess.call(command, shell=True)
+
+    # Determine if wlogv_go cheats.
+    command = 'python cheating_evaluation.py %s %s %s' % clus_format_str 
     subprocess.call(command, shell=True)
 
     # Creating cluster summarization tables.

@@ -7,6 +7,22 @@ import time
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiments.
 
+def read_cheat_evaluation():
+    '''
+    Reads the cheating evaluation file. Returns a dictionary.
+    Key: cluster ID -> str
+    Value: p-value of t-test between in/(in + out) ratios of genes labeled
+        by best GO term vs. ratios of genes not labeled -> float
+    '''
+    cheat_eval_dct = {}
+    f = open('./results/%s_results/%s/cluster_eval_go/cheat_eval_%s.txt' % (
+        data_type, objective_function, run_num), 'r')
+    for line in f:
+        cluster_id, p_value = line.split()
+        cheat_eval_dct[cluster_id] = float(p_value)
+    f.close()
+    return cheat_eval_dct
+
 def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname, 
     dbgap_enrich_fname, out_fname):
     '''
@@ -23,6 +39,9 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
     go_enrichment_dct = file_operations.get_enrichment_dct(go_enrich_fname)
     dbgap_enrichment_dct = file_operations.get_enrichment_dct(
         dbgap_enrich_fname)
+
+    if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+        cheat_eval_dct = read_cheat_evaluation()
 
     # Write out to file.
     out = open(out_fname, 'w')
@@ -41,6 +60,9 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
                 num_go += 1
                 cluster_go_terms += [node]
         in_dens, out_dens, ratio = density_dct[cid]
+
+        if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+            ratio = cheat_eval_dct[cid]
 
         out.write('%s\t%g\t%g\t%g\t%d\t%d\t%d\t%d\t%s\t%s\t%s\n' % (cid,
             in_dens, out_dens, ratio, num_genes, num_go, num_gg, num_ggo, 
@@ -75,7 +97,7 @@ def generate_filenames():
                                 'terms_%s_%s.txt') % format_str
 
         # Finally, the output filename.
-        out_fname = '%s/clus_info_%s/clus_info_%s_%s.txt' % format_str
+        out_fname = '%s/clus_info_%s/clus_info_%s_%s.tsv' % format_str
 
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
             dbgap_enrich_fname, out_fname)
@@ -87,12 +109,16 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
-    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv']
     assert run_num.isdigit()
 
     # Integer data_type means it's a TCGA cancer.
-    if data_type.isdigit():
+    if 'prosnet' in data_type:
+        data_type = data_type.split('_')[1]
+        if data_type.isdigit():
+            data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+        data_type = 'prosnet_' + data_type
+    elif data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     generate_filenames()

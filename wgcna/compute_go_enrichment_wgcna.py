@@ -36,7 +36,8 @@ def get_go_gene_dct(go_domain, data_type):
    Gets the GO dictionary corresponding to the GO domain.
     '''
     # First, load all of the GO dictionaries.
-    with open('../data/%s_data/%s_dct.json' % (data_type, go_domain), 'r') as fp:
+    with open('../data/%s_data/%s_dct.json' % (data_type, go_domain),
+        'r') as fp:
         go_gene_dct = json.load(fp)
     fp.close()
 
@@ -48,8 +49,8 @@ def get_cluster_dictionary(data_type, network_type, go_domain):
     corresponding clusters.
     '''
     cluster_wgcna_dct = {}
-    f = open('./results/%s_results/%s/clusters_%s.txt' % (data_type, network_type,
-        go_domain), 'r')
+    f = open('./results/%s_results/%s/clusters_%s.txt' % (data_type,
+        network_type, go_domain), 'r')
     # Read in the cluster file to create the cluster dictionary.
     for i, line in enumerate(f):
         if i == 0:
@@ -148,7 +149,8 @@ def main():
         # Remove the overlapping BP terms.
         overlapping_go_terms = set([tup[domain_index] for tup in overlap_list])
         for overlapping_go in overlapping_go_terms:
-            del go_dct[overlapping_go]
+            if overlapping_go in go_dct:
+                del go_dct[overlapping_go]
 
         if network_type == 'genes_only':
             cluster_wgcna_dct = get_cluster_dictionary(data_type, network_type,

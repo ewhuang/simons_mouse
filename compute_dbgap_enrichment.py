@@ -3,6 +3,7 @@
 import file_operations
 import json
 import operator
+import os
 from scipy.stats import fisher_exact
 import sys
 import time
@@ -79,22 +80,27 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
-    assert data_type in ['mouse', 'prosnet_mouse'] or data_type.isdigit()
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     assert run_num.isdigit()
 
     if 'prosnet_' in data_type:
-        base_data_type = data_type[len('prosnet_'):]
+        base_data_type = data_type.split('_')[1]
+        if base_data_type.isdigit():
+            base_data_type = file_operations.get_tcga_disease_list()[int(
+                base_data_type)]
+        data_type = 'prosnet_' + base_data_type
     else:
+        if data_type.isdigit():
+            data_type = file_operations.get_tcga_disease_list()[int(data_type)]
         base_data_type = data_type
-
-    if data_type.isdigit():
-        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
     global gene_universe, dbgap_dct
     gene_universe = file_operations.get_high_std_genes(base_data_type)
 
-    dbgap_dct = file_operations.read_dbgap_file()
+    if 'mouse' in data_type:
+        dbgap_dct = file_operations.read_dbgap_file()
+    else:
+        dbgap_dct = file_operations.read_ensg_dbgap_file(base_data_type)
 
     # No GO network.
 
@@ -106,9 +112,11 @@ def main():
         else:
             cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
                 results_folder, network, network, run_num)
-        out_fname = ('%s/dbgap_enrichment_terms_%s/dbgap_enrichment_terms_'
-                        '%s_%s.txt' % (results_folder, network, network,
-                            run_num))
+        subfolder = '%s/dbgap_enrichment_terms_%s' % (results_folder, network)
+        if not os.path.exists(subfolder):
+            os.makedirs(subfolder)
+        out_fname = '%s/dbgap_enrichment_terms_%s_%s.txt' % (subfolder, network,
+            run_num)
         write_enrichment_files(cluster_fname, out_fname)
 
 if __name__ == '__main__':

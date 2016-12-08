@@ -43,23 +43,22 @@ def get_embedding_genes():
     f.close()
     return embedding_genes
 
-# create_clustering_input.py
-# compute_go_enrichment.py
-def read_go_overlap(data_type):
-    '''
-    Gets the BP and MF GO terms that are too similar to each other. We exclude
-    them from training, but still use them to evaluate.
-    '''
-    overlap_list = []
-    if 'mouse' in data_type:
-        f = open('./data/mouse_data/overlapping_bp_mf_go_labels.txt', 'r')
-    else:
-        f = open('./data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
-    for line in f:
-        bp_label, mf_label, p_value = line.strip().split('\t')
-        overlap_list += [(bp_label, mf_label)]
-    f.close()
-    return overlap_list
+# # compute_go_enrichment.py
+# def read_go_overlap(data_type):
+#     '''
+#     Gets the BP and MF GO terms that are too similar to each other. We exclude
+#     them from training, but still use them to evaluate.
+#     '''
+#     overlap_list = []
+#     if 'mouse' in data_type:
+#         f = open('./data/mouse_data/overlapping_bp_mf_go_labels.txt', 'r')
+#     else:
+#         f = open('./data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
+#     for line in f:
+#         bp_label, mf_label, p_value = line.strip().split('\t')
+#         overlap_list += [(bp_label, mf_label)]
+#     f.close()
+#     return overlap_list
 
 # evaluate_clustering.py
 def create_clean_go_file(data_type, objective_function, run_num):
@@ -294,7 +293,7 @@ def read_dbgap_file():
 
     dbgap_to_ensmusg_dct = {}
 
-    f = open('./data/mouse_data/dbgap.txt', 'r')
+    f = open('./data/dbgap.txt', 'r')
     for i, line in enumerate(f):
         dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
         # Convert human to mouse homolog list.
@@ -309,3 +308,23 @@ def read_dbgap_file():
 
     f.close()
     return dbgap_to_ensmusg_dct
+
+def read_ensg_dbgap_file(base_data_type):
+    '''
+    Reads the dbgap dictionary for TCGA data.
+    '''
+    dbgap_to_ensg_dct = {}
+    high_std_genes = get_high_std_genes(base_data_type)
+    f = open('./data/dbgap.txt', 'r')
+    for i, line in enumerate(f):
+        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
+        if ensg_id not in high_std_genes:
+            continue
+
+        if dbgap_id in dbgap_to_ensg_dct:
+            dbgap_to_ensg_dct[dbgap_id] += [ensg_id]
+        else:
+            dbgap_to_ensg_dct[dbgap_id] = [ensg_id]
+
+    f.close()
+    return dbgap_to_ensg_dct
