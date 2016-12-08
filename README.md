@@ -155,8 +155,7 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
     ```
 
 2.  Move results from preprocessing to working directory of R. Run wgcna.R in
-    64-bit R. Move output (module_membership_WGCNA.txt) to results file. Change 
-    lines 14 and 71 to suit each domain. Domains are bp, cc, and mf. For TCGA,
+    64-bit R. Move output (%s_module_membership_WGCNA.txt) to ./data. For TCGA,
     run wgcna_tcga.R. Change line 14 to suit the type of cancer.
 
     ```bash

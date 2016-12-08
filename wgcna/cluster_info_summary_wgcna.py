@@ -115,12 +115,8 @@ def main():
     dbgap_enrichment_dct = get_dbgap_enrichment_dct(go_method)
     
     for go_domain in domain_list:
-        if go_method == 'genes_only':
-            cluster_wgcna_dct = get_cluster_dictionary(go_method, go_method)
-            density_dct = get_density_dct(go_method, go_method)
-        else:
-            cluster_wgcna_dct = get_cluster_dictionary(go_method, go_domain)
-            density_dct = get_density_dct(go_method, go_domain)
+        cluster_wgcna_dct = get_cluster_dictionary(go_method, go_method)
+        density_dct = get_density_dct(go_method, go_method)
 
         enrichment_dct = get_enrichment_dct(go_method, go_domain)
         out = open('./results/%s_results/%s/clus_info_%s_%s.tsv' % (data_type, 
