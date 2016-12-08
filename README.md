@@ -53,12 +53,11 @@ Author: Edward Huang
 
 ## Clustering pipeline
 
-Must run the WGCNA pipeline first in order to compare WlogV to it.
-This script compiles everything below in this section.
+Must run the WGCNA pipeline first in order to compare WlogV to it. This script compiles everything below in this section.
 
-    ```bash
-    $ python full_pipeline.py mouse/tcga_index objective_function run_num
-    ```
+```bash
+$ python full_pipeline.py mouse/tcga_index objective_function run_num
+```
 
 ### Adding GO nodes and formatting for clustering
 
@@ -147,107 +146,144 @@ This script compiles everything below in this section.
     $ python box_plot_density_and_enrichment.py data_type clustering_method
     ```
 
-_____________________WORKING WITH GO EDGE WEIGHT PREDICTION_____________________
-Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/
-Find GO id to name mappings: http://geneontology.org/page/download-annotations
+## WGCNA Baseline
+1.  data_type can either be 'genes_only' or an integer denoting a TCGA disease.
 
-1.
-$ python gene_list.py
+    ```bash
+    cd wgcna/
+    $ python preprocess_WGCNA.py data_type genes_only/pca/mean/median
+    ```
 
-Creates an output file, newline separated, where each line is a gene in the
-coexpression matrix. No duplicates. Also creates a sampled list, where each
-gene has to occur in the sampled matrix.
+2.  Move results from preprocessing to working directory of R. Run wgcna.R in
+    64-bit R. Move output (module_membership_WGCNA.txt) to results file. Change 
+    lines 14 and 71 to suit each domain. Domains are bp, cc, and mf. For TCGA,
+    run wgcna_tcga.R. Change line 14 to suit the type of cancer.
 
-2.
-$ python parse_GO_weight_predictions.py
+    ```bash
+    $ python full_pipeline_wgcna.py data_type genes_only/pca/... network_num
 
-Creates an output file, predicted_go_edge_weights.txt, where each newline is
-a gene and a GO edge, same format as go_edges.txt. However, the GO terms are the
-indices in Mouse_final_Score_matrix.txt, not the actual GO name.
-Specify the number of edges to keep with the variable NUM_TOP_WEIGHTS.
-
-3.
-Simply add an extra keyword, the literal string 'predicted', to 
-create_clustering_input.py to adjust the network to add in the predicted GO
-edges.
-
-$ python create_clustering_input.py run_num lambda subgraph_decimal "predicted"
-
-CREATING MATRIX FOR SHENG'S MATLAB CODE.
-1. $ python top_left.py
-Creates top left of the four-block matrix, which includes the gene-gene edge
-weights. Takes the sampled edges from our 1% network, and computes the Pearson
-correlation coefficient between each pair of genes. The genes are in order of
-of ENSMUSG ID from the original co-expression network.
-
-2. $ python top_right_bottom_left.py
-Creates the bottom left and top right blocks of the matrix, or the gene-GO
-edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is based
-on the index from Sheng's data.
-
-3. $ python convert_embedding_matrix_to_edge_file.py
-Outputs a new network, ./data/embedding_edges.txt, which contains
-edges between genes with weights computed by embedding.
-
-__________________________________PROSNET_______________________________________
-Must first run create_clustering_input.py, and then let Sheng run.
-
-1. Run prosnet on the networks created by create_clustering_input.py
-$ python low_dimensional_nodes_prosnet.py mouse/tcga_cancer run_num
-
-2. Run k-means on low-dimensional vector representations of genes and GO terms.
-$ python prosnet_kmeans.py mouse/tcga_cancer_index run_num
-
-3. Evaluate PROSNET.
-$ python evaluate_clustering.py mouse/tcga_cancer_index objective_function
-                                    run_num
-
-4. Compute GO enrichment
-$ python compute_go_enrichment.py mouse/tcga_cancer_index objective_function
-                                    run_num
-
-5. Summarize results.
-$ python cluster_info_summary.py mouse/tcga_cancer_index objective_function
-                                    run_num
-
-___________________________________CO/MCL_______________________________________
-
-1. 
-$ python evaluate_co_and_mcl.py mouse/tcga_cancer_index run_num
-Runs the full pipeline after Sheng sends clusters in ./Sheng/Module/
-Does not plot.
-
-___________________________________WGCNA________________________________________
-1.
-data_type can either be 'genes_only' or an integer denoting a TCGA disease.
-
-cd wgcna/
-$ python preprocess_WGCNA.py data_type genes_only/pca/mean/median
-
-2.
-Move results from preprocessing to working directory of R.
-Run wgcna.R in 64-bit R. Move output (module_membership_WGCNA.txt) to results
-file. Change lines 14 and 71 to suit each domain. Domains are bp, cc, and mf.
-Takes about 55 minutes.
-For TCGA, run wgcna_tcga.R. Change line 14 to suit the type of cancer.
-
-____$ python full_pipeline_wgcna.py data_type genes_only/pca/... network_num
-____This runs steps 3-6. network_num should be 20 for mouse, and 1 for TCGA.
-____This is because we optimized for mouse, and keep the same parameters for
-____TCGA.
+    This runs steps 3-6. network_num should be 1 for mouse, and 1 for TCGA.
+    This is because we optimized for mouse, and keep the same parameters for
+    TCGA.
 
 3.
-$ python clean_wgcna_module_results.py data_type genes_only/pca/mean/median
+    ```bash
+    $ python clean_wgcna_module_results.py data_type genes_only/pca/mean/median
+    ```
 
-4.
-Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
-python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median network_number
+4.  Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
+
+    ```bash
+    $python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median network_number
+    ```
 
 5.
-$ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
+    ```bash
+    $ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
+    ```
 
 6.
-$ python cluster_info_summary_wgcna.py data_type genes_only/pca/mean/median network_number
+    ```bash
+    $ python cluster_info_summary_wgcna.py data_type genes_only/pca/mean/median network_number
+    ```
 
 7.
-$ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf
+    ```bash
+    $ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf
+    ```
+
+
+## Edge weight prediction (deprecated)
+Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/. Find GO id to name mappings: http://geneontology.org/page/download-annotations
+
+1.  Creates an output file, newline separated, where each line is a gene in the
+    coexpression matrix. No duplicates. Also creates a sampled list, where each
+    gene has to occur in the sampled matrix.
+
+    ```bash
+    $ python gene_list.py
+    ```
+
+2.  Creates an output file, predicted_go_edge_weights.txt, where each newline is
+    a gene and a GO edge, same format as go_edges.txt. However, the GO terms are
+    the indices in Mouse_final_Score_matrix.txt, not the actual GO name. Specify
+    the number of edges to keep with the variable NUM_TOP_WEIGHTS.
+
+    ```bash
+    $ python parse_GO_weight_predictions.py
+    ```
+
+3. Simply add an extra keyword, the literal string 'predicted', to create_clustering_input.py to adjust the network to add in the predicted GO edges.
+
+    ```bash
+    $ python create_clustering_input.py run_num lambda subgraph_decimal "predicted"
+    ```
+
+### Creating matrix for Sheng's Matlab code.
+
+1.  Creates top left of the four-block matrix, which includes the gene-gene edge
+    weights. Takes the sampled edges from our 1% network, and computes the
+    Pearson correlation coefficient between each pair of genes. The genes are in
+    order of of ENSMUSG ID from the original co-expression network.
+
+    ```bash
+    $ python top_left.py
+    ```
+
+2.  Creates the bottom left and top right blocks of the matrix, or the gene-GO
+    edges. 1 if there is a gene-GO relationship, 0 otherwise. GO ordering is
+    based on the index from Sheng's data.
+
+    ```bash
+    $ python top_right_bottom_left.py
+    ```
+
+3.  Outputs a new network, ./data/embedding_edges.txt, which contains
+    edges between genes with weights computed by embedding.
+
+    ```bash
+    $ python convert_embedding_matrix_to_edge_file.py
+    ```
+
+## ProSNet
+
+Must first run create_clustering_input.py, and then let Sheng run.
+
+1.  Run prosnet on the networks created by create_clustering_input.py
+
+    ```bash
+    $ python low_dimensional_nodes_prosnet.py mouse/tcga_cancer run_num
+    ```
+
+2.  Run k-means on low-dimensional vector representations of genes and GO terms.
+
+    ```bash
+    $ python prosnet_kmeans.py mouse/tcga_cancer_index run_num
+    ```
+
+3. Evaluate ProSNet.
+
+    ```bash
+    $ python evaluate_clustering.py mouse/tcga_cancer_index objective_function run_num
+    ```
+
+4. Compute GO enrichment
+
+    ```bash
+    $ python compute_go_enrichment.py mouse/tcga_cancer_index objective_function run_num
+    ```
+
+5. Summarize results.
+
+    ```bash
+    $ python cluster_info_summary.py mouse/tcga_cancer_index objective_function run_num
+    ```
+
+## Cluster-One and MCL
+
+1.  Runs the full pipeline after Sheng sends clusters in ./Sheng/Module/
+    Does not plot.
+
+    ```bash
+    $ python evaluate_co_and_mcl.py mouse/tcga_cancer_index run_num
+    ```
