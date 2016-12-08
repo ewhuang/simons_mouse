@@ -161,6 +161,7 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
 
     ```bash
     $ python full_pipeline_wgcna.py data_type genes_only/pca/... network_num
+    ```
 
     This runs steps 3-6. network_num should be 1 for mouse, and 1 for TCGA.
     This is because we optimized for mouse, and keep the same parameters for

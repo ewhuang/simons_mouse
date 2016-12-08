@@ -48,33 +48,9 @@ def get_density_dct(go_method, go_domain):
             continue
         line = line.split()
         clus_id, in_density, out_density = line[1], line[7], line[9]
-        num_gg_edges = float(line[25])
-        weighted_ratio = float(line[34])
-        density_dct[clus_id] = (float(in_density), float(out_density),
-            weighted_ratio, num_gg_edges)
+        density_dct[clus_id] = (float(in_density), float(out_density))
     f.close()
     return density_dct
-
-def get_network_statistics(run_num):
-    '''
-    Reads a particular network we generated, and returns the number of genes in
-    the network and the number of gene-gene edges.
-    '''
-    num_genes_net = 0
-    num_gg_net = 0
-    f = open('../data/%s_data/networks_no_go/network_no_go_%d.txt' % (data_type, 
-        run_num), 'r')
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        if i == 1:
-            num_genes_net = line.strip()
-            continue
-        num_gg_net += 1
-    f.close()
-    # Divide the by two to account for each edge listed twice.
-    num_gg_net /= 2
-    return num_genes_net, num_gg_net
 
 def get_enrichment_dct(go_method, go_domain):
     '''
@@ -120,7 +96,8 @@ def get_dbgap_enrichment_dct(go_method):
 
 def main():
     if len(sys.argv) != 4:
-        print 'Usage: %s data_type genes_only/pca/mean/median network_to_compare' % sys.argv[0]
+        print ('Usage: %s data_type genes_only/pca/mean/median network_to_'
+            'compare' % sys.argv[0])
         exit()
     global data_type
     data_type = sys.argv[1]
@@ -132,8 +109,6 @@ def main():
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
-
-    num_genes_net, num_gg_net = get_network_statistics(int(comparing_network))
 
     domain_list = ['bp']
 
@@ -148,34 +123,21 @@ def main():
             density_dct = get_density_dct(go_method, go_domain)
 
         enrichment_dct = get_enrichment_dct(go_method, go_domain)
-        out = open('./results/%s_results/%s/clus_info_%s_%s.txt' % (data_type, 
+        out = open('./results/%s_results/%s/clus_info_%s_%s.tsv' % (data_type, 
             go_method, go_method, go_domain), 'w')
 
         # Write out to file.
-        out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
-        # Automatically write 0 for the last column, since there are no gene-GO
-        # edges for WGCNA.
-        out.write('%s\t%d\t0\n' % (num_genes_net, num_gg_net))
-        out.write('cluster_number\tin_dens\tout_dens\tweighted_in_out_ratio\t')
-        out.write('num_genes\tnum_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t')
-        out.write('top_enrichment_p\n')
+        out.write('Cluster ID\tIn-Density\tOut-Density\tNumber of genes\t'
+            'Top GO enrichment p-value\tTop DBGAP enrichment p-value\n')
 
         # Loop through the clusters of genes.
-        for i in range(len(cluster_wgcna_dct)):
-            cid = str(i + 1)
+        for cid in sorted(cluster_wgcna_dct.keys(), key=lambda x: int(x)):
             clus = cluster_wgcna_dct[cid]
 
-            num_genes = len(clus)
+            in_dens, out_dens = density_dct[cid]
 
-            in_dens, out_dens, weighted_ratio, num_gg_edges = density_dct[cid]
-            # if in_dens == 0:
-            #     ratio = float('inf')
-            # else:
-            out.write('%s\t%g\t%g\t%g\t' % (cid, in_dens, out_dens,
-                weighted_ratio))
-            out.write('%d\t0\t%d\t0\t' % (num_genes, num_gg_edges))
-            out.write('%s\t%s\n' % (enrichment_dct[cid],
-                dbgap_enrichment_dct[cid]))
+            out.write('%s\t%g\t%g\t%d\t%s\t%s\n' % (cid, in_dens, out_dens,
+                len(clus), enrichment_dct[cid], dbgap_enrichment_dct[cid]))
         out.close()
 
 if __name__ == '__main__':

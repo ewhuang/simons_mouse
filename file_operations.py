@@ -125,8 +125,7 @@ def get_cluster_densities(eval_fname):
         if len(line) != 35:
             continue
         clus_id, in_density, out_density = line[1], line[7], line[9]
-        ratio = float(line[34])
-        density_dct[clus_id] = (float(in_density), float(out_density), ratio)
+        density_dct[clus_id] = (float(in_density), float(out_density))
     f.close()
     return density_dct
 

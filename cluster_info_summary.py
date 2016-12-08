@@ -15,11 +15,13 @@ def read_cheat_evaluation():
         by best GO term vs. ratios of genes not labeled -> float
     '''
     cheat_eval_dct = {}
-    f = open('./results/%s_results/%s/cluster_eval_go/cheat_eval_%s.txt' % (
+    f = open('./results/%s_results/%s/cheating_evaluation/cheat_eval_%s.txt' % (
         data_type, objective_function, run_num), 'r')
     for line in f:
-        cluster_id, p_value = line.split()
-        cheat_eval_dct[cluster_id] = float(p_value)
+        # (cluster_id, p_value, labeled_mean, labeled_size, unlabeled_mean,
+        #     unlabeled_size) = line.split()
+        line = line.split()
+        cheat_eval_dct[line[0]] = tuple(map(float, line[1:]))
     f.close()
     return cheat_eval_dct
 
@@ -45,29 +47,38 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
 
     # Write out to file.
     out = open(out_fname, 'w')
-    out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
-    out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
-    out.write('cluster_number\tin_dens\tout_dens\tratio\tnum_genes\t'
-                'num_go_terms_in\tnum_g_g_edges\tnum_g_go_edges\t'
-                'top_go_enrich_p\ttop_dbgap_enrich_p\tgo_terms_in\n')
-    for cid in density_dct:
+    # out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
+    # out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
+    
+    out.write('Cluster ID\tIn-Density\tOut-Density\tNumber of genes\t'
+        'Top GO enrichment p-value\tTop DBGAP enrichment p-value\t')
+    # If it's a regular run with GO, add in the cheating evaluation.
+    if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+        out.write('t-test p-value\tLabeled mean\tLabeled variance\t'
+            'Labeled size\tUnlabeled mean\tUnlabeled variance\t'
+            'Unlabeled size\t')
+    if 'no_go' not in clus_fname:
+        out.write('Number of cluster GO members\tCluster GO members')
+    out.write('\n')
+
+    for cid in sorted(density_dct.keys(), key=lambda x: int(x)):
         cluster_go_terms = []
         clus = clst_go_dct[cid]
         num_genes = len(clus)
-        num_go, num_gg, num_ggo = 0, 0, 0
         for node in clus:
-            if ('ENSMUSG' not in node and 'ENSG' not in node):
-                num_go += 1
+            if 'ENSMUSG' not in node and 'ENSG' not in node:
                 cluster_go_terms += [node]
-        in_dens, out_dens, ratio = density_dct[cid]
+        in_dens, out_dens = density_dct[cid]
+
+        out.write('%s\t%g\t%g\t%d\t%s\t%s\t' % (cid, in_dens, out_dens,
+            num_genes, go_enrichment_dct[cid], dbgap_enrichment_dct[cid]))
 
         if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
-            ratio = cheat_eval_dct[cid]
-
-        out.write('%s\t%g\t%g\t%g\t%d\t%d\t%d\t%d\t%s\t%s\t%s\n' % (cid,
-            in_dens, out_dens, ratio, num_genes, num_go, num_gg, num_ggo, 
-            go_enrichment_dct[cid], dbgap_enrichment_dct[cid], '\t'.join(
-                cluster_go_terms)))
+            out.write('%f\t%f\t%f\t%d\t%f\t%f\t%d\t' % cheat_eval_dct[cid])
+        if 'no_go' not in clus_fname:
+            out.write('%d\t%s' % (len(cluster_go_terms),
+                '\t'.join(cluster_go_terms)))
+        out.write('\n')
     out.close()
 
 def generate_filenames():
