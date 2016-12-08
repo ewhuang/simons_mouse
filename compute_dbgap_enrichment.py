@@ -39,16 +39,18 @@ def get_sorted_fisher_dct(clus_genes):
         # Handle overflow issues.
         p_value = max(p_value, 1e-300)
 
-        fisher_dct[dbgap_label] = p_value
+        fisher_dct[(dbgap_label, clus_and_dbgap, clus_not_dbgap, dbgap_not_clus,
+            neither)] = p_value
 
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
-def compute_dbgap_enrichments(fname, cluster_dct):
+def compute_dbgap_enrichments(fname, cluster_dct, side_fname):
     '''
     Takes in a filename, a cluster dictionary, and a GO dictionary. Writes out
     to the filename the top 5 GO enrichments for each cluster.
     '''
     out = open(fname, 'w')
+    side =open(side_fname, 'w')
     # Loop through the clusters.
     for clus_id in cluster_dct:
         clus_genes = set(cluster_dct[clus_id])
@@ -57,21 +59,26 @@ def compute_dbgap_enrichments(fname, cluster_dct):
         
         # Get the log of the top 5 enrichment p-values.
         top_dbgap_terms, top_p_values = [], []
-        for (dbgap_term, p_value) in sorted_fisher_dct[:5]:
+        for ((dbgap_term, clus_and_dbgap, clus_not_dbgap, dbgap_not_clus,
+            neither), p_value) in sorted_fisher_dct[:5]:
             top_dbgap_terms += [dbgap_term]
             top_p_values += [str(p_value)]
+            side.write('%s\t%s\t%d\t%d\t%d\t%d\t%g\n' % (clus_id, dbgap_term,
+                clus_and_dbgap, clus_not_dbgap, dbgap_not_clus, neither,
+                p_value))
         out.write('Cluster %s\n' % clus_id)
         out.write('\t'.join(top_dbgap_terms) + '\n')
         out.write('\t'.join(top_p_values) + '\n')
+    side.close()
     out.close()
 
-def write_enrichment_files(in_fname, out_fname):
+def write_enrichment_files(in_fname, out_fname, side_fname):
     '''
     Takes in a cluster name, reads it, and writes to the out_fname.
     '''
     # Compute GO enrichment for networks without GO.
     cluster_dct = file_operations.get_cluster_dictionary(in_fname)
-    compute_dbgap_enrichments(out_fname, cluster_dct)
+    compute_dbgap_enrichments(out_fname, cluster_dct, side_fname)
 
 def main():
     if len(sys.argv) != 4:
@@ -117,7 +124,8 @@ def main():
             os.makedirs(subfolder)
         out_fname = '%s/dbgap_enrichment_terms_%s_%s.txt' % (subfolder, network,
             run_num)
-        write_enrichment_files(cluster_fname, out_fname)
+        side_fname = '%s/dbgap_f_table_%s_%s.txt' % (subfolder, network, run_num)
+        write_enrichment_files(cluster_fname, out_fname, side_fname)
 
 if __name__ == '__main__':
     start_time = time.time()

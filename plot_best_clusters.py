@@ -63,6 +63,8 @@ if __name__ == '__main__':
                     continue
                 # ratio = float(line[3]) # For wlogv_go, ratio is a p-value.
                 in_dens, out_dens = float(line[1]), float(line[2])
+                if in_dens == 0:
+                    continue
                 in_out_ratio = in_dens / (in_dens + out_dens)
                 top_enrichment_p = -math.log(float(line[dbgap_or_go]), 10)
                 point = (top_enrichment_p, in_out_ratio)
