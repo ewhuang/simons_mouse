@@ -73,6 +73,7 @@ def main():
                     num_clusters, data_type, data_type, network, network,
                     run_num, temp, data_type, objective_function, network,
                     network, run_num))
+    print command
     subprocess.call(command, shell=True)
 
 if __name__ == '__main__':

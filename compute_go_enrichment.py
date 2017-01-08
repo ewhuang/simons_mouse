@@ -21,6 +21,8 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
     Returns a dictionary, where keys=GO terms, values=p-values of Fisher's test
     GO enrichment for the set of genes in the cluster.
     '''
+    # TODO: Change the size of the cluster genes.
+    # clus_genes = gene_universe.intersection(clus_genes)
     # Keys are GO terms, and values are the enrichment p-values.
     fisher_dct = {}
     for go_label in go_dct:
@@ -29,6 +31,9 @@ def get_sorted_fisher_dct(clus_genes, go_dct):
         if (num_go_genes > config_dct['max_go_size'] or num_go_genes < 
             config_dct['min_go_size']):
             continue
+
+        # TODO: Change size of GO genes.
+        go_genes = gene_universe.intersection(go_genes)
 
         # Compute the four sets for Fisher's test.
         clus_and_go = len(clus_genes.intersection(go_genes))
@@ -102,7 +107,8 @@ def get_bp_dct(base_data_type):
 
 def main():
     if len(sys.argv) != 4:
-        print 'Usage:python %s data_type objective_function run_num' % sys.argv[0]
+        print ('Usage:python %s data_type objective_function '
+            'run_num' % sys.argv[0])
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
@@ -120,12 +126,18 @@ def main():
             data_type = file_operations.get_tcga_disease_list()[int(data_type)]
         base_data_type = data_type
 
+    # Grab the BP dictionary.
+    bp_dct = get_bp_dct(base_data_type)
+
     global gene_universe, config_dct
-    gene_universe = file_operations.get_high_std_genes(base_data_type)
+    # Gene universe is intersection of network genes and GO-labeled genes.
+    network_genes = file_operations.get_high_std_genes(base_data_type)
+    bp_labeled_genes = [gene for sublist in bp_dct.values() for gene in sublist]
+    # TODO: change the gene universe.
+    # gene_universe = set(network_genes).intersection(bp_labeled_genes)
+    gene_universe = set(network_genes)
 
     config_dct = file_operations.read_config_file(data_type)[run_num]
-
-    bp_dct = get_bp_dct(base_data_type)
 
     results_folder = './results/%s_results/%s' % (data_type, objective_function)
     
@@ -137,8 +149,7 @@ def main():
             cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
                 results_folder, network, network, run_num)
         out_fname = ('%s/cluster_enrichment_terms_%s/cluster_enrichment_terms_'
-                        '%s_%s.txt' % (results_folder, network, network,
-                            run_num))
+            '%s_%s.txt' % (results_folder, network, network, run_num))
         write_enrichment_files(cluster_fname, out_fname, bp_dct)
 
 if __name__ == '__main__':

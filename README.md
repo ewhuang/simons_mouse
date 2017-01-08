@@ -3,11 +3,11 @@ Author: Edward Huang
 
 ## TCGA Preprocessing
 
-1.  For TCGA data, before anything else, split the TCGA dataset into multiple
-    networks, each corresponding to a specific type of cancer.
+1.  Split the TCGA dataset into multiple networks, each corresponding to a
+    specific type of cancer.
     
     ```bash
-    $ python parse_tcga_dataset.py
+    $ python split_tcga_dataset.py
     ```
 
 ## Downloading GO annotations
@@ -24,12 +24,13 @@ Author: Edward Huang
 ## Creating the gene network
 
 1.  Plot the standard deviation distribution of the genes, and write to file.
+    Keeps only the top 15k genes.
 
     ```bash
     $ python standard_deviation_hist.py mouse/tcga
     ```
 
-    If input is 'tcga', runs for all TCGA cancer types.
+    If command line argument is 'tcga', runs for all TCGA cancer types.
 
 2.  Create GO dictionary JSON files for each gene type. Must run with argument
     mf_go_go to create the the MF GO-GO dictionary.
@@ -44,7 +45,7 @@ Author: Edward Huang
     $ python find_go_overlaps.py mouse/tcga
     ```
 
-4.  Compute pearson coefficients between gene expression values to find
+4.  Compute Pearson coefficients between gene expression values to find
     correlated genes. Output file is high_std_network.txt.
 
     ```bash
@@ -147,51 +148,41 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
     ```
 
 ## WGCNA Baseline
-1.  data_type can either be 'genes_only' or an integer denoting a TCGA disease.
+1.  Must have previously run split_tcga_dataset.py and standard_deviation_hist.py.
 
     ```bash
     cd wgcna/
-    $ python preprocess_WGCNA.py data_type genes_only/pca/mean/median
+    $ python preprocess_wgcna.py mouse/tcga
     ```
 
 2.  Move results from preprocessing to working directory of R. Run wgcna.R in
-    64-bit R. Move output (%s_module_membership_WGCNA.txt) to ./data. For TCGA,
-    run wgcna_tcga.R. Change line 14 to suit the type of cancer.
+    64-bit R (you can just copy paste the contents into the R shell). Move
+    output (%s_module_membership.txt) to ./wgcna/data. Change line 14 to suit
+    the data type.
+
+3.  This runs steps 4-6. network_num should be 1 for mouse, and 1 for TCGA.
+    This is because we optimized for mouse, and keep the same parameters for
+    TCGA.
 
     ```bash
     $ python full_pipeline_wgcna.py data_type genes_only/pca/... network_num
     ```
 
-    This runs steps 3-6. network_num should be 1 for mouse, and 1 for TCGA.
-    This is because we optimized for mouse, and keep the same parameters for
-    TCGA.
-
-3.
-    ```bash
-    $ python clean_wgcna_module_results.py data_type genes_only/pca/mean/median
-    ```
-
-4.  Pick the real network with which to evaluate (i.e., real_network_no_go_42.txt)
+4.  Pick the real network with which to evaluate (i.e., real_network_no_go_1.txt)
 
     ```bash
-    $python evaluate_clustering_wgcna.py data_type genes_only/pca/mean/median network_number
+    $python evaluate_clustering_wgcna.py data_type network_number
     ```
 
-5.
+5.  Computes label enrichments for the clusters created by WGCNA.
     ```bash
-    $ python compute_go_enrichment_wgcna.py data_type genes_only/pca/mean/median
+    $ python compute_label_enrichments_wgcna.py data_type go/dbgap
     ```
 
-6.
+6.  Summarize the results in a table.
     ```bash
-    $ python cluster_info_summary_wgcna.py data_type genes_only/pca/mean/median network_number
+    $ python cluster_info_summary_wgcna.py data_type
     ```
-
-7.
-    ```bash
-    $ python plot_indensity_vs_enrich_WGCNA.py genes_only/pca/mean/median bp/cc/mf
-    ```
-
 
 ## Edge weight prediction (deprecated)
 Find MGI id to ENSMUSG mappings: http://www.informatics.jax.org/. Find GO id to name mappings: http://geneontology.org/page/download-annotations

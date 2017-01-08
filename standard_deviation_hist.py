@@ -10,9 +10,8 @@ import time
 ### This script plots a histogram of the number of genes vs. standard deviation
 ### of their gene expression vectors. It also writes out to file the genes
 ### that have high standard deviation.
-### Run time: 12 seconds for mouse, 90 seconds for TCGA.
+### Run time: 18 seconds for mouse, 110 seconds for TCGA.
 
-# Chosen from examining the histogram.
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pylab
@@ -25,7 +24,7 @@ def plot_histogram(data_type, std_list):
 
     plt.xlabel('standard deviation')
     plt.ylabel('number of genes')
-    plt.title('number of genes vs. STD value')
+    plt.title('number of genes vs. STD')
     plt.show()
     pylab.savefig('./data/%s_data/gene_std_histogram.png' % data_type)
     plt.close()
@@ -33,8 +32,7 @@ def plot_histogram(data_type, std_list):
 # Writing out genes with high standard deviation.
 def write_genes_to_file(data_type, high_std_genes):
     out = open('./data/%s_data/high_std_genes.txt' % data_type, 'w')
-    for gene in high_std_genes:
-        out.write(gene + '\n')
+    out.write('\n'.join(high_std_genes))
     out.close()
 
 def main():
@@ -47,24 +45,17 @@ def main():
     if category == 'mouse':
         data_type_list = ['mouse']
     elif category == 'tcga':
-         data_type_list = file_operations.get_tcga_disease_list()
+        data_type_list = file_operations.get_tcga_disease_list()
 
-    # Loop through the data type list. data_type can be 'mouse' or any of the
-    # TCGA cancers.
+    # data_type can be 'mouse' or any of the TCGA cancers.
     for data_type in data_type_list:
         gene_expression_dct = file_operations.get_gene_expression_dct(data_type)
-        if data_type == 'mouse':
-            embedding_genes = file_operations.get_embedding_genes()
 
         # Compute standard deviations for each gene.
         std_list, high_std_gene_dct = [], {}
         for gene in gene_expression_dct:
-            if data_type == 'mouse' and gene not in embedding_genes:
-                continue
-            gene_exp_vector = gene_expression_dct[gene]
-
             # Transform back to non-log.
-            gene_exp_vector = [pow(2, val) for val in gene_exp_vector]
+            gene_exp_vector = [pow(2, val) for val in gene_expression_dct[gene]]
 
             # Compute standard deviation.
             gene_std = np.std(gene_exp_vector)

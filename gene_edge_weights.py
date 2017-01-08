@@ -11,7 +11,7 @@ import time
 ### every pair of genes, making an edge in the generated network if the
 ### coefficient exceeds a set threshold.
 ### Each line is "GENE_1\tGENE_2\tABS_PEARSON_SCORE".
-### Run time: 7 minutes.
+### Run time: 7 minutes. An hour and 40 minutes for TCGA datasets.
 
 def corrcoef(matrix):
     '''

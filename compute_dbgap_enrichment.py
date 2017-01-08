@@ -20,15 +20,21 @@ def get_sorted_fisher_dct(clus_genes):
     Returns a dictionary, where keys=GO terms, values=p-values of Fisher's test
     GO enrichment for the set of genes in the cluster.
     '''
+    # TODO: Change size of cluster genes.
+    # clus_genes = gene_universe.intersection(clus_genes)
+
     # Keys are GO terms, and values are the enrichment p-values.
     fisher_dct = {}
     for dbgap_label in dbgap_dct:
-        dbgap_genes = set(dbgap_dct[dbgap_label])
+        # TODO: Change size of DBGAP genes.
+        # dbgap_genes = set(dbgap_dct[dbgap_label])
+        dbgap_genes = gene_universe.intersection(dbgap_dct[dbgap_label])
 
         # Compute the four sets for Fisher's test.
         clus_and_dbgap = len(clus_genes.intersection(dbgap_genes))
         clus_not_dbgap = len(clus_genes.difference(dbgap_genes))
         dbgap_not_clus = len(dbgap_genes.difference(clus_genes))
+        # TODO: Change size of neither.
         neither = len(gene_universe) - len(dbgap_genes.union(clus_genes))
 
         # Run Fisher's test.
@@ -102,15 +108,20 @@ def main():
         base_data_type = data_type
 
     global gene_universe, dbgap_dct
-    gene_universe = file_operations.get_high_std_genes(base_data_type)
-
+    
     if 'mouse' in data_type:
         dbgap_dct = file_operations.read_dbgap_file()
     else:
         dbgap_dct = file_operations.read_ensg_dbgap_file(base_data_type)
 
-    # No GO network.
+    network_genes = file_operations.get_high_std_genes(base_data_type)
+    dbgap_labeled_genes = [gene for sublist in dbgap_dct.values(
+        ) for gene in sublist]
+    # TODO: Change size of gene universe.
+    # gene_universe = set(network_genes).intersection(dbgap_labeled_genes)
+    gene_universe = set(network_genes)
 
+    # No GO network.
     results_folder = './results/%s_results/%s' % (data_type, objective_function)
     for network in ['go', 'no_go']:
         if network == 'go':

@@ -29,15 +29,14 @@ if __name__ == '__main__':
     # 8 and 9 are the indices of GO and DBGAP enrichments, respectively.
     for dbgap_or_go in [4, 5]:
         highest_p = 0
-        colors = ['blue', 'purple', 'red', 'black', 'orange', 'green', 'yellow']
-        for mode_index, mode in enumerate(['wgcna', 'prosnet_go',
-            'prosnet_no_go', 'wlogv_no_go', 'wlogv_go']):
+        colors = ['blue', 'red', 'black']
+        for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go']):
             pts = []
 
             no_go_fname = 'clus_info_no_go/clus_info_no_go_%s.tsv' % run_num
             go_fname = 'clus_info_go/clus_info_go_%s.tsv' % run_num
 
-            if mode == 'wgcna':      
+            if mode == 'wgcna':
                 f = open('./wgcna/results/%s_results/genes_only/clus_info_'
                             'genes_only_bp.tsv' % data_type, 'r')
             elif mode == 'wlogv_go':
@@ -47,12 +46,12 @@ if __name__ == '__main__':
             elif mode == 'wlogv_no_go':
                 f = open('./results/%s_results/wlogv/' % data_type +
                     no_go_fname, 'r')                
-            elif mode == 'prosnet_go':
-                f = open('./results/prosnet_%s_results/wlogv/' % data_type +
-                    go_fname, 'r')
-            elif mode == 'prosnet_no_go':
-                f = open('./results/prosnet_%s_results/wlogv/' % data_type +
-                    no_go_fname, 'r')
+            # elif mode == 'prosnet_go':
+            #     f = open('./results/prosnet_%s_results/wlogv/' % data_type +
+            #         go_fname, 'r')
+            # elif mode == 'prosnet_no_go':
+            #     f = open('./results/prosnet_%s_results/wlogv/' % data_type +
+            #         no_go_fname, 'r')
 
             for i, line in enumerate(f):
                 if i == 0:

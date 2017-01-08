@@ -1,3 +1,7 @@
+# preprocess_wgcna.py
+# clean_wgcna_module_results.py
+# evaluate_clustering_wgcna.py
+# compute_go_enrichment_wgcna.py
 def get_tcga_disease_list():
     disease_list = []
     f = open('../data/tcga_data/tcga_diseases.txt', 'r')
@@ -6,65 +10,18 @@ def get_tcga_disease_list():
     f.close()
     return disease_list
 
-# compute_dbgap_enrichment_wgcna.py
-def read_dbgap_file():
+# preprocess_wgcna.py
+# compute_go_enrichment_wgcna.py
+def get_high_std_genes(data_type):
     '''
-    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
-    Key: DBGAP ID -> str
-    Value: list of ENSMUSG IDs -> list(str)
+    Retrieves the list of genes that have high standard deviations across their
+    gene expression vectors.
     '''
-    def get_ensg_to_ensmusg_dct():
-        '''
-        Gets a dictionary mapping ENSG ID's to their mouse homologs.
-        Key: ENSG ID -> str
-        Value: list of ENSMUSG IDs -> list(str)
-        '''
-        ensg_to_ensmusg_dct = {}
-        f = open('../data/mouse_data/mart_export.txt', 'r')
-        for i, line in enumerate(f):
-            # Skip header.
-            if i == 0:
-                continue
-            ensg_id, ensmusg_id = line.split()
-            if ensg_id in ensg_to_ensmusg_dct:
-                ensg_to_ensmusg_dct[ensg_id] += [ensmusg_id]
-            else:
-                ensg_to_ensmusg_dct[ensg_id] = [ensmusg_id]
-        f.close()
-        return ensg_to_ensmusg_dct
-
-    ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
-
-    dbgap_to_ensmusg_dct = {}
-
-    f = open('../data/dbgap.txt', 'r')
-    for i, line in enumerate(f):
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-        # Convert human to mouse homolog list.
-        if ensg_id not in ensg_to_ensmusg_dct:
-            continue
-        ensmusg_id_list = ensg_to_ensmusg_dct[ensg_id]
-
-        if dbgap_id in dbgap_to_ensmusg_dct:
-            dbgap_to_ensmusg_dct[dbgap_id] += ensmusg_id_list
-        else:
-            dbgap_to_ensmusg_dct[dbgap_id] = ensmusg_id_list
-
+    high_std_genes = []
+    f = open('../data/%s_data/high_std_genes.txt' % data_type, 'r')
+    for line in f:
+        gene = line.strip()
+        assert 'ENSMUSG' in gene or 'ENSG' in gene
+        high_std_genes += [gene]
     f.close()
-    return dbgap_to_ensmusg_dct
-
-def read_ensg_dbgap_file():
-    '''
-    Reads the dbgap dictionary for TCGA data.
-    '''
-    dbgap_to_ensg_dct = {}
-    f = open('../data/dbgap.txt', 'r')
-    for i, line in enumerate(f):
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-        if dbgap_id in dbgap_to_ensg_dct:
-            dbgap_to_ensg_dct[dbgap_id] += [ensg_id]
-        else:
-            dbgap_to_ensg_dct[dbgap_id] = [ensg_id]
-
-    f.close()
-    return dbgap_to_ensg_dct
+    return high_std_genes

@@ -7,7 +7,7 @@ import time
 
 ### Dumps two dictionaries, a BP and an MF dictionary, as json files.
 ### Run time: 50 seconds for mouse, 30 minutes for TCGA. MF GO-GO dictionary
-### takes less than a second.
+### takes 5 seconds.
 
 def get_go_dictionaries(folder_name):
     '''

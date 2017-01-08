@@ -8,26 +8,21 @@ import math
 def get_gene_expression_dct(data_type):
     '''
     Returns dictionary where keys are genes, and values are gene expression
-    vectors. data_type can be either mouse or any on of the TCGA diseases.
+    vectors. data_type can be either 'mouse' or any on of the TCGA diseases.
     '''
-    if data_type == 'mouse':
-        f = open('./data/mouse_data/mm_mrsb_log2_expression.tsv', 'r')
-    else:
-        f = open('./data/%s_data/expr.txt' % data_type, 'r')
+    f = open('./data/%s_data/expr.tsv' % data_type, 'r')
     gene_expression_dct = OrderedDict({})
     for i, line in enumerate(f):
         if i == 0:
             continue
         line = line.split()
-        gene, exp_vals = line[0], line[1:]
+        gene, exp_vals = line[0], map(float, line[1:])
         assert 'ENSMUSG' in gene or 'ENSG' in gene
-        exp_vals = [float(val) for val in exp_vals]
         assert gene not in gene_expression_dct
         gene_expression_dct[gene] = exp_vals
     f.close()
     return gene_expression_dct
 
-# standard_deviation_hist.py
 # convert_embedding_matrix_to_edge_file.py
 def get_embedding_genes():
     '''
@@ -215,6 +210,8 @@ def read_config_file(data_type):
     '''
     num_options = 8
     config_dct = {}
+    if 'prosnet' in data_type:
+        data_type = '_'.join(data_type.split('_')[1:])
     if 'mouse' in data_type:
         f = open('mouse_config.txt', 'r')
     else:
@@ -242,14 +239,22 @@ def read_config_file(data_type):
         elif config_num == 6:
             lamb = line.split()[2].strip()
             config_dct[run_num]['lamb'] = float(lamb)
-        elif config_num == 7:
-            num_clusters = line.split()[1].strip()
-            config_dct[run_num]['num_clusters'] = num_clusters
+        # elif config_num == 7:
+            # num_clusters = line.split()[1].strip()
+            # config_dct[run_num]['num_clusters'] = num_clusters
+        # Get the number of clusters from the WGCNA runs.
+        num_clusters = -1
+        wgcna_f = open('./wgcna/results/%s_results/genes_only/clus_info_genes_'
+            'only_bp.tsv' % data_type, 'r')
+        for line in wgcna_f:
+            num_clusters += 1
+        wgcna_f.close()
+        config_dct[run_num]['num_clusters'] = num_clusters
     f.close()
     return config_dct
 
-# full_pipeline.py
 # standard_deviation_hist.py
+# full_pipeline.py
 def get_tcga_disease_list():
     '''
     Get the list of valid diseases from the TCGA dataset.
