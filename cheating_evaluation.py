@@ -95,8 +95,8 @@ def get_best_go_per_cluster():
     Value: GO term best enriched in the cluster -> str
     '''
     best_go_dct = {}
-    f = open('./results/%s_results/%s/cluster_enrichment_terms_go/'
-        'cluster_enrichment_terms_go_%s.txt' % (data_type, objective_function,
+    f = open('./results/%s_results/%s/go_enrichment_terms_go/'
+        'go_enrichment_terms_go_%s.txt' % (data_type, objective_function,
             run_num))
     line = f.readline()
     while line != '':

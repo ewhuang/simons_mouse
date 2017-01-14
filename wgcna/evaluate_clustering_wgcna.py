@@ -1,6 +1,7 @@
 ### Author: Edward Huang
 
 import file_operations
+import os
 import subprocess
 import sys
 

@@ -140,8 +140,10 @@ def get_enrichment_dct(enrichment_fname):
             cid = line[1]
             # Skip two lines, and read in the top p-value.
             line = f.readline()
-            line = f.readline().split()
-            enrichment_dct[cid] = line[0]
+            term_list = line.split()
+            line = f.readline()
+            p_list = line.split()
+            enrichment_dct[cid] = (term_list, p_list)
     f.close()
     return enrichment_dct
 
@@ -208,8 +210,20 @@ def read_config_file(data_type):
     options. Each dct has key of subgraph_decimal, temp, min_go_size,
     max_go_size, pearson/embedding edges, lambda, num_clusters.
     '''
-    num_options = 8
+    num_options = 6
     config_dct = {}
+    
+    # Get the number of clusters from the WGCNA runs.
+    num_clusters = -1
+    try:
+        wgcna_f = open('./wgcna/results/%s_results/clus_info.tsv' %
+            data_type, 'r')
+        for line in wgcna_f:
+            num_clusters += 1
+        wgcna_f.close()
+    except:
+        pass
+
     if 'prosnet' in data_type:
         data_type = '_'.join(data_type.split('_')[1:])
     if 'mouse' in data_type:
@@ -222,33 +236,20 @@ def read_config_file(data_type):
             run_num = line.split(' ')[1].strip()
             config_dct[run_num] = {}
         elif config_num == 1:
-            subgraph_decimal = line.split()[0].strip()
-            config_dct[run_num]['subgraph_decimal'] = subgraph_decimal
-        elif config_num == 2:
             temp = line.split()[2].strip()
             config_dct[run_num]['temp'] = temp
-        elif config_num == 3:
+        elif config_num == 2:
             min_go_size = line.split()[2].strip()
             config_dct[run_num]['min_go_size'] = int(min_go_size)
-        elif config_num == 4:
+        elif config_num == 3:
             max_go_size = line.split()[2].strip()
             config_dct[run_num]['max_go_size'] = int(max_go_size)
-        elif config_num == 5:
+        elif config_num == 4:
             edge_method = line.strip()
             config_dct[run_num]['edge_method'] = edge_method
-        elif config_num == 6:
+        elif config_num == 5:
             lamb = line.split()[2].strip()
             config_dct[run_num]['lamb'] = float(lamb)
-        # elif config_num == 7:
-            # num_clusters = line.split()[1].strip()
-            # config_dct[run_num]['num_clusters'] = num_clusters
-        # Get the number of clusters from the WGCNA runs.
-        num_clusters = -1
-        wgcna_f = open('./wgcna/results/%s_results/genes_only/clus_info_genes_'
-            'only_bp.tsv' % data_type, 'r')
-        for line in wgcna_f:
-            num_clusters += 1
-        wgcna_f.close()
         config_dct[run_num]['num_clusters'] = num_clusters
     f.close()
     return config_dct
@@ -265,70 +266,3 @@ def get_tcga_disease_list():
         tcga_disease_list += [line.strip()]
     f.close()
     return tcga_disease_list
-
-# compute_dbgap_enrichment.py
-def read_dbgap_file():
-    '''
-    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
-    Key: DBGAP ID -> str
-    Value: list of ENSMUSG IDs -> list(str)
-    '''
-    def get_ensg_to_ensmusg_dct():
-        '''
-        Gets a dictionary mapping ENSG ID's to their mouse homologs.
-        Key: ENSG ID -> str
-        Value: list of ENSMUSG IDs -> list(str)
-        '''
-        ensg_to_ensmusg_dct = {}
-        f = open('./data/mouse_data/mart_export.txt', 'r')
-        for i, line in enumerate(f):
-            # Skip header.
-            if i == 0:
-                continue
-            ensg_id, ensmusg_id = line.split()
-            if ensg_id in ensg_to_ensmusg_dct:
-                ensg_to_ensmusg_dct[ensg_id] += [ensmusg_id]
-            else:
-                ensg_to_ensmusg_dct[ensg_id] = [ensmusg_id]
-        f.close()
-        return ensg_to_ensmusg_dct
-
-    ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
-
-    dbgap_to_ensmusg_dct = {}
-
-    f = open('./data/dbgap.txt', 'r')
-    for i, line in enumerate(f):
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-        # Convert human to mouse homolog list.
-        if ensg_id not in ensg_to_ensmusg_dct:
-            continue
-        ensmusg_id_list = ensg_to_ensmusg_dct[ensg_id]
-
-        if dbgap_id in dbgap_to_ensmusg_dct:
-            dbgap_to_ensmusg_dct[dbgap_id] += ensmusg_id_list
-        else:
-            dbgap_to_ensmusg_dct[dbgap_id] = ensmusg_id_list
-
-    f.close()
-    return dbgap_to_ensmusg_dct
-
-def read_ensg_dbgap_file(base_data_type):
-    '''
-    Reads the dbgap dictionary for TCGA data.
-    '''
-    dbgap_to_ensg_dct = {}
-    high_std_genes = get_high_std_genes(base_data_type)
-    f = open('./data/dbgap.txt', 'r')
-    for i, line in enumerate(f):
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-        if ensg_id not in high_std_genes:
-            continue
-
-        if dbgap_id in dbgap_to_ensg_dct:
-            dbgap_to_ensg_dct[dbgap_id] += [ensg_id]
-        else:
-            dbgap_to_ensg_dct[dbgap_id] = [ensg_id]
-
-    f.close()
-    return dbgap_to_ensg_dct

@@ -2,6 +2,7 @@
 
 import subprocess
 import sys
+import time
 
 ### This script runs the full pipeline after running WGCNA and placing the
 ### resulting file in ./wgcna/data/.
@@ -15,21 +16,22 @@ def main():
     assert data_type == 'mouse' or data_type.isdigit()
     assert network_num.isdigit()
 
-    command = 'python clean_wgcna_module_results.py %s' % data_type
-    subprocess.call(command, shell=True)
-
     command = 'python evaluate_clustering_wgcna.py %s %s' % (data_type,
         network_num)
+    print command
     subprocess.call(command, shell=True)
 
-    command = 'python compute_label_enrichments_wgcna.py %s go' % data_type
-    subprocess.call(command, shell=True)
-
-    command = 'python compute_label_enrichments_wgcna.py %s dbgap' % data_type
-    subprocess.call(command, shell=True)
+    for label in ['go', 'dbgap']:
+        command = 'python compute_label_enrichments_wgcna.py %s %s' % (
+            data_type, label)
+        print command
+        subprocess.call(command, shell=True)
 
     command = 'python cluster_info_summary_wgcna.py %s' % data_type
+    print command
     subprocess.call(command, shell=True)
 
 if __name__ == '__main__':
+    start_time = time.time()
     main()
+    print("Full pipeline took %s seconds..." % (time.time() - start_time))

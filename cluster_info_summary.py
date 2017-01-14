@@ -1,11 +1,16 @@
 ### Author: Edward Huang
 
 import file_operations
+import os
 import sys
 import time
 
 ### Generates readable, tab-separated file to provide information on the
 ### clusters generated from the simulated annealing experiments.
+
+subfolder = './results/plots_and_tables'
+if not os.path.exists(subfolder):
+    os.makedirs(subfolder)
 
 def read_cheat_evaluation():
     '''
@@ -47,11 +52,11 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
 
     # Write out to file.
     out = open(out_fname, 'w')
-    # out.write('num_genes_in_net\tnum_g_g_net\tnum_g_go_net\n')
-    # out.write('%s\t%d\t%d\n' % (num_genes_net, num_gg_net, num_ggo_net))
     
-    out.write('Cluster ID\tIn-Density\tOut-Density\tNumber of genes\t'
-        'Top GO enrichment p-value\tTop DBGAP enrichment p-value\t')
+    out.write('Cluster ID\tIn-Density\tOut-Density\tIn/(In+Out)\t'
+        'Number of genes\t1st GO p-value\t1st GO term\t2nd GO p-value\t'
+        '2nd GO term\t3rd GO p-value\t3rd GO term\t4th GO p-value\t4th GO term'
+        '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\t')
     # If it's a regular run with GO, add in the cheating evaluation.
     if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
         out.write('t-test p-value\tLabeled mean\tLabeled variance\t'
@@ -70,8 +75,16 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
                 cluster_go_terms += [node]
         in_dens, out_dens = density_dct[cid]
 
-        out.write('%s\t%g\t%g\t%d\t%s\t%s\t' % (cid, in_dens, out_dens,
-            num_genes, go_enrichment_dct[cid], dbgap_enrichment_dct[cid]))
+        interleaved_terms_and_p = '\t'.join([val for pair in zip(
+            go_enrichment_dct[cid][1], go_enrichment_dct[cid][0]
+            ) for val in pair])
+
+        best_dbgap_p = dbgap_enrichment_dct[cid][1][0]
+        best_dbgap_term = dbgap_enrichment_dct[cid][0][0]
+
+        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\t' % (cid, in_dens, out_dens,
+            in_dens / (in_dens + out_dens), num_genes, interleaved_terms_and_p,
+            best_dbgap_p, best_dbgap_term))
 
         if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
             out.write('%f\t%f\t%f\t%d\t%f\t%f\t%d\t' % cheat_eval_dct[cid])
@@ -100,8 +113,8 @@ def generate_filenames():
         eval_fname = '%s/cluster_eval_%s/cluster_eval_%s_%s.txt' % format_str
 
         # GO enrichment results filename.
-        go_enrich_fname = ('%s/cluster_enrichment_terms_%s/cluster_enrichment'
-                            '_terms_%s_%s.txt') % format_str
+        go_enrich_fname = ('%s/go_enrichment_terms_%s/go_enrichment_terms_%s_'
+                            '%s.txt') % format_str
 
         # DBGAP enrichment results filename.
         dbgap_enrich_fname = ('%s/dbgap_enrichment_terms_%s/dbgap_enrichment_'
@@ -112,6 +125,9 @@ def generate_filenames():
 
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
             dbgap_enrich_fname, out_fname)
+        write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
+            dbgap_enrich_fname, '%s/%s_%s.tsv' % (subfolder, data_type,
+                network_type))
 
 def main():
     if len(sys.argv) != 4:

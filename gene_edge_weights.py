@@ -53,14 +53,19 @@ def create_sorted_edge_dct(high_std_genes, gene_exp_matrix):
         gene_a = high_std_genes[row_idx]
         for col_idx, pcc in enumerate(row):
             # Skip duplicate edges. We only save one copy of each edge.
-            if col_idx <= row_idx or pcc < 0.5 or pcc == 1:
+            if col_idx <= row_idx or pcc == 1 or pcc < 0.4:
                 continue
             # Write out gene information.
             gene_b = high_std_genes[col_idx]
             edge_dct[(gene_a, gene_b)] = abs(pcc)
     # Get the top one million edge weights.
+    # max_num_edges = int(len(edge_dct) * 0.05)
     sorted_edge_dct = sorted(edge_dct.items(), key=operator.itemgetter(1),
-        reverse=True)[:int(1.5e6)]
+        reverse=True)[:int(1e6)]
+
+    #TODO: Find p-value of worst gene pair.
+    # gene_a, gene_b = sorted_edge_dct[-1][0]
+    # print len(sorted_edge_dct)#, p[high_std_genes.index(gene_a)][high_std_genes.index(gene_b)]
     return sorted_edge_dct
 
 def write_sorted_edge_dct(sorted_edge_dct, folder_name):

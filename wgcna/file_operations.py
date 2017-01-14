@@ -1,7 +1,7 @@
 # preprocess_wgcna.py
 # clean_wgcna_module_results.py
 # evaluate_clustering_wgcna.py
-# compute_go_enrichment_wgcna.py
+# compute_label_enrichments.py
 def get_tcga_disease_list():
     disease_list = []
     f = open('../data/tcga_data/tcga_diseases.txt', 'r')
@@ -11,7 +11,7 @@ def get_tcga_disease_list():
     return disease_list
 
 # preprocess_wgcna.py
-# compute_go_enrichment_wgcna.py
+# compute_label_enrichments.py
 def get_high_std_genes(data_type):
     '''
     Retrieves the list of genes that have high standard deviations across their

@@ -11,97 +11,124 @@ import numpy as np
 ### from Sheng's prediction networks.
 
 matplotlib.use('Agg')
-THRESHOLD_MULT = 0.8
 import matplotlib.pyplot as plt
 import pylab
 
+def get_auc(pts):
+    '''
+    Gets the AUC curve for a list of points. For each threshold of p-values (x-
+    axis), y-axis is the number of points that has a lower p-value.
+    '''
+    auc_pts = []
+    # Get the sorted p-values in our list of points.
+    p_values = sorted([pt[0] for pt in pts])
+    num_pts = len(pts)
+    for i in range(len(p_values)):
+        p_value = p_values[i]
+        num_better = num_pts - i
+        auc_pts += [(p_value, num_better)]
+    return auc_pts
+
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print 'Usage: %s data_type run_num' % sys.argv[0]
+    if len(sys.argv) != 4:
+        print 'Usage: %s data_type run_num plot_type' % sys.argv[0]
         exit()
-    data_type, run_num = sys.argv[1:]
-    assert data_type == 'mouse' or data_type.isdigit()
-    assert run_num.isdigit()
+    data_type, run_num, plot_type = sys.argv[1:]
+    assert (data_type == 'mouse' or data_type.isdigit()) and run_num.isdigit()
+    assert plot_type in ['go', 'dbgap', 'go_auc']
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+    print data_type
 
-    # 8 and 9 are the indices of GO and DBGAP enrichments, respectively.
-    for dbgap_or_go in [4, 5]:
-        highest_p = 0
-        colors = ['blue', 'red', 'black']
-        for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go']):
-            pts = []
+    colors, mode_marker_list = ['blue', 'red', 'black'], ['<', 'v', 'o']
 
-            no_go_fname = 'clus_info_no_go/clus_info_no_go_%s.tsv' % run_num
-            go_fname = 'clus_info_go/clus_info_go_%s.tsv' % run_num
+    highest_p, highest_y = 0, 0
+    for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go']):
+        pts = []
 
-            if mode == 'wgcna':
-                f = open('./wgcna/results/%s_results/genes_only/clus_info_'
-                            'genes_only_bp.tsv' % data_type, 'r')
-            elif mode == 'wlogv_go':
-                f = open('./results/%s_results/wlogv/' % data_type + go_fname,
-                    'r')
-                cheating_pts = []
-            elif mode == 'wlogv_no_go':
-                f = open('./results/%s_results/wlogv/' % data_type +
-                    no_go_fname, 'r')                
-            # elif mode == 'prosnet_go':
-            #     f = open('./results/prosnet_%s_results/wlogv/' % data_type +
-            #         go_fname, 'r')
-            # elif mode == 'prosnet_no_go':
-            #     f = open('./results/prosnet_%s_results/wlogv/' % data_type +
-            #         no_go_fname, 'r')
+        if mode == 'wgcna':
+            fname = './wgcna/results/%s_results/clus_info.tsv' % data_type
+        elif mode == 'wlogv_go':
+            fname = ('./results/%s_results/wlogv/clus_info_go/clus_info_go_'
+                '%s.tsv' % (data_type, run_num))
+            cheating_pts = []
+        elif mode == 'wlogv_no_go':
+            fname = ('./results/%s_results/wlogv/clus_info_no_go/clus_info_'
+                'no_go_%s.tsv' % (data_type, run_num))
 
-            for i, line in enumerate(f):
-                if i == 0:
-                    continue
-                line = line.split()
-                # Skip the clusters with fewer than 50 genes.
-                if int(line[3]) < 10:
-                    continue
-                # ratio = float(line[3]) # For wlogv_go, ratio is a p-value.
-                in_dens, out_dens = float(line[1]), float(line[2])
-                if in_dens == 0:
-                    continue
-                in_out_ratio = in_dens / (in_dens + out_dens)
-                top_enrichment_p = -math.log(float(line[dbgap_or_go]), 10)
-                point = (top_enrichment_p, in_out_ratio)
-                # Add the point to the cheating_pts if the genes labeled by
-                # the best enriched GO term have significantly worse means
-                # than those not labeled.
-                if mode == 'wlogv_go' and float(line[6]) < 1e-5 and float(
-                    line[7]) < float(line[10]):
-                    cheating_pts += [point]
-                else:
-                    pts += [point]
-            f.close()
-            highest_p = max(highest_p, max(pt[0] for pt in pts))
+        f = open(fname, 'r')
+        for i, line in enumerate(f):
+            if i == 0:
+                continue
+            line = line.split()
+            # Skip the clusters with fewer than 10 genes.
+            if int(line[4]) < 30:
+                continue
 
-            plt.scatter(*zip(*pts), color=colors[mode_index], label=mode)
-            if mode == 'wlogv_go':
-                if len(cheating_pts) == 0:
-                    continue
-                plt.scatter(*zip(*cheating_pts), color=colors[mode_index],
-                    label=mode, marker='x')                
+            if plot_type == 'dbgap':
+                enrichment_p = line[15]
+            else:
+                enrichment_p = line[5]
+            top_enrichment_p = -math.log(float(enrichment_p), 10)
+            point = (top_enrichment_p, float(line[3]))
 
-            # Horizontal line of THRESHOLD_MULT * median of WGCNA's ratios.
-            if mode == 'wgcna':
-                med_in_dens = np.median([pt[1] for pt in pts]) * THRESHOLD_MULT
-                plt.axhline(med_in_dens)
+            # Add the point to the cheating_pts if the genes labeled by
+            # the best enriched GO term have significantly worse means
+            # than those not labeled.
+            if mode == 'wlogv_go' and float(line[17]) < 1e-5 and float(line[18]
+                ) < float(line[21]):
+                cheating_pts += [point]
+            else:
+                pts += [point]
+        f.close()
 
-        plt.axvline(10)
-        plt.title('Cluster in-densities vs. Best enrichment p-values')
-        plt.xlabel('negative log of lowest GO enrichment p-value')
-        plt.ylabel('in-density/(in-density + out-density)')
-        plt.legend(loc='lower right')
-        plt.ylim(0, 1.2)
-        plt.xlim(0, highest_p * 1.2)
-        plt.show()
+        # Plot AUC points.
+        if 'auc' in plot_type:
+            pts = get_auc(pts)
 
-        folder = './results/%s_results/comparison_plots' % data_type
-        if dbgap_or_go == 4:
-            pylab.savefig('%s/go_comparison_plot_%s.png' % (folder, run_num))
+        # Update the largest y-axis value.
+        highest_p = max(highest_p, max(pt[0] for pt in pts))
+        highest_y = max(highest_y, max(pt[1] for pt in pts))
+        num_high_points = len([p for p in pts if p[0] >= 10])
+
+        mode_label = '%s, %d' % (mode, num_high_points)
+        if 'auc' in plot_type:
+            plt.plot(*zip(*pts), color=colors[mode_index], label=mode_label)
         else:
-            pylab.savefig('%s/dbgap_comparison_plot_%s.png' % (folder, run_num))
-        plt.close()
+            plt.scatter(*zip(*pts), color=colors[mode_index], label=mode_label,
+                marker=mode_marker_list[mode_index])
+
+        # Plot the cheating clusters.
+        if mode == 'wlogv_go' and 'auc' not in plot_type:
+            if len(cheating_pts) == 0:
+                continue
+            num_high_points = len([p for p in cheating_pts if p[0] >= 10])
+            mode_label = mode + ', %d' % num_high_points
+            plt.scatter(*zip(*cheating_pts), color=colors[mode_index],
+                label='cheating ' + mode_label, marker='x')
+        # Horizontal line of 0.8 * median of WGCNA cluster ratios.
+        elif mode == 'wgcna' and 'auc' not in plot_type:
+            plt.axhline(np.median([pt[1] for pt in pts]) * 0.8)
+
+    # Construct the plot details.
+    plt.axvline(10)
+    plt.title('Cluster in-densities vs. Best enrichment p-values')
+    plt.xlabel('negative log of lowest GO enrichment p-value')
+    plt.ylabel('in-density/(in-density + out-density)')
+    if 'auc' in plot_type:
+        plt.legend(loc='upper right')
+    else:
+        plt.legend(loc='lower right')
+    plt.ylim(0, highest_y * 1.1)
+    plt.xlim(0, highest_p * 1.2)
+    plt.show()
+
+    # Save extra plots in the compiled results folder.
+    if plot_type in ['go', 'go_auc']:
+        pylab.savefig('./results/plots_and_tables/%s_%s.png' % (data_type,
+            plot_type))
+
+    folder = './results/%s_results/comparison_plots' % data_type
+    pylab.savefig('%s/%s_comparison_plot_%s.png' % (folder, plot_type, run_num))
+    plt.close()

@@ -3,21 +3,25 @@
 import file_operations
 import json
 import operator
+import os
 from scipy.stats import fisher_exact
 import sys
 import time
 
-### This script calculates the enrichment score for each cluster using Fisher's
-### exact test. Writes out a file, where each cluster shows the five label terms
-### that are the most highly enriched for each cluster, along with their
-### p-values.
-### Run time: 52 seconds.
+### This script calculates the GO enrichment score for each clustering
+### result. For each method, for every cluster, for every possible GO
+### label's related genes, compute Fisher's test. Thus, for every cluster,
+### obtain the lowest possible p-value corresponding to that cluster's
+### most related GO label. These p-values (GO enrichments) should improve
+### as a whole going from coexpression network to GO network without
+### sacrificing in-density.
+### Run time: 2 minutes.
 
-def get_bp_dct():
+def get_bp_dct(base_data_type):
     '''
    Gets the BP dictionary.
     '''
-    with open('../data/%s_data/bp_dct.json' % (data_type), 'r') as fp:
+    with open('./data/%s_data/bp_dct.json' % base_data_type, 'r') as fp:
         bp_dct = json.load(fp)
     fp.close()
     return bp_dct
@@ -35,7 +39,7 @@ def read_dbgap_file():
         Value: list of ENSMUSG IDs -> list(str)
         '''
         ensg_to_ensmusg_dct = {}
-        f = open('../data/mouse_data/mart_export.txt', 'r')
+        f = open('./data/mouse_data/mart_export.txt', 'r')
         for i, line in enumerate(f):
             # Skip header.
             if i == 0:
@@ -51,7 +55,7 @@ def read_dbgap_file():
         ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
 
     dbgap_to_gene_dct = {}
-    f = open('../data/dbgap.txt', 'r')
+    f = open('./data/dbgap.txt', 'r')
     for line in f:
         dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
 
@@ -70,30 +74,6 @@ def read_dbgap_file():
         dbgap_to_gene_dct[dbgap_id] += value
     f.close()
     return dbgap_to_gene_dct
-
-def get_cluster_dictionary():
-    '''
-    Returns a dictionary of clusters.
-    Key: cluster ID -> str
-    Value: lists of genes in the cluster-> list(str)
-    '''
-    cluster_wgcna_dct = {}
-    f = open('./results/%s_results/clusters.txt' % data_type, 'r')
-    # Read in the cluster file to create the cluster dictionary.
-    for i, line in enumerate(f):
-        if i == 0:
-            continue
-        newline = line.strip().split('\t')
-        cluster_id = newline[2][len('Cluster '):]
-        # Skip trashcan clusters.
-        if cluster_id == '0':
-            continue
-        gene = newline[1][len('Gene '):]
-        if cluster_id not in cluster_wgcna_dct:
-            cluster_wgcna_dct[cluster_id] = []
-        cluster_wgcna_dct[cluster_id] += [gene]
-    f.close()
-    return cluster_wgcna_dct
 
 def get_sorted_fisher_dct(clus_genes, label_dct):
     '''
@@ -119,24 +99,24 @@ def get_sorted_fisher_dct(clus_genes, label_dct):
         f_table = ([[clus_and_label, clus_not_label], [label_not_clus,
             neither]])
         o_r, p_value = fisher_exact(f_table, alternative='greater')
-        if label == 'SRP-dependent_cotranslational_protein_targeting_to_membrane':
-            print f_table, p_value
+        # Handle overflow issues.
         fisher_dct[label] = max(p_value, 1e-300)
 
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
-def compute_label_enrichments(label_dct, cluster_wgcna_dct):
+def compute_label_enrichments(in_fname, out_fname, label_dct):
     '''
-    Write out the label enrichments for each cluster.
+    Takes in a cluster name, reads it, and writes to the out_fname.
     '''
-    out = open('./results/%s_results/%s_enrichment_terms.txt' % (data_type,
-        label_type), 'w')
+    cluster_dct = file_operations.get_cluster_dictionary(in_fname)
+    out = open(out_fname, 'w')
     # Loop through the clusters.
-    for clus_id in cluster_wgcna_dct:
-        clus_genes = set(cluster_wgcna_dct[clus_id])
+    for clus_id in cluster_dct:
+        clus_genes = set(cluster_dct[clus_id])
 
         sorted_fisher_dct = get_sorted_fisher_dct(clus_genes, label_dct)
-
+        
+        # Get the log of the top 5 enrichment p-values.
         top_label_terms, top_p_values = [], []
         for (label_term, p_value) in sorted_fisher_dct[:5]:
             top_label_terms += [label_term]
@@ -146,31 +126,57 @@ def compute_label_enrichments(label_dct, cluster_wgcna_dct):
     out.close()
 
 def main():
-    if len(sys.argv) != 3:
-        print 'Usage: %s data_type go/dbgap' % sys.argv[0]
+    if len(sys.argv) != 5:
+        print ('Usage:python %s data_type objective_function run_num '
+            'label_type' % sys.argv[0])
         exit()
-    global data_type, gene_universe, label_type
-    data_type, label_type = sys.argv[1:]
-    assert data_type == 'mouse' or data_type.isdigit()
+    global data_type, objective_function, run_num, gene_universe, label_type
+    data_type, objective_function, run_num, label_type = sys.argv[1:]
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
+    assert run_num.isdigit()
     assert label_type in ['go', 'dbgap']
 
-    if data_type.isdigit():
-        data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+    if 'prosnet_' in data_type:
+        base_data_type = data_type.split('_')[1]
+        if base_data_type.isdigit():
+            base_data_type = file_operations.get_tcga_disease_list()[int(
+                base_data_type)]
+        data_type = 'prosnet_' + base_data_type
+    else:
+        if data_type.isdigit():
+            data_type = file_operations.get_tcga_disease_list()[int(data_type)]
+        base_data_type = data_type
 
+    # Grab the BP dictionary.
     if label_type == 'go':
-        label_dct = get_bp_dct()
+        label_dct = get_bp_dct(base_data_type)
     else:
         label_dct = read_dbgap_file()
 
-    network_genes = file_operations.get_high_std_genes(data_type)
-    # labeled_genes = [gene for sublist in label_dct.values() for gene in sublist]
-    
-    # TODO: Switch up gene universe.
+    # Gene universe is intersection of network genes and GO-labeled genes.
+    network_genes = file_operations.get_high_std_genes(base_data_type)
+    # bp_labeled_genes = [gene for sublist in bp_dct.values() for gene in sublist]
+    # TODO: change the gene universe.
     # gene_universe = set(network_genes).intersection(bp_labeled_genes)
     gene_universe = set(network_genes)
 
-    cluster_wgcna_dct = get_cluster_dictionary()
-    compute_label_enrichments(label_dct, cluster_wgcna_dct)
+    results_folder = './results/%s_results/%s' % (data_type, objective_function)    
+    for network in ['go', 'no_go']:
+        if network == 'go':
+            cluster_fname = '%s/clusters_%s/clusters_%s_clean_%s.txt' % (
+                results_folder, network, network, run_num)
+        else:
+            cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
+                results_folder, network, network, run_num)
+                    
+        subfolder = '%s/%s_enrichment_terms_%s' % (results_folder,
+            label_type, network)
+        if not os.path.exists(subfolder):
+            os.makedirs(subfolder)
+
+        out_fname = ('%s/%s_enrichment_terms_%s_%s.txt' % (
+            subfolder, label_type, network, run_num))
+        compute_label_enrichments(cluster_fname, out_fname, label_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

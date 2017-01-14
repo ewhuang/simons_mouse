@@ -30,6 +30,7 @@ def get_cluster_dictionary():
             cluster_wgcna_dct[cluster] = []
         cluster_wgcna_dct[cluster] += [gene]
     f.close()
+    print len(cluster_wgcna_dct)
     return cluster_wgcna_dct
 
 def get_density_dct():
@@ -66,10 +67,38 @@ def get_enrichment_dct(label_type):
             cid = line[1]
             # Skip two lines, and read in the top p-value.
             line = f.readline()
-            line = f.readline().split()
-            enrichment_dct[cid] = line[0]
+            term_list = line.split()
+            line = f.readline()
+            p_list = line.split()
+            enrichment_dct[cid] = (term_list, p_list)
     f.close()
     return enrichment_dct
+
+def write_summary(out_fname, density_dct, cluster_wgcna_dct, go_enrichment_dct,
+    dbgap_enrichment_dct):
+    # Write out to file.
+    out = open(out_fname, 'w')
+    out.write('Cluster ID\tIn-Density\tOut-Density\tIn/(In+Out)\t'
+        'Number of genes\t1st GO p-value\t1st GO term\t2nd GO p-value\t'
+        '2nd GO term\t3rd GO p-value\t3rd GO term\t4th GO p-value\t4th GO term'
+        '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\n')
+    # Loop through the clusters of genes.
+    for cid in sorted(cluster_wgcna_dct.keys(), key=lambda x: int(x)):
+        clus = cluster_wgcna_dct[cid]
+        in_dens, out_dens = density_dct[cid]
+
+        interleaved_terms_and_p = '\t'.join([val for pair in zip(
+            go_enrichment_dct[cid][1], go_enrichment_dct[cid][0]
+            ) for val in pair])
+
+        best_dbgap_p = dbgap_enrichment_dct[cid][1][0]
+        best_dbgap_term = dbgap_enrichment_dct[cid][0][0]
+
+        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\n' % (cid, in_dens, out_dens,
+            in_dens / (in_dens + out_dens), len(clus), interleaved_terms_and_p,
+            best_dbgap_p, best_dbgap_term))
+    out.close()
+
 
 def main():
     if len(sys.argv) != 2:
@@ -88,17 +117,10 @@ def main():
     cluster_wgcna_dct = get_cluster_dictionary()
     density_dct = get_density_dct()
 
-    # Write out to file.
-    out = open('./results/%s_results/clus_info.tsv' % data_type, 'w')
-    out.write('Cluster ID\tIn-Density\tOut-Density\tNumber of genes\t'
-        'Top GO enrichment p-value\tTop DBGAP enrichment p-value\n')
-    # Loop through the clusters of genes.
-    for cid in sorted(cluster_wgcna_dct.keys(), key=lambda x: int(x)):
-        clus = cluster_wgcna_dct[cid]
-        in_dens, out_dens = density_dct[cid]
-        out.write('%s\t%g\t%g\t%d\t%s\t%s\n' % (cid, in_dens, out_dens,
-            len(clus), go_enrichment_dct[cid], dbgap_enrichment_dct[cid]))
-    out.close()
+    write_summary('./results/%s_results/clus_info.tsv' % data_type, density_dct,
+        cluster_wgcna_dct, go_enrichment_dct, dbgap_enrichment_dct)
+    write_summary('../results/plots_and_tables/%s_wgcna.tsv' % data_type,
+        density_dct, cluster_wgcna_dct, go_enrichment_dct, dbgap_enrichment_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

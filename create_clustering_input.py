@@ -39,8 +39,7 @@ def write_dca_gene_file(edge_genes):
         os.makedirs(dca_no_go_subfolder)
 
     dca_genes_out = open('%s/dca_genes_no_go_%s.txt' % (dca_no_go_subfolder,
-        run_num),
-        'w')
+        run_num), 'w')
     # Write out the genes in its own file.
     for gene in edge_genes:
         dca_genes_out.write('%s\tA\n' % gene)
@@ -219,7 +218,8 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
 
 def main():
     if len(sys.argv) not in [3, 4]:
-        print 'Usage:python %s mouse/tcga_cancer_index run_num -b <bootstrap>' % sys.argv[0]
+        print ('Usage:python %s mouse/tcga_cancer_index run_num -b<bootstrap>'
+            % sys.argv[0])
         exit()
     global data_type, run_num, bootstrap, lamb, max_go_size, min_go_size
     data_type = sys.argv[1]
