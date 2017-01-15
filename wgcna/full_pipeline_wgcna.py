@@ -21,7 +21,7 @@ def main():
     print command
     subprocess.call(command, shell=True)
 
-    for label in ['go', 'dbgap']:
+    for label in ['go', 'dbgap', 'gwas']:
         command = 'python compute_label_enrichments_wgcna.py %s %s' % (
             data_type, label)
         print command

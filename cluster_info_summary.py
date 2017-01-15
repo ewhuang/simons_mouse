@@ -31,7 +31,7 @@ def read_cheat_evaluation():
     return cheat_eval_dct
 
 def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname, 
-    dbgap_enrich_fname, out_fname):
+    dbgap_enrich_fname, gwas_enrich_fname, out_fname):
     '''
     Reads each of the files, and creates a summary table suitable for reading.
     '''
@@ -46,6 +46,7 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
     go_enrichment_dct = file_operations.get_enrichment_dct(go_enrich_fname)
     dbgap_enrichment_dct = file_operations.get_enrichment_dct(
         dbgap_enrich_fname)
+    gwas_enrichment_dct = file_operations.get_enrichment_dct(gwas_enrich_fname)
 
     if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
         cheat_eval_dct = read_cheat_evaluation()
@@ -56,7 +57,8 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
     out.write('Cluster ID\tIn-Density\tOut-Density\tIn/(In+Out)\t'
         'Number of genes\t1st GO p-value\t1st GO term\t2nd GO p-value\t'
         '2nd GO term\t3rd GO p-value\t3rd GO term\t4th GO p-value\t4th GO term'
-        '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\t')
+        '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\t'
+        'Top GWAS p-value\tTop GWAS term\t')
     # If it's a regular run with GO, add in the cheating evaluation.
     if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
         out.write('t-test p-value\tLabeled mean\tLabeled variance\t'
@@ -82,9 +84,13 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
         best_dbgap_p = dbgap_enrichment_dct[cid][1][0]
         best_dbgap_term = dbgap_enrichment_dct[cid][0][0]
 
-        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\t' % (cid, in_dens, out_dens,
-            in_dens / (in_dens + out_dens), num_genes, interleaved_terms_and_p,
-            best_dbgap_p, best_dbgap_term))
+        best_gwas_p = gwas_enrichment_dct[cid][1][0]
+        best_gwas_term = gwas_enrichment_dct[cid][0][0]
+
+        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\t%s\t%s\t' % (cid, in_dens,
+            out_dens, in_dens / (in_dens + out_dens), num_genes,
+            interleaved_terms_and_p, best_dbgap_p, best_dbgap_term, best_gwas_p,
+            best_gwas_term))
 
         if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
             out.write('%f\t%f\t%f\t%d\t%f\t%f\t%d\t' % cheat_eval_dct[cid])
@@ -120,14 +126,18 @@ def generate_filenames():
         dbgap_enrich_fname = ('%s/dbgap_enrichment_terms_%s/dbgap_enrichment_'
                                 'terms_%s_%s.txt') % format_str
 
+        # GWAS enrichment results filename.
+        gwas_enrich_fname = ('%s/gwas_enrichment_terms_%s/gwas_enrichment_'
+                                'terms_%s_%s.txt') % format_str
+
         # Finally, the output filename.
         out_fname = '%s/clus_info_%s/clus_info_%s_%s.tsv' % format_str
 
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
-            dbgap_enrich_fname, out_fname)
+            dbgap_enrich_fname, gwas_enrich_fname, out_fname)
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
-            dbgap_enrich_fname, '%s/%s_%s.tsv' % (subfolder, data_type,
-                network_type))
+            dbgap_enrich_fname, gwas_enrich_fname, '%s/%s_%s.tsv' % (subfolder,
+                data_type, network_type))
 
 def main():
     if len(sys.argv) != 4:

@@ -38,7 +38,7 @@ def main():
     subprocess.call(command, shell=True)
 
     # Computing label enrichments.
-    for label_type in ['go', 'dbgap']:
+    for label_type in ['go', 'dbgap', 'gwas']:
         command = 'python compute_label_enrichments.py %s %s %s ' % (
             clus_format_str)
         command += label_type
@@ -56,7 +56,7 @@ def main():
     subprocess.call(command, shell=True)
 
     # Plotting.
-    for plot_type in ['go', 'go_auc', 'dbgap']:
+    for plot_type in ['go', 'go_auc', 'dbgap', 'gwas']:
         command = 'python plot_best_clusters.py %s %s %s' % (data_type, run_num,
             plot_type)
         print command

@@ -13,63 +13,20 @@ import time
 ### p-values.
 ### Run time: 52 seconds.
 
-def get_bp_dct():
+def get_label_dct():
     '''
-   Gets the BP dictionary.
+    Gets the annotation dictionary.
     '''
-    with open('../data/%s_data/bp_dct.json' % (data_type), 'r') as fp:
-        bp_dct = json.load(fp)
+    if label_type == 'go':
+        fname = 'bp_dct'
+    elif label_type == 'dbgap':
+        fname = 'dbgap_dct'
+    elif label_type == 'gwas':
+        fname = 'gwas_dct'
+    with open('../data/%s_data/%s.json' % (data_type, fname), 'r') as fp:
+        label_dct = json.load(fp)
     fp.close()
-    return bp_dct
-
-def read_dbgap_file():
-    '''
-    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
-    Key: DBGAP ID -> str
-    Value: list of ENSMUSG IDs -> list(str)
-    '''
-    def get_ensg_to_ensmusg_dct():
-        '''
-        Gets a dictionary mapping ENSG ID's to their mouse homologs.
-        Key: ENSG ID -> str
-        Value: list of ENSMUSG IDs -> list(str)
-        '''
-        ensg_to_ensmusg_dct = {}
-        f = open('../data/mouse_data/mart_export.txt', 'r')
-        for i, line in enumerate(f):
-            # Skip header.
-            if i == 0:
-                continue
-            ensg_id, ensmusg_id = line.split()
-            if ensg_id not in ensg_to_ensmusg_dct:
-                ensg_to_ensmusg_dct[ensg_id] = []
-            ensg_to_ensmusg_dct[ensg_id] += [ensmusg_id]
-        f.close()
-        return ensg_to_ensmusg_dct
-
-    if data_type == 'mouse':
-        ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
-
-    dbgap_to_gene_dct = {}
-    f = open('../data/dbgap.txt', 'r')
-    for line in f:
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-
-        # ENSG values are single genes.
-        value = [ensg_id]
-        if data_type == 'mouse':
-            # Convert human to mouse homolog list.
-            value = 'null'
-            if ensg_id in ensg_to_ensmusg_dct:
-                value = ensg_to_ensmusg_dct[ensg_id]
-        if value == 'null':
-            continue
-
-        if dbgap_id not in dbgap_to_gene_dct:
-            dbgap_to_gene_dct[dbgap_id] = []
-        dbgap_to_gene_dct[dbgap_id] += value
-    f.close()
-    return dbgap_to_gene_dct
+    return label_dct
 
 def get_cluster_dictionary():
     '''
@@ -119,10 +76,7 @@ def get_sorted_fisher_dct(clus_genes, label_dct):
         f_table = ([[clus_and_label, clus_not_label], [label_not_clus,
             neither]])
         o_r, p_value = fisher_exact(f_table, alternative='greater')
-        if label == 'SRP-dependent_cotranslational_protein_targeting_to_membrane':
-            print f_table, p_value
         fisher_dct[label] = max(p_value, 1e-300)
-
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
 def compute_label_enrichments(label_dct, cluster_wgcna_dct):
@@ -147,20 +101,17 @@ def compute_label_enrichments(label_dct, cluster_wgcna_dct):
 
 def main():
     if len(sys.argv) != 3:
-        print 'Usage: %s data_type go/dbgap' % sys.argv[0]
+        print 'Usage: %s data_type go/dbgap/gwas' % sys.argv[0]
         exit()
     global data_type, gene_universe, label_type
     data_type, label_type = sys.argv[1:]
     assert data_type == 'mouse' or data_type.isdigit()
-    assert label_type in ['go', 'dbgap']
+    assert label_type in ['go', 'dbgap', 'gwas']
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
-    if label_type == 'go':
-        label_dct = get_bp_dct()
-    else:
-        label_dct = read_dbgap_file()
+    label_dct = get_label_dct()
 
     network_genes = file_operations.get_high_std_genes(data_type)
     # labeled_genes = [gene for sublist in label_dct.values() for gene in sublist]

@@ -31,11 +31,11 @@ def get_auc(pts):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print 'Usage: %s data_type run_num plot_type' % sys.argv[0]
+        print 'Usage: %s data_type run_num go/go_auc/dbgap/gwas' % sys.argv[0]
         exit()
     data_type, run_num, plot_type = sys.argv[1:]
     assert (data_type == 'mouse' or data_type.isdigit()) and run_num.isdigit()
-    assert plot_type in ['go', 'dbgap', 'go_auc']
+    assert plot_type in ['go', 'dbgap', 'go_auc', 'gwas']
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
@@ -68,6 +68,8 @@ if __name__ == '__main__':
 
             if plot_type == 'dbgap':
                 enrichment_p = line[15]
+            elif plot_type == 'gwas':
+                enrichment_p = line[17]
             else:
                 enrichment_p = line[5]
             top_enrichment_p = -math.log(float(enrichment_p), 10)
@@ -76,8 +78,9 @@ if __name__ == '__main__':
             # Add the point to the cheating_pts if the genes labeled by
             # the best enriched GO term have significantly worse means
             # than those not labeled.
-            if mode == 'wlogv_go' and float(line[17]) < 1e-5 and float(line[18]
-                ) < float(line[21]):
+            # TODO: Change these indices to find the mean columns.
+            if mode == 'wlogv_go' and float(line[19]) < 1e-5 and float(line[20]
+                ) < float(line[23]):
                 cheating_pts += [point]
             else:
                 pts += [point]
@@ -113,9 +116,14 @@ if __name__ == '__main__':
 
     # Construct the plot details.
     plt.axvline(10)
-    plt.title('Cluster in-densities vs. Best enrichment p-values')
+    if 'auc' not in plot_type:
+        plt.title('Cluster in-densities vs. Best enrichment p-values')
+        plt.ylabel('in-density/(in-density + out-density)')
+    else:
+        plt.title('Number of clusters vs. Best enrichment p-values')
+        plt.ylabel('Number of clusters')
     plt.xlabel('negative log of lowest GO enrichment p-value')
-    plt.ylabel('in-density/(in-density + out-density)')
+    
     if 'auc' in plot_type:
         plt.legend(loc='upper right')
     else:

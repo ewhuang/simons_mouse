@@ -87,7 +87,6 @@ def main():
     if gene_type == 'mouse':
         folder_list = ['mouse']
     else:
-        # If TCGA, make a set of GO dictionaries for each cancer type.
         folder_list = file_operations.get_tcga_disease_list()
 
     for folder_name in folder_list:

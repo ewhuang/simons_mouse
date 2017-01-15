@@ -15,65 +15,22 @@ import time
 ### most related GO label. These p-values (GO enrichments) should improve
 ### as a whole going from coexpression network to GO network without
 ### sacrificing in-density.
-### Run time: 2 minutes.
+### Run time: 2 minutes. Shorter for DBGAP since there are fewer terms.
 
-def get_bp_dct(base_data_type):
+def get_label_dct(base_data_type):
     '''
-   Gets the BP dictionary.
+    Gets the annotation dictionary.
     '''
-    with open('./data/%s_data/bp_dct.json' % base_data_type, 'r') as fp:
-        bp_dct = json.load(fp)
+    if label_type == 'go':
+        fname = 'bp_dct'
+    elif label_type == 'dbgap':
+        fname = 'dbgap_dct'
+    elif label_type == 'gwas':
+        fname = 'gwas_dct'
+    with open('./data/%s_data/%s.json' % (base_data_type, fname), 'r') as fp:
+        label_dct = json.load(fp)
     fp.close()
-    return bp_dct
-
-def read_dbgap_file():
-    '''
-    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
-    Key: DBGAP ID -> str
-    Value: list of ENSMUSG IDs -> list(str)
-    '''
-    def get_ensg_to_ensmusg_dct():
-        '''
-        Gets a dictionary mapping ENSG ID's to their mouse homologs.
-        Key: ENSG ID -> str
-        Value: list of ENSMUSG IDs -> list(str)
-        '''
-        ensg_to_ensmusg_dct = {}
-        f = open('./data/mouse_data/mart_export.txt', 'r')
-        for i, line in enumerate(f):
-            # Skip header.
-            if i == 0:
-                continue
-            ensg_id, ensmusg_id = line.split()
-            if ensg_id not in ensg_to_ensmusg_dct:
-                ensg_to_ensmusg_dct[ensg_id] = []
-            ensg_to_ensmusg_dct[ensg_id] += [ensmusg_id]
-        f.close()
-        return ensg_to_ensmusg_dct
-
-    if data_type == 'mouse':
-        ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
-
-    dbgap_to_gene_dct = {}
-    f = open('./data/dbgap.txt', 'r')
-    for line in f:
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-
-        # ENSG values are single genes.
-        value = [ensg_id]
-        if data_type == 'mouse':
-            # Convert human to mouse homolog list.
-            value = 'null'
-            if ensg_id in ensg_to_ensmusg_dct:
-                value = ensg_to_ensmusg_dct[ensg_id]
-        if value == 'null':
-            continue
-
-        if dbgap_id not in dbgap_to_gene_dct:
-            dbgap_to_gene_dct[dbgap_id] = []
-        dbgap_to_gene_dct[dbgap_id] += value
-    f.close()
-    return dbgap_to_gene_dct
+    return label_dct
 
 def get_sorted_fisher_dct(clus_genes, label_dct):
     '''
@@ -101,7 +58,6 @@ def get_sorted_fisher_dct(clus_genes, label_dct):
         o_r, p_value = fisher_exact(f_table, alternative='greater')
         # Handle overflow issues.
         fisher_dct[label] = max(p_value, 1e-300)
-
     return sorted(fisher_dct.items(), key=operator.itemgetter(1))
 
 def compute_label_enrichments(in_fname, out_fname, label_dct):
@@ -134,7 +90,7 @@ def main():
     data_type, objective_function, run_num, label_type = sys.argv[1:]
     assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
     assert run_num.isdigit()
-    assert label_type in ['go', 'dbgap']
+    assert label_type in ['go', 'dbgap', 'gwas']
 
     if 'prosnet_' in data_type:
         base_data_type = data_type.split('_')[1]
@@ -147,11 +103,7 @@ def main():
             data_type = file_operations.get_tcga_disease_list()[int(data_type)]
         base_data_type = data_type
 
-    # Grab the BP dictionary.
-    if label_type == 'go':
-        label_dct = get_bp_dct(base_data_type)
-    else:
-        label_dct = read_dbgap_file()
+    label_dct = get_label_dct(base_data_type)
 
     # Gene universe is intersection of network genes and GO-labeled genes.
     network_genes = file_operations.get_high_std_genes(base_data_type)

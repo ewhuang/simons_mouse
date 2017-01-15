@@ -75,6 +75,8 @@ def main():
                     network, run_num))
     print command
     subprocess.call(command, shell=True)
+    # Remove the log file.
+    os.remove('log')
 
 if __name__ == '__main__':
     start_time = time.time()

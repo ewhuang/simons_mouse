@@ -10,16 +10,39 @@ Author: Edward Huang
     $ python split_tcga_dataset.py
     ```
 
-## Downloading GO annotations
+## Downloading annotations
 
 1.  Download GO annotations.
-    Go to [biomart](http://www.ensembl.org/biomart/martview/). Choose database -> "Ensembl Genes 86" -> Mus musculus genes/Homo sapiens genes
+    Go to [biomart](http://www.ensembl.org/biomart/martview/). Choose database -> "Ensembl Genes 87" -> Mus musculus genes/Homo sapiens genes
 
     "Attributes" -> "Gene" -> uncheck "Ensembl Transcript ID" -> "External" -> check "GO Term Name" and "GO domain"
 
-    Hit "Results" at the top and export. Filenames will be mart_export.txt.
-    Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data.
+    Hit "Results" at the top and export to file as TSV. Filenames will be
+    mart_export.txt.
+    Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data. 
     Change human annotations to ensg_to_go.txt and move to ./data/tcga_data.
+
+2.  Download DBGAP annotations.
+    Go to http://veda.cs.uiuc.edu/TCGA_classify/msigdb/gene_sets/dbgap_all/,
+    download dbgap.edge, and rename to dbgap.txt. Move to ./data/.
+    To get the translation files, obtain mart_export.txt by going to
+    ensembl.org/biomart:
+    Dataset -> Homo sapiens genes (GRCh38.p7)
+    Filters -> Multi Species Comparisons -> Orthologous Mouse Genes: Only
+    Attributes -> Ensembl Gene ID, uncheck transcript ID
+    Add another dataset, [Ensembl genes 87] Mouse genes, then results.
+    Export as TSV, tick "unique results only". Move to ./data/mouse/, rename as
+    ensg_to_ensmusg.txt.
+
+3.  Download DisGeNET annotations.
+    Go to http://www.disgenet.org/web/DisGeNET/menu/downloads and download
+    the curated gene-disease associations. Move to ./data/.
+    Go to biomart (as in GO and DBGAP).
+    Dataset -> Mouse/Homo sapiens genes
+    Attributes -> Gene ID, uncheck transcript, EntrezGene ID
+    Export, rename to entrez_to_ensg.txt and entrez_to_ensmusg.txt, depending
+    on the species (homo sapiens is ensg). Move to their respective ./data/
+    mouse or tcga/ folders.
 
 ## Creating the gene network
 
@@ -36,8 +59,10 @@ Author: Edward Huang
     mf_go_go to create the the MF GO-GO dictionary.
 
     ```bash
-    $ python dump_go_dictionaries.py mouse/tcga/mf_go_go
+    $ python dump_label_dictionaries.py mouse/tcga/mf_go_go go/dbgap/gwas
     ```
+
+    Last argument doesn't matter if argument is mf_go_go
 
 <!-- 3.  Find overlapping BP and MF terms.
 
@@ -137,7 +162,7 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
 8.  Plotting in-density versus top GO enrichment.
 
     ```bash
-    $ python plot_best_clusters.py data_type run_num plot_type
+    $ python plot_best_clusters.py data_type run_num go/go_auc/dbgap
     ```
 
 9.  Plotting box plots. One for enrichment, one for in/in + out. 
@@ -175,21 +200,17 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
     $python evaluate_clustering_wgcna.py data_type network_number
     ```
 
-5.  Computes label enrichments for the clusters created by WGCNA. To get the
-    DBGAP files, obtain mart_export.txt by going to ensembl.org/biomart
-    Dataset -> Homo sapiens genes (GRCh38.p7)
-    Filters -> Orthologous Mouse Genes: Only
-    Attributes -> Ensembl Gene ID, Mouse Ensembl Gene ID
-    Export as TSV, tick "unique results only".
+5.  Computes label enrichments for the clusters created by WGCNA.
     
     ```bash
-    $ python compute_label_enrichments_wgcna.py data_type go/dbgap
+    $ python compute_label_enrichments_wgcna.py data_type go/dbgap/gwas
     ```
 
 6.  Summarize the results in a table.
     ```bash
     $ python cluster_info_summary_wgcna.py data_type
     ```
+
 ## ProSNet
 
 Must first run create_clustering_input.py, and then let Sheng run.
