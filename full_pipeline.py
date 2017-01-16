@@ -15,22 +15,25 @@ def main():
         exit()
     data_type, objective_function, run_num = sys.argv[1:]
     assert data_type == 'mouse' or data_type.isdigit()
-    assert objective_function in ['wlogv', 'schaeffer', 'oclode']
+    assert objective_function in ['wlogv', 'schaeffer', 'oclode', 'wgcna']
     assert run_num.isdigit()
 
-    # Create clustering input. Also creates files necessary for ProsNet.
-    command = 'python create_clustering_input.py %s %s' % (data_type, run_num)
-    print command
-    subprocess.call(command, shell=True)
-
     clus_format_str = (data_type, objective_function, run_num)
-    
-    # Perform simulated annealing on coexpression network.
-    for network_type in ['go', 'no_go']:
-        command = 'python simulated_annealing.py %s %s %s ' % clus_format_str
-        command += network_type
+
+    if objective_function != 'wgcna':
+        # Create clustering input.
+        command = 'python create_clustering_input.py %s %s' % (data_type,
+            run_num)
         print command
         subprocess.call(command, shell=True)
+    
+        # Perform simulated annealing on coexpression network.
+        for network_type in ['go', 'no_go']:
+            command = 'python simulated_annealing.py %s %s %s ' % (
+                clus_format_str)
+            command += network_type
+            print command
+            subprocess.call(command, shell=True)
 
     # Evaluate clusters.
     command = 'python evaluate_clustering.py %s %s %s' % clus_format_str
@@ -45,22 +48,24 @@ def main():
         print command
         subprocess.call(command, shell=True)
 
-    # Determine if wlogv_go cheats.
-    command = 'python cheating_evaluation.py %s %s %s' % clus_format_str
-    print command
-    subprocess.call(command, shell=True)
+    if objective_function != 'wgcna':
+        # Determine if wlogv_go cheats.
+        command = 'python cheating_evaluation.py %s %s %s' % clus_format_str
+        print command
+        subprocess.call(command, shell=True)
 
     # Creating cluster summarization tables.
     command = 'python cluster_info_summary.py %s %s %s' % clus_format_str
     print command
     subprocess.call(command, shell=True)
 
-    # Plotting.
-    for plot_type in ['go', 'go_auc', 'dbgap', 'gwas']:
-        command = 'python plot_best_clusters.py %s %s %s' % (data_type, run_num,
-            plot_type)
-        print command
-        subprocess.call(command, shell=True)
+    if objective_function != 'wgcna':
+        # Plotting.
+        for plot_type in ['go', 'go_auc', 'dbgap', 'gwas']:
+            command = 'python plot_best_clusters.py %s %s %s' % (data_type,
+                run_num, plot_type)
+            print command
+            subprocess.call(command, shell=True)
 
 if __name__ == '__main__':
     start_time = time.time()

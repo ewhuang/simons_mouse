@@ -1,6 +1,7 @@
 ### Author: Edward Huang
 
 import file_operations
+import os
 import subprocess
 import sys
 import time
@@ -15,7 +16,7 @@ def main():
             sys.argv[0])
         exit()
     data_type, objective_function, run_num = sys.argv[1:]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'wgcna']
     assert run_num.isdigit()
 
     if data_type.isdigit():
@@ -30,17 +31,26 @@ def main():
     # First, get a clean cluster file without GO terms.
     file_operations.create_clean_go_file(data_type, objective_function, run_num)
 
+    # Only for non-wgcna purposes.
     clean_dct = {'go':'clean_', 'no_go':''}
 
     for network in ['go', 'no_go']:
+        # No no_go for WGCNA.
+        if objective_function == 'wgcna' and network == 'no_go':
+            continue
+        # Generate directory.
+        results_folder = './results/%s_results/%s/cluster_eval_%s' % (
+            data_type, objective_function, network)
+        if not os.path.exists(results_folder):
+            os.makedirs(results_folder)
+        # Always compare against the network without GO.
         command = ('perl ./evaluate_clustering.pl "./results/%s_results/%s/'
                     'clusters_%s/clusters_%s_%s%s.txt" "./data/%s_data/'
-                    'networks_%s/real_network_%s_%s.txt" > "./results/'
-                    '%s_results/%s/cluster_eval_%s/cluster_eval_%s_%s.txt"' % (
+                    'networks_no_go/real_network_no_go_%s.txt" > "%s/'
+                    'cluster_eval_%s_%s.txt"' % (
                         data_type, objective_function, network, network,
-                        clean_dct[network], run_num, data_type, 'no_go',
-                        'no_go', run_num, data_type, objective_function,
-                        network, network, run_num))
+                        clean_dct[network], run_num, data_type, run_num,
+                        results_folder, network, run_num))
         subprocess.call(command, shell=True)
 
 if __name__ == '__main__':

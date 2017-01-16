@@ -18,7 +18,7 @@ Author: Edward Huang
     "Attributes" -> "Gene" -> uncheck "Ensembl Transcript ID" -> "External" -> check "GO Term Name" and "GO domain"
 
     Hit "Results" at the top and export to file as TSV. Filenames will be
-    mart_export.txt.
+    mart_export.txt. Remember to tick "unique results only".
     Change mouse annotations to ensmusg_to_go.txt and move to ./data/mouse_data. 
     Change human annotations to ensg_to_go.txt and move to ./data/tcga_data.
 
@@ -34,15 +34,15 @@ Author: Edward Huang
     Export as TSV, tick "unique results only". Move to ./data/mouse/, rename as
     ensg_to_ensmusg.txt.
 
-3.  Download DisGeNET annotations.
+3.  Download DisGeNET (GWAS) annotations.
     Go to http://www.disgenet.org/web/DisGeNET/menu/downloads and download
     the curated gene-disease associations. Move to ./data/.
     Go to biomart (as in GO and DBGAP).
-    Dataset -> Mouse/Homo sapiens genes
+    Dataset -> Homo sapiens genes
     Attributes -> Gene ID, uncheck transcript, EntrezGene ID
-    Export, rename to entrez_to_ensg.txt and entrez_to_ensmusg.txt, depending
-    on the species (homo sapiens is ensg). Move to their respective ./data/
-    mouse or tcga/ folders.
+    Export, rename to entrez_to_ensg.txt Move to ./data/tcga/. Only get human
+    genes because for mouse, we translate from Entrez->ENSG->ENSMUSG. The direct
+    Entrez-ENSMUSG database is quite sparse.
 
 ## Creating the gene network
 
@@ -176,7 +176,6 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
 1.  Must have previously run split_tcga_dataset.py and standard_deviation_hist.py.
 
     ```bash
-    cd wgcna/
     $ python preprocess_wgcna.py mouse/tcga
     ```
 

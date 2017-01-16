@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 import math
+import os
 
 # standard_deviation_hist.py
 # gene_edge_weights.py
@@ -59,13 +60,22 @@ def get_embedding_genes():
 def create_clean_go_file(data_type, objective_function, run_num):
     '''
     Takes a clustered file from simulated annealing and outputs a clean file
-    without the GO nodes.
+    without the GO nodes. Reformats the file for WGCNA outputs.
     '''
     results_folder = './results/%s_results/%s' % (data_type, objective_function)
-    f = open('%s/clusters_go/clusters_go_%s.txt' % (results_folder, run_num),
-        'r')
-    out = open('%s/clusters_go/clusters_go_clean_%s.txt' % (results_folder,
-        run_num), 'w')
+    if not os.path.exists(results_folder):
+        os.makedirs(results_folder)
+    cluster_folder = '%s/clusters_go' % results_folder
+    if not os.path.exists(cluster_folder):
+        os.makedirs(cluster_folder)
+
+    if objective_function != 'wgcna':
+        fname = '%s/clusters_go_%s.txt' % (cluster_folder, run_num)
+    else:
+        fname = './data/wgcna_data/%s_module_membership.txt' % data_type
+
+    f = open(fname, 'r')
+    out = open('%s/clusters_go_clean_%s.txt' % (cluster_folder, run_num), 'w')
     for i, line in enumerate(f):
         if i == 0:
             out.write(line)
@@ -73,6 +83,16 @@ def create_clean_go_file(data_type, objective_function, run_num):
         # Skip GO terms in clusters.
         if 'ENSMUSG' not in line and 'ENSG' not in line:
             continue
+        # Have to convert line from WGCNA output to simulated annealing output.
+        if objective_function == 'wgcna':
+            # Ignore color and membership columns.
+            node, module, color, membership = line.split()
+            # Skip garbage module.
+            if module == '0':
+                continue
+            # Remove quotiation marks around the ENSMUSG ID.
+            node = node.strip('"')
+            line = 'Species 0\tGene %s\tCluster %s\n' % (node, module)
         out.write(line)
     out.close()
     f.close()
@@ -81,8 +101,9 @@ def create_clean_go_file(data_type, objective_function, run_num):
 # cluster_info_summary.py
 def get_cluster_dictionary(filename):
     '''
-    Returns a dictionary, keys=cluster ID's, values=lists of genes in the
-    corresponding clusters.
+    Returns a dictionary of clusters.
+    Key: cluster ID -> str
+    Value: lists of genes in the cluster-> list(str)
     '''
     cluster_dct = {}
     f = open(filename, 'r')
@@ -97,9 +118,8 @@ def get_cluster_dictionary(filename):
             continue
         gene = newline[1][len('Gene '):]
         if cluster not in cluster_dct:
-            cluster_dct[cluster] = [gene]
-        else:
-            cluster_dct[cluster] += [gene]
+            cluster_dct[cluster] = []
+        cluster_dct[cluster] += [gene]
     f.close()
     return cluster_dct
 

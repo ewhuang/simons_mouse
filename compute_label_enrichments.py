@@ -84,11 +84,12 @@ def compute_label_enrichments(in_fname, out_fname, label_dct):
 def main():
     if len(sys.argv) != 5:
         print ('Usage:python %s data_type objective_function run_num '
-            'label_type' % sys.argv[0])
+            'go/dbgap/gwas' % sys.argv[0])
         exit()
     global data_type, objective_function, run_num, gene_universe, label_type
     data_type, objective_function, run_num, label_type = sys.argv[1:]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet']
+    assert (objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet',
+        'wgcna'])
     assert run_num.isdigit()
     assert label_type in ['go', 'dbgap', 'gwas']
 
@@ -114,6 +115,9 @@ def main():
 
     results_folder = './results/%s_results/%s' % (data_type, objective_function)    
     for network in ['go', 'no_go']:
+        # No 'no_go' situation for WGCNA.
+        if objective_function == 'wgcna' and network == 'no_go':
+            continue
         if network == 'go':
             cluster_fname = '%s/clusters_%s/clusters_%s_clean_%s.txt' % (
                 results_folder, network, network, run_num)
@@ -121,13 +125,13 @@ def main():
             cluster_fname = '%s/clusters_%s/clusters_%s_%s.txt' % (
                 results_folder, network, network, run_num)
                     
-        subfolder = '%s/%s_enrichment_terms_%s' % (results_folder,
-            label_type, network)
+        subfolder = '%s/%s_enrichment_terms_%s' % (results_folder, label_type,
+            network)
         if not os.path.exists(subfolder):
             os.makedirs(subfolder)
 
-        out_fname = ('%s/%s_enrichment_terms_%s_%s.txt' % (
-            subfolder, label_type, network, run_num))
+        out_fname = ('%s/%s_enrichment_terms_%s_%s.txt' % (subfolder,
+            label_type, network, run_num))
         compute_label_enrichments(cluster_fname, out_fname, label_dct)
 
 if __name__ == '__main__':

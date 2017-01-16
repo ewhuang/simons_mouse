@@ -10,7 +10,7 @@ import time
 ### Command line arguments: temperature, number of clusters, and run number.
 ### Run time: 1 hour for gene edge weight threshold 0.8
 
-def make_folders():
+def make_folders(objective_function):
     '''
     Construct the results folders if it's the first time running simulated
     annealing.
@@ -18,17 +18,11 @@ def make_folders():
     results_folder = './results/%s_results/' % data_type
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
-    obj_func_folder = results_folder + 'wlogv/'
+    obj_func_folder = results_folder + '%s/' % objective_function
     if not os.path.exists(obj_func_folder):
         os.makedirs(obj_func_folder)
         for network_type in ['go', 'no_go']:
-            os.makedirs(obj_func_folder + 'clus_info_%s/' % network_type)
-            os.makedirs(obj_func_folder + 'cluster_enrichment_terms_%s/' % 
-                network_type)
-            os.makedirs(obj_func_folder + 'dbgap_enrichment_terms_%s/' %
-                network_type)
-            os.makedirs(obj_func_folder + 'clusters_%s/' % network_type)
-            os.makedirs(obj_func_folder + 'cluster_eval_%s/' % network_type)
+            os.makedirs(obj_func_folder + 'clus_info_%s/' % network_type)            os.makedirs(obj_func_folder + 'clusters_%s/' % network_type)
     plot_folder = results_folder + 'comparison_plots/'
     if not os.path.exists(plot_folder):
         os.makedirs(plot_folder)
@@ -56,7 +50,7 @@ def main():
     config_dct = file_operations.read_config_file(data_type)[run_num]
     temp, num_clusters = config_dct['temp'], config_dct['num_clusters']
 
-    make_folders()
+    make_folders(objective_function)
 
     # Get the binary associated with the desired objective function.
     if objective_function == 'oclode':

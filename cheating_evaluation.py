@@ -28,17 +28,6 @@ def read_cluster_file():
     cluster_dct = file_operations.get_cluster_dictionary(cluster_fname)
     return cluster_dct
 
-def increment_edge_count(gene_density_pair_dct, gene, in_out_index):
-    '''
-    Increments a gene's in-cluster or out-cluster edge count. in_out_index == 0
-    means in-cluster count.
-    '''
-    if gene in gene_density_pair_dct:
-        gene_density_pair_dct[gene][in_out_index] += 1
-    else:
-        gene_density_pair_dct[gene] = [0, 0]
-        gene_density_pair_dct[gene][in_out_index] = 1
-
 def get_in_out_edge_dct(cluster_dct):
     '''
     For each gene, find out how many edges it has leading to other clusters,
@@ -47,34 +36,42 @@ def get_in_out_edge_dct(cluster_dct):
     Value: [number of edges within cluster, number of edges leaving] ->
         list(int)
     '''
+    def increment_edges(gene_density_pair_dct, gene_a, gene_b, in_out_index):
+        '''
+        Increments a gene pair's in-cluster or out-cluster edge count.
+        in_out_index == 0 means in-cluster count. 1 means out-cluster count.
+        '''
+        if gene_a not in gene_density_pair_dct:
+            gene_density_pair_dct[gene_a] = [0, 0]
+        gene_density_pair_dct[gene_a][in_out_index] += 1
+        if gene_b not in gene_density_pair_dct:
+            gene_density_pair_dct[gene_b] = [0, 0]
+        gene_density_pair_dct[gene_b][in_out_index] += 1
+
     gene_density_pair_dct = {}
     # Read through the network file.
     f = open('./data/%s_data/networks_no_go/network_no_go_%s.txt' % (data_type,
         run_num))
     for i, line in enumerate(f):
+        # Skip header and every other line.
         if i < 2 or i % 2 == 1:
             continue
         gene_a, gene_b, weight = line.split()
         # Loop through the cluster dictionary, and determine the edge type.
-        for cluster in cluster_dct:
-            cluster_genes = cluster_dct[cluster]
+        # for cluster in cluster_dct:
+        #     cluster_genes = cluster_dct[cluster]
+        for cluster_genes in cluster_dct.values():
             if gene_a in cluster_genes:
-
-                # This is an in-cluster edge.
                 if gene_b in cluster_genes:
-                    # Update the dictionary with the current edge.
-                    increment_edge_count(gene_density_pair_dct, gene_a, 0)
-                    # Add in the other direction.
-                    increment_edge_count(gene_density_pair_dct, gene_b, 0)
+                    # This is an in-cluster edge.
+                    increment_edges(gene_density_pair_dct, gene_a, gene_b, 0)
                 else:
                     # This is an out-cluster edge.
-                    increment_edge_count(gene_density_pair_dct, gene_a, 1)
-                    increment_edge_count(gene_density_pair_dct, gene_b, 1)
+                    increment_edges(gene_density_pair_dct, gene_a, gene_b, 1)
 
             elif gene_b in cluster_genes:
                 # This is also an out-cluster edge.
-                increment_edge_count(gene_density_pair_dct, gene_a, 1)
-                increment_edge_count(gene_density_pair_dct, gene_b, 1)
+                increment_edges(gene_density_pair_dct, gene_a, gene_b, 1)
     f.close()
     return gene_density_pair_dct
 
@@ -95,9 +92,8 @@ def get_best_go_per_cluster():
     Value: GO term best enriched in the cluster -> str
     '''
     best_go_dct = {}
-    f = open('./results/%s_results/%s/go_enrichment_terms_go/'
-        'go_enrichment_terms_go_%s.txt' % (data_type, objective_function,
-            run_num))
+    f = open('./results/%s_results/%s/go_enrichment_terms_go/go_enrichment_'
+        'terms_go_%s.txt' % (data_type, objective_function, run_num))
     line = f.readline()
     while line != '':
         cluster_number = line.split()[1]
@@ -115,12 +111,10 @@ def evaluate_clusters(cluster_dct):
     nodes have roughly the same in/(in + out) as those that aren't directly
     labeled.
     '''
-    # for cluster in cluster_dct:
     gene_density_pair_dct = get_in_out_edge_dct(cluster_dct)
     # Normalize the densities of each cluster.
     num_total_genes = float(len(gene_density_pair_dct))
-    for cluster in cluster_dct:
-        cluster_gene_list = cluster_dct[cluster]
+    for cluster_gene_list in cluster_dct.values():
         num_cluster_genes = float(len(cluster_gene_list))
         out_denominator = num_total_genes - num_cluster_genes
         for gene in cluster_gene_list:
@@ -132,6 +126,7 @@ def evaluate_clusters(cluster_dct):
             gene_density_pair_dct[gene] = in_count / (in_count + out_count)
 
     best_go_dct = get_best_go_per_cluster()
+    print best_go_dct
     bp_dct = get_bp_dct()
 
     # Write out the results to file.

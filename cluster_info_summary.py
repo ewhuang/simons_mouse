@@ -48,7 +48,8 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
         dbgap_enrich_fname)
     gwas_enrichment_dct = file_operations.get_enrichment_dct(gwas_enrich_fname)
 
-    if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+    if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
+        objective_function != 'wgcna'):
         cheat_eval_dct = read_cheat_evaluation()
 
     # Write out to file.
@@ -60,11 +61,12 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
         '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\t'
         'Top GWAS p-value\tTop GWAS term\t')
     # If it's a regular run with GO, add in the cheating evaluation.
-    if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+    if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
+        objective_function != 'wgcna'):
         out.write('t-test p-value\tLabeled mean\tLabeled variance\t'
             'Labeled size\tUnlabeled mean\tUnlabeled variance\t'
             'Unlabeled size\t')
-    if 'no_go' not in clus_fname:
+    if 'no_go' not in clus_fname and objective_function != 'wgcna':
         out.write('Number of cluster GO members\tCluster GO members')
     out.write('\n')
 
@@ -92,11 +94,12 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
             interleaved_terms_and_p, best_dbgap_p, best_dbgap_term, best_gwas_p,
             best_gwas_term))
 
-        if 'prosnet' not in clus_fname and 'no_go' not in clus_fname:
+        if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
+            objective_function != 'wgcna'):
             out.write('%f\t%f\t%f\t%d\t%f\t%f\t%d\t' % cheat_eval_dct[cid])
-        if 'no_go' not in clus_fname:
-            out.write('%d\t%s' % (len(cluster_go_terms),
-                '\t'.join(cluster_go_terms)))
+        if 'no_go' not in clus_fname and objective_function != 'wgcna':
+            out.write('%d\t%s' % (len(cluster_go_terms), '\t'.join(
+                cluster_go_terms)))
         out.write('\n')
     out.close()
 
@@ -108,10 +111,16 @@ def generate_filenames():
     results_folder = './results/%s_results/%s' % (data_type, objective_function)
 
     for network_type in ['go', 'no_go']:
+        # WGCNA name convention follow 'go' conventions.
+        if objective_function == 'wgcna' and network_type == 'no_go':
+            continue
         # Generate the format string.
         format_str = (results_folder, network_type, network_type, run_num)
         # Simulated annealing cluster results filename.
-        clus_fname = '%s/clusters_%s/clusters_%s_%s.txt' % format_str
+        if objective_function == 'wgcna':
+            clus_fname = '%s/clusters_%s/clusters_%s_clean_%s.txt' % format_str
+        else:
+            clus_fname = '%s/clusters_%s/clusters_%s_%s.txt' % format_str
         # Input network filename.
         net_fname = './data/%s_data/networks_%s/network_%s_%s.txt' % (data_type,
             network_type, network_type, run_num)
@@ -131,13 +140,21 @@ def generate_filenames():
                                 'terms_%s_%s.txt') % format_str
 
         # Finally, the output filename.
+        info_folder = '%s/clus_info_%s' % (results_folder, network_type)
+        if not os.path.exists(info_folder):
+            os.makedirs(info_folder)
         out_fname = '%s/clus_info_%s/clus_info_%s_%s.tsv' % format_str
 
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
             dbgap_enrich_fname, gwas_enrich_fname, out_fname)
+        # plots_and_tables filename.
+        if objective_function == 'wgcna':
+            subfolder_fname = '%s/%s_wgcna.tsv' % (subfolder, data_type)
+        else:
+            subfolder_fname = '%s/%s_%s.tsv' % (subfolder, data_type,
+                network_type)
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
-            dbgap_enrich_fname, gwas_enrich_fname, '%s/%s_%s.tsv' % (subfolder,
-                data_type, network_type))
+            dbgap_enrich_fname, gwas_enrich_fname, subfolder_fname)
 
 def main():
     if len(sys.argv) != 4:
@@ -146,7 +163,7 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv']
+    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'wgcna']
     assert run_num.isdigit()
 
     # Integer data_type means it's a TCGA cancer.
