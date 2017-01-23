@@ -5,8 +5,8 @@ import time
 
 ### Splits up the TCGA expression dataset into its cancer sub-categories. Go to
 ### http://knowcloud.cse.illinois.edu/index.php/s/DSuJffKJR2hIhAa
-### Download the clinical_data file and the expr_converted.txt file. Rename the
-### expression file to tcga_expr.txt
+### Download the clinical_data file and the expr_converted.txt file. Rename
+### expr_converted.txt to tcga_expr.txt. Move both files to ./data/tcga_data/
 ### Run time: 50 seconds.
 
 def read_clinical_data():

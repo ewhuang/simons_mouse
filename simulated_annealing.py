@@ -15,18 +15,17 @@ def make_folders(objective_function):
     Construct the results folders if it's the first time running simulated
     annealing.
     '''
-    results_folder = './results/%s_results/' % data_type
+    results_folder = './results/%s_results' % data_type
     if not os.path.exists(results_folder):
         os.makedirs(results_folder)
-    obj_func_folder = results_folder + '%s/' % objective_function
+    obj_func_folder = '%s/%s' % (results_folder, objective_function)
     if not os.path.exists(obj_func_folder):
         os.makedirs(obj_func_folder)
-        for network_type in ['go', 'no_go']:
-            os.makedirs(obj_func_folder + 'clus_info_%s/' % network_type)            os.makedirs(obj_func_folder + 'clusters_%s/' % network_type)
-    plot_folder = results_folder + 'comparison_plots/'
-    if not os.path.exists(plot_folder):
-        os.makedirs(plot_folder)
-
+    for network in ['go', 'no_go']:
+        cluster_folder = '%s/clusters_%s' % (obj_func_folder, network)
+        if not os.path.exists(cluster_folder):
+            os.makedirs(cluster_folder)
+            
 def main():
     if len(sys.argv) != 5:
         print ('Usage:python %s data_type objective_function run_num '
@@ -69,8 +68,6 @@ def main():
                     network, run_num))
     print command
     subprocess.call(command, shell=True)
-    # Remove the log file.
-    os.remove('log')
 
 if __name__ == '__main__':
     start_time = time.time()

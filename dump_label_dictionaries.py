@@ -191,26 +191,32 @@ def read_gwas_file(folder_name):
     high_std_genes = file_operations.get_high_std_genes(folder_name)
 
     gwas_to_gene_dct = {}
+    
     # TODO: Change the database of associations.
     f = open('./data/curated_gene_disease_associations.tsv', 'r')
     # f = open('./data/all_gene_disease_associations.tsv', 'r')
     # f = open('./data/all_snps_sentences_pubmeds_position.tsv', 'r')
+    
     for line in f:
         # There are a few header lines.
         if 'umls' not in line:
             continue
         line = line.strip().split('\t')
-        # This line is for curated associations.
+
+        # TODO: This line is for curated associations.
         entrez_id, disease_label, score = line[1], line[5], float(line[2])
         # This line is for all associations.
         # entrez_id, disease_label, score = line[0], line[4], float(line[5])
         # This line is for SNP associations.
         # entrez_id, disease_label, score = line[2], line[5], float(line[8])
-        # This lien is for all/curated associations.
+        
+        # This line is for all/curated associations.
         assert entrez_id.isdigit() and len(line) == 9
         # This line is for SNP associations.
         # assert entrez_id.isdigit() and len(line) == 15
-        if entrez_id not in entrez_to_ensg_dct or score < 0.0001:
+        
+        # TODO: Tune the score < THRESHOLD boolean.
+        if entrez_id not in entrez_to_ensg_dct or score < 0.001:
             continue
 
         ensembl_gene_id_list = entrez_to_ensg_dct[entrez_id]

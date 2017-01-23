@@ -5,6 +5,7 @@ import math
 import sys
 import matplotlib
 import numpy as np
+import os
 
 ### This script plots a scatterplot for four networks. Network without GO,
 ### network with GO for lambda=0.9, WGCNA clusters, and preliminary clusters
@@ -54,7 +55,7 @@ if __name__ == '__main__':
         exit()
     data_type, run_num, plot_type = sys.argv[1:]
     assert (data_type == 'mouse' or data_type.isdigit()) and run_num.isdigit()
-    assert plot_type in ['go', 'dbgap', 'go_auc', 'gwas']
+    assert plot_type in ['go', 'dbgap', 'go_auc', 'gwas', 'dbgap_auc', 'gwas_auc']
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
@@ -72,7 +73,8 @@ if __name__ == '__main__':
         elif mode == 'wlogv_go':
             fname = ('./results/%s_results/wlogv/clus_info_go/clus_info_go_'
                 '%s.tsv' % (data_type, run_num))
-            cheating_point_list = []
+            if 'go' in plot_type:
+                cheating_point_list = []
         elif mode == 'wlogv_no_go':
             fname = ('./results/%s_results/wlogv/clus_info_no_go/clus_info_'
                 'no_go_%s.tsv' % (data_type, run_num))
@@ -87,9 +89,9 @@ if __name__ == '__main__':
             if int(line[num_gene_idx]) < 30:
                 continue
 
-            if plot_type == 'dbgap':
+            if 'dbgap' in plot_type:
                 enrichment_p = line[dbgap_enrichment_idx]
-            elif plot_type == 'gwas':
+            elif 'gwas' in plot_type:
                 enrichment_p = line[gwas_enrichment_idx]
             elif 'go' in plot_type:
                 enrichment_p = line[go_enrichment_idx]
@@ -101,7 +103,8 @@ if __name__ == '__main__':
             # than those not labeled.
             # TODO: Change these indices to find the mean columns.
             if mode == 'wlogv_go' and float(line[t_test_idx]) < 1e-5 and float(
-                line[labeled_mean_idx]) < float(line[unlabeled_mean_idx]):
+                line[labeled_mean_idx]) < float(line[unlabeled_mean_idx]
+                ) and 'go' in plot_type:
                 cheating_point_list += [point]
             else:
                 point_list += [point]
@@ -129,7 +132,7 @@ if __name__ == '__main__':
                 label=mode_label, marker=mode_marker_list[mode_index])
 
         # Plot the cheating clusters.
-        if mode == 'wlogv_go' and 'auc' not in plot_type:
+        if mode == 'wlogv_go' and plot_type == 'go':
             if len(cheating_point_list) == 0:
                 continue
             num_high_points = len([p for p in cheating_point_list if p[0] >= 10])
@@ -159,10 +162,13 @@ if __name__ == '__main__':
     plt.show()
 
     # Save extra plots in the compiled results folder.
-    if plot_type in ['go', 'go_auc']:
+    if plot_type in ['go', 'go_auc', 'dbgap_auc', 'gwas_auc']:
         pylab.savefig('./results/plots_and_tables/%s_%s.png' % (data_type,
             plot_type))
 
     folder = './results/%s_results/comparison_plots' % data_type
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
     pylab.savefig('%s/%s_comparison_plot_%s.png' % (folder, plot_type, run_num))
     plt.close()

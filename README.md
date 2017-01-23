@@ -31,8 +31,8 @@ Author: Edward Huang
     Filters -> Multi Species Comparisons -> Orthologous Mouse Genes: Only
     Attributes -> Ensembl Gene ID, uncheck transcript ID
     Add another dataset, [Ensembl genes 87] Mouse genes, then results.
-    Export as TSV, tick "unique results only". Move to ./data/mouse/, rename as
-    ensg_to_ensmusg.txt.
+    Export as TSV, tick "unique results only". Move to ./data/mouse_data/,
+    rename as ensg_to_ensmusg.txt.
 
 3.  Download DisGeNET (GWAS) annotations.
     Go to http://www.disgenet.org/web/DisGeNET/menu/downloads and download
@@ -40,9 +40,9 @@ Author: Edward Huang
     Go to biomart (as in GO and DBGAP).
     Dataset -> Homo sapiens genes
     Attributes -> Gene ID, uncheck transcript, EntrezGene ID
-    Export, rename to entrez_to_ensg.txt Move to ./data/tcga/. Only get human
-    genes because for mouse, we translate from Entrez->ENSG->ENSMUSG. The direct
-    Entrez-ENSMUSG database is quite sparse.
+    Export, rename to entrez_to_ensg.txt Move to ./data/tcga_data/. Only get
+    human genes because for mouse, we translate from Entrez->ENSG->ENSMUSG. The
+    direct Entrez-ENSMUSG database is quite sparse.
 
 ## Creating the gene network
 
@@ -61,7 +61,6 @@ Author: Edward Huang
     ```bash
     $ python dump_label_dictionaries.py mouse/tcga/mf_go_go go/dbgap/gwas
     ```
-
     Last argument doesn't matter if argument is mf_go_go
 
 <!-- 3.  Find overlapping BP and MF terms.
@@ -77,6 +76,18 @@ Author: Edward Huang
     $ python gene_edge_weights.py mouse/tcga
     ```
 
+## WGCNA Pre-processing
+1.  Must have previously run split_tcga_dataset.py and standard_deviation_hist.py.
+
+    ```bash
+    $ python preprocess_wgcna.py mouse/tcga
+    ```
+
+2.  Move results from preprocessing to working directory of R. Run wgcna.R in
+    64-bit R (you can just copy paste the contents into the R shell). Move
+    output (%s_module_membership.txt) to ./data/wgcna_data. Takes roughly 45
+    minutes per dataset.
+
 ## Clustering pipeline
 
 This script compiles everything below in this section.
@@ -88,7 +99,7 @@ Must have run everything for WGCNA prior to plotting. This is so we have
 something to plot for WGCNA.
 
 ```bash
-$ python full_pipeline.py mouse/tcga_index objective_function run_num
+$ python full_pipeline.py mouse/tcga_index wlogv/wgcna run_num
 ```
 
 ### Adding GO nodes and formatting for clustering
@@ -142,7 +153,7 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
 5.  Compute GO enrichments for each clustering.
 
     ```bash
-    $ python compute_label_enrichments.py data_type objective_function run_num go/dbgap
+    $ python compute_label_enrichments.py data_type objective_function run_num go/dbgap/gwas
     ```
 
 6.  Check if genes in clusters labeled by the most enriched BP term in that
@@ -170,44 +181,6 @@ $ python full_pipeline.py mouse/tcga_index objective_function run_num
 
     ```bash
     $ python box_plot_density_and_enrichment.py data_type clustering_method
-    ```
-
-## WGCNA Baseline
-1.  Must have previously run split_tcga_dataset.py and standard_deviation_hist.py.
-
-    ```bash
-    $ python preprocess_wgcna.py mouse/tcga
-    ```
-
-2.  Move results from preprocessing to working directory of R. Run wgcna.R in
-    64-bit R (you can just copy paste the contents into the R shell). Move
-    output (%s_module_membership.txt) to ./wgcna/data. Takes roughly 45 minutes
-    per dataset.
-
-3.  This runs steps 4-6. network_num should be 1 for mouse, and 1 for TCGA.
-    This is because we optimized for mouse, and keep the same parameters for
-    TCGA.
-
-    ```bash
-    $ python full_pipeline_wgcna.py data_type network_num
-    ```
-
-4.  Pick the real network with which to evaluate, like real_network_no_go_1.txt.
-    Must have previously run create_clustering_input.py.
-
-    ```bash
-    $python evaluate_clustering_wgcna.py data_type network_number
-    ```
-
-5.  Computes label enrichments for the clusters created by WGCNA.
-    
-    ```bash
-    $ python compute_label_enrichments_wgcna.py data_type go/dbgap/gwas
-    ```
-
-6.  Summarize the results in a table.
-    ```bash
-    $ python cluster_info_summary_wgcna.py data_type
     ```
 
 ## ProSNet

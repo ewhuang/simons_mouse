@@ -91,8 +91,7 @@ def write_go_overlap(bp_dct, mf_dct):
             if p_value <= P_THRESHOLD:
                 fisher_dct[(bp_label, mf_label)] = p_value
 
-    # Sort the fisher dictionary by p-value. Break when we hit a p-value of
-    # 1e-10.
+    # Sort the fisher dictionary by p-value.
     fisher_dct = sorted(fisher_dct.items(), key=operator.itemgetter(1))
     out = open('./data/%s_data/overlapping_bp_mf_go_labels.txt' % gene_type,
         'w')

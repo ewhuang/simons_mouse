@@ -13,12 +13,6 @@ import time
 ### GO term should have roughly the same ratio as those not labeled by the term.
 ### Run time: 10 minutes.
 
-def generate_folders():
-    res_dir = './results/%s_results/%s/cheating_evaluation' % (data_type,
-        objective_function)
-    if not os.path.exists(res_dir):
-        os.makedirs(res_dir)
-
 def read_cluster_file():
     '''
     Generates the cluster filename, and then returns the dictionary of clusters.
@@ -126,12 +120,15 @@ def evaluate_clusters(cluster_dct):
             gene_density_pair_dct[gene] = in_count / (in_count + out_count)
 
     best_go_dct = get_best_go_per_cluster()
-    print best_go_dct
     bp_dct = get_bp_dct()
 
     # Write out the results to file.
-    out = open('./results/%s_results/%s/cheating_evaluation/cheat_eval_%s.txt'
-        % (data_type, objective_function, run_num), 'w')
+    results_dir = './results/%s_results/%s/cheating_evaluation' % (data_type,
+        objective_function)
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
+    out = open('%s/cheat_eval_%s.txt' % (results_dir, run_num), 'w')
     for cluster in cluster_dct:
         labeled_densities, unlabeled_densities = [], []
         best_go_genes = bp_dct[best_go_dct[cluster]]
@@ -161,7 +158,6 @@ def main():
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
 
-    generate_folders()
     # Evaluate only on clusters with GO terms.
     cluster_dct = read_cluster_file()
     evaluate_clusters(cluster_dct)

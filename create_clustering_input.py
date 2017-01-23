@@ -33,11 +33,6 @@ def get_genes_from_edges(edges):
     return genes
 
 def write_dca_gene_file(edge_genes):
-    # First, write out the genes in its own separate file for DCA.
-    # Make the folder if it doesn't exist.
-    if not os.path.exists(dca_no_go_subfolder):
-        os.makedirs(dca_no_go_subfolder)
-
     dca_genes_out = open('%s/dca_genes_no_go_%s.txt' % (dca_no_go_subfolder,
         run_num), 'w')
     # Write out the genes in its own file.
@@ -59,6 +54,9 @@ def write_no_go_files(edge_genes, edge_dct):
     Writes the networks without GO.
     '''
     no_go_folder = './data/%s_data/networks_no_go' % data_type
+    if not os.path.exists(no_go_folder):
+        os.makedirs(no_go_folder)
+        
     # Regular network file for clustering.
     no_go_out = open('%s/network_no_go_%s.txt' % (no_go_folder, run_num), 'w')
     no_go_out.write('0\n%d\n' % len(edge_genes))
@@ -136,10 +134,6 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
     '''
     Writes the networks with GO.
     '''
-    # First, write out the genes in its own separate file for DCA.
-    # Make the folder if it doesn't exist.
-    if not os.path.exists(dca_go_subfolder):
-        os.makedirs(dca_go_subfolder)
     dca_genes_out = open('%s/dca_genes_go_%s.txt' % (dca_go_subfolder, run_num),
         'w')
     # Write out the genes in its own file.
@@ -160,12 +154,16 @@ def write_go_files(edge_genes, edge_dct, bootstrap_idx=0):
     # Open up and initialize the network files for the current domain.
     if bootstrap:
         go_folder = './data/%s_data/bootstrapped_networks_go' % data_type
+        if not os.path.exists(go_folder):
+            os.makedirs(go_folder)
         go_out = open('%s/network_go_%s_%d.txt' % (go_folder, run_num,
             bootstrap_idx), 'w')
         g_real = open('%s/real_network_go_%s_%d.txt' % (go_folder, run_num,
             bootstrap_idx), 'w')
     else:
         go_folder = './data/%s_data/networks_go' % data_type
+        if not os.path.exists(go_folder):
+            os.makedirs(go_folder)
         go_out = open('%s/network_go_%s.txt' % (go_folder, run_num), 'w')
         g_real = open('%s/real_network_go_%s.txt' % (go_folder, run_num), 'w')
     # Write out the total number of nodes (genes + GO terms).
@@ -233,7 +231,11 @@ def main():
 
     global dca_no_go_subfolder, dca_go_subfolder
     dca_no_go_subfolder = './data/%s_data/dca_networks_no_go' % data_type
+    if not os.path.exists(dca_no_go_subfolder):
+        os.makedirs(dca_no_go_subfolder)
     dca_go_subfolder = './data/%s_data/dca_networks_go' % data_type
+    if not os.path.exists(dca_go_subfolder):
+        os.makedirs(dca_go_subfolder)
 
     # Extracting configuration options.
     config_dct = file_operations.read_config_file(data_type)[run_num]

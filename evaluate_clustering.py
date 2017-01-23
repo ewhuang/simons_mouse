@@ -1,6 +1,7 @@
 ### Author: Edward Huang
 
 import file_operations
+from multiprocessing import Pool
 import os
 import subprocess
 import sys
@@ -34,10 +35,10 @@ def main():
     # Only for non-wgcna purposes.
     clean_dct = {'go':'clean_', 'no_go':''}
 
+    # multiprocess for non-wgcna runs.
+    if objective_function != 'wgcna':
+        pool = Pool(processes=2)
     for network in ['go', 'no_go']:
-        # No no_go for WGCNA.
-        if objective_function == 'wgcna' and network == 'no_go':
-            continue
         # Generate directory.
         results_folder = './results/%s_results/%s/cluster_eval_%s' % (
             data_type, objective_function, network)
@@ -51,7 +52,15 @@ def main():
                         data_type, objective_function, network, network,
                         clean_dct[network], run_num, data_type, run_num,
                         results_folder, network, run_num))
-        subprocess.call(command, shell=True)
+        print command
+        if objective_function != 'wgcna':
+            pool.apply_async(os.system, (command,))
+        else:
+            os.system(command)
+            break # We don't want to run no_go for WGCNA.
+    if objective_function != 'wgcna':
+        pool.close()
+        pool.join()
 
 if __name__ == '__main__':
     start_time = time.time()

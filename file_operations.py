@@ -40,21 +40,21 @@ def get_embedding_genes():
     return embedding_genes
 
 # # compute_go_enrichment.py
-# def read_go_overlap(data_type):
-#     '''
-#     Gets the BP and MF GO terms that are too similar to each other. We exclude
-#     them from training, but still use them to evaluate.
-#     '''
-#     overlap_list = []
-#     if 'mouse' in data_type:
-#         f = open('./data/mouse_data/overlapping_bp_mf_go_labels.txt', 'r')
-#     else:
-#         f = open('./data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
-#     for line in f:
-#         bp_label, mf_label, p_value = line.strip().split('\t')
-#         overlap_list += [(bp_label, mf_label)]
-#     f.close()
-#     return overlap_list
+def read_go_overlap(data_type):
+    '''
+    Gets the BP and MF GO terms that are too similar to each other. We exclude
+    them from training, but still use them to evaluate.
+    '''
+    overlap_list = []
+    if 'mouse' in data_type:
+        f = open('./data/mouse_data/overlapping_bp_mf_go_labels.txt', 'r')
+    else:
+        f = open('./data/tcga_data/overlapping_bp_mf_go_labels.txt', 'r')
+    for line in f:
+        bp_label, mf_label, p_value = line.strip().split('\t')
+        overlap_list += [(bp_label, mf_label)]
+    f.close()
+    return overlap_list
 
 # evaluate_clustering.py
 def create_clean_go_file(data_type, objective_function, run_num):
@@ -236,8 +236,8 @@ def read_config_file(data_type):
     # Get the number of clusters from the WGCNA runs.
     num_clusters = -1
     try:
-        wgcna_f = open('./wgcna/results/%s_results/clus_info.tsv' %
-            data_type, 'r')
+        wgcna_f = open('./results/%s_results/wgcna/clus_info_go/clus_info_go_1'
+            '.tsv' % data_type, 'r')
         for line in wgcna_f:
             num_clusters += 1
         wgcna_f.close()

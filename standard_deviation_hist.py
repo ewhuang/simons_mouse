@@ -4,6 +4,7 @@ import file_operations
 import matplotlib
 import numpy as np
 import operator
+import os
 import sys
 import time
 
@@ -31,7 +32,10 @@ def plot_histogram(data_type, std_list):
 
 # Writing out genes with high standard deviation.
 def write_genes_to_file(data_type, high_std_genes):
-    out = open('./data/%s_data/high_std_genes.txt' % data_type, 'w')
+    folder = './data/%s_data' % data_type
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    out = open('%s/high_std_genes.txt' % folder, 'w')
     out.write('\n'.join(high_std_genes))
     out.close()
 
@@ -107,7 +111,7 @@ def main():
         # std_threshold = get_std_threshold(high_std_gene_dct)
         std_threshold = 0.1
         high_std_genes = cull_low_std_genes(high_std_gene_dct, std_threshold)
-        print len(high_std_genes)
+        print 'Number of high standard deviation genes: ', len(high_std_genes)
         write_genes_to_file(data_type, high_std_genes)
         plot_histogram(data_type, std_list)
 
