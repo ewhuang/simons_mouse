@@ -161,62 +161,80 @@ def read_dbgap_file(folder_name):
     f.close()
     return dbgap_to_gene_dct
 
-def read_gwas_file(folder_name):
+def get_entrez_to_ensg_dct():
+    '''
+    Get the mappings from Entrez Gene identifiers to Ensembl.
+    '''
+    entrez_to_ensg_dct = {}
+    f = open('./data/tcga_data/entrez_to_ensg.txt', 'r')
+    for i, line in enumerate(f):
+        if i == 0:
+            continue
+        line = line.split()
+        if len(line) != 2:
+            continue
+        entrez_id = line[1]
+        if entrez_id not in entrez_to_ensg_dct:
+            entrez_to_ensg_dct[entrez_id] = []
+        entrez_to_ensg_dct[entrez_id] += [line[0]]
+    f.close()
+    return entrez_to_ensg_dct
+
+def read_entrez_file(folder_name):
     '''
     Gets the disease annotations from the disgenet website.
     '''
-    def get_entrez_to_ensg_dct():
-        '''
-        Get the mappings from Entrez Gene identifiers to Ensembl.
-        '''
-        entrez_to_ensg_dct = {}
-        f = open('./data/tcga_data/entrez_to_ensg.txt', 'r')
-        for i, line in enumerate(f):
-            if i == 0:
-                continue
-            line = line.split()
-            if len(line) != 2:
-                continue
-            entrez_id = line[1]
-            if entrez_id not in entrez_to_ensg_dct:
-                entrez_to_ensg_dct[entrez_id] = []
-            entrez_to_ensg_dct[entrez_id] += [line[0]]
-        f.close()
-        return entrez_to_ensg_dct
-
     if folder_name == 'mouse':
         ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
 
     entrez_to_ensg_dct = get_entrez_to_ensg_dct()
     high_std_genes = file_operations.get_high_std_genes(folder_name)
 
-    gwas_to_gene_dct = {}
+    label_to_gene_dct = {}
     
     # TODO: Change the database of associations.
-    f = open('./data/curated_gene_disease_associations.tsv', 'r')
-    # f = open('./data/all_gene_disease_associations.tsv', 'r')
-    # f = open('./data/all_snps_sentences_pubmeds_position.tsv', 'r')
+    if label_type == 'gwas':
+        f = open('./data/curated_gene_disease_associations.tsv', 'r')
+        # f = open('./data/all_gene_disease_associations.tsv', 'r')
+        # f = open('./data/all_snps_sentences_pubmeds_position.tsv', 'r')
+    elif label_type == 'kegg':
+        f = open('./data/CTD_genes_pathways.tsv', 'r')
+    elif label_type == 'ctd':
+        f = open('./data/CTD_genes_diseases.tsv', 'r')
     
     for line in f:
         # There are a few header lines.
-        if 'umls' not in line:
+        if label_type == 'gwas' and 'umls' not in line:
+            continue
+        elif label_type == 'kegg' and 'KEGG:' not in line:
+            continue
+        elif label_type == 'ctd' and 'MESH:' not in line:
             continue
         line = line.strip().split('\t')
 
         # TODO: This line is for curated associations.
-        entrez_id, disease_label, score = line[1], line[5], float(line[2])
-        # This line is for all associations.
-        # entrez_id, disease_label, score = line[0], line[4], float(line[5])
-        # This line is for SNP associations.
-        # entrez_id, disease_label, score = line[2], line[5], float(line[8])
-        
-        # This line is for all/curated associations.
-        assert entrez_id.isdigit() and len(line) == 9
-        # This line is for SNP associations.
-        # assert entrez_id.isdigit() and len(line) == 15
-        
-        # TODO: Tune the score < THRESHOLD boolean.
-        if entrez_id not in entrez_to_ensg_dct or score < 0.001:
+        if label_type == 'gwas':
+            entrez_id, label, score = line[1], line[5], float(line[2])
+            # This line is for all associations.
+            # entrez_id, label, score = line[0], line[4], float(line[5])
+            # This line is for SNP associations.
+            # entrez_id, label, score = line[2], line[5], float(line[8])
+        elif label_type == 'kegg':
+            gene_symbol, entrez_id, label, path_id = line
+        elif label_type == 'ctd':
+            entrez_id, label = line[1], line[2]
+
+        assert entrez_id.isdigit()
+
+        if label_type == 'gwas':
+            # This line is for all/curated associations.
+            assert len(line) == 9
+            # This line is for SNP associations.
+            # assert entrez_id.isdigit() and len(line) == 15
+            # TODO: Tune the score < THRESHOLD boolean.
+            if score < 0.001:
+                continue
+        if entrez_id not in entrez_to_ensg_dct:
             continue
 
         ensembl_gene_id_list = entrez_to_ensg_dct[entrez_id]
@@ -232,17 +250,17 @@ def read_gwas_file(folder_name):
             continue
 
         # Replace spaces and tabs with underscores.
-        disease_label = '_'.join(disease_label.split())
+        label = '_'.join(label.split())
 
         for ensembl_gene_id in ensembl_gene_id_list:
             if ensembl_gene_id not in high_std_genes:
                 continue
-            if disease_label not in gwas_to_gene_dct:
-                gwas_to_gene_dct[disease_label] = []
-            if ensembl_gene_id not in gwas_to_gene_dct[disease_label]:
-                gwas_to_gene_dct[disease_label] += [ensembl_gene_id]
+            if label not in label_to_gene_dct:
+                label_to_gene_dct[label] = []
+            if ensembl_gene_id not in label_to_gene_dct[label]:
+                label_to_gene_dct[label] += [ensembl_gene_id]
     f.close()
-    return gwas_to_gene_dct
+    return label_to_gene_dct
 
 def dump_label_dct(file_name, label_dct):
     with open(file_name, 'w') as fp:
@@ -251,12 +269,13 @@ def dump_label_dct(file_name, label_dct):
 
 def main():
     if len(sys.argv) != 3:
-        print 'Usage:python %s mouse/tcga/mf_go_go go/dbgap/gwas' % sys.argv[0]
+        print ('Usage:python %s mouse/tcga/mf_go_go go/dbgap/gwas/kegg/ctd'
+            ) % sys.argv[0]
         exit()
     global gene_type, label_type
     gene_type, label_type = sys.argv[1:]
     assert gene_type in ['mouse', 'tcga', 'mf_go_go']
-    assert label_type in ['go', 'dbgap', 'gwas']
+    assert label_type in ['go', 'dbgap', 'gwas', 'kegg', 'ctd']
 
     # Construct just the MF GO-GO edge dictionary.
     if gene_type == 'mf_go_go':
@@ -279,9 +298,10 @@ def main():
             elif label_type == 'dbgap':
                 dbgap_dct = read_dbgap_file(folder_name)
                 dump_label_dct(folder + 'dbgap_dct.json', dbgap_dct)
-            elif label_type == 'gwas':
-                gwas_dct = read_gwas_file(folder_name)
-                dump_label_dct(folder + 'gwas_dct.json', gwas_dct)
+            elif label_type in ['gwas', 'kegg', 'ctd']:
+                label_dct = read_entrez_file(folder_name)
+                dump_label_dct('%s%s_dct.json' % (folder, label_type),
+                    label_dct)
 
 if __name__ == '__main__':
     start_time = time.time()

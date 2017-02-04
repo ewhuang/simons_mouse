@@ -38,11 +38,13 @@ def process_header_file(line):
     '''
     global num_gene_idx, dbgap_enrichment_idx, gwas_enrichment_idx
     global go_enrichment_idx, ratio_idx, t_test_idx, labeled_mean_idx
-    global unlabeled_mean_idx
+    global unlabeled_mean_idx, kegg_enrichment_idx, ctd_enrichment_idx
     num_gene_idx = line.index('Number of genes')
     dbgap_enrichment_idx = line.index('Top DBGAP p-value')
     gwas_enrichment_idx = line.index('Top GWAS p-value')
+    kegg_enrichment_idx = line.index('Top KEGG p-value')
     go_enrichment_idx = line.index('1st GO p-value')
+    ctd_enrichment_idx = line.index('Top CTD p-value')
     ratio_idx = line.index('In/(In+Out)')
     if 't-test p-value' in line:
         t_test_idx = line.index('t-test p-value')
@@ -51,11 +53,13 @@ def process_header_file(line):
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print 'Usage: %s data_type run_num go/go_auc/dbgap/gwas' % sys.argv[0]
+        print ('Usage: %s data_type run_num go/go_auc/dbgap/gwas/kegg/ctd'
+            ) % sys.argv[0]
         exit()
     data_type, run_num, plot_type = sys.argv[1:]
     assert (data_type == 'mouse' or data_type.isdigit()) and run_num.isdigit()
-    assert plot_type in ['go', 'dbgap', 'go_auc', 'gwas', 'dbgap_auc', 'gwas_auc']
+    assert plot_type in ('go', 'dbgap', 'go_auc', 'gwas', 'kegg', 'ctd',
+        'dbgap_auc', 'gwas_auc', 'kegg_auc', 'ctd_auc')
 
     if data_type.isdigit():
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
@@ -95,6 +99,10 @@ if __name__ == '__main__':
                 enrichment_p = line[gwas_enrichment_idx]
             elif 'go' in plot_type:
                 enrichment_p = line[go_enrichment_idx]
+            elif 'kegg' in plot_type:
+                enrichment_p = line[kegg_enrichment_idx]
+            elif 'ctd' in plot_type:
+                enrichment_p = line[ctd_enrichment_idx]
             top_enrichment_p = -math.log(float(enrichment_p), 10)
             point = (top_enrichment_p, float(line[ratio_idx]))
 
@@ -162,7 +170,8 @@ if __name__ == '__main__':
     plt.show()
 
     # Save extra plots in the compiled results folder.
-    if plot_type in ['go', 'go_auc', 'dbgap_auc', 'gwas_auc']:
+    if plot_type in ('go', 'go_auc', 'dbgap_auc', 'gwas_auc', 'kegg_auc',
+        'ctd_auc'):
         pylab.savefig('./results/plots_and_tables/%s_%s.png' % (data_type,
             plot_type))
 

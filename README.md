@@ -44,6 +44,9 @@ Author: Edward Huang
     human genes because for mouse, we translate from Entrez->ENSG->ENSMUSG. The
     direct Entrez-ENSMUSG database is quite sparse.
 
+4.  Download CTD gene-pathway associations.
+    Go to http://ctdbase.org/downloads/, and download the tsv files for different gene associations. Gene-pathway associations are under CTD_genes_pathways.tsv. Move it to ./data/.
+
 ## Creating the gene network
 
 1.  Plot the standard deviation distribution of the genes, and write to file.

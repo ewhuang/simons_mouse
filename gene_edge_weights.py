@@ -55,13 +55,16 @@ def create_sorted_edge_dct(high_std_genes, gene_exp_matrix):
             # Skip duplicate edges. We only save one copy of each edge.
             if col_idx <= row_idx or pcc == 1 or pcc < 0.4:
                 continue
-            # Write out gene information.
             gene_b = high_std_genes[col_idx]
-            edge_dct[(gene_a, gene_b)] = abs(pcc)
+            # Save the edge weight. TODO: change back to coefficient.
+            # edge_dct[(gene_a, gene_b)] = abs(pcc)
+            edge_dct[(gene_a, gene_b)] = p[row_idx][col_idx]
     # Get the top one million edge weights.
-    # max_num_edges = int(len(edge_dct) * 0.05)
-    sorted_edge_dct = sorted(edge_dct.items(), key=operator.itemgetter(1),
-        reverse=True)[:int(1e6)]
+    # sorted_edge_dct = sorted(edge_dct.items(), key=operator.itemgetter(1),
+    #     reverse=True)[:int(1e6)]
+    # TODO: Use reverse for coefficient. No reverse for p-value.
+    sorted_edge_dct = sorted(edge_dct.items(), key=operator.itemgetter(1)
+        )[:int(1e6)]
 
     #TODO: Find p-value of worst gene pair.
     # gene_a, gene_b = sorted_edge_dct[-1][0]
@@ -72,9 +75,11 @@ def write_sorted_edge_dct(sorted_edge_dct, folder_name):
     '''
     Write the sorted edges out to file.
     '''
-    out = open('./data/%s_data/high_std_network.txt' % folder_name, 'w')
+    # TODO: Change filename back to high_std_network.txt.
+    # out = open('./data/%s_data/high_std_network.txt' % folder_name, 'w')
+    out = open('./data/%s_data/p_value_network.txt' % folder_name, 'w')
     for (gene_a, gene_b), edge_weight in sorted_edge_dct:
-        out.write('%s\t%s\t%f\n' % (gene_a, gene_b, edge_weight))
+        out.write('%s\t%s\t%g\n' % (gene_a, gene_b, edge_weight))
     out.close()
 
 def main():

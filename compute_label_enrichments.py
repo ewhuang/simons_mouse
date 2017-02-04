@@ -25,6 +25,10 @@ def get_label_dct(base_data_type):
         fname = 'dbgap_dct'
     elif label_type == 'gwas':
         fname = 'gwas_dct'
+    elif label_type == 'kegg':
+        fname = 'kegg_dct'
+    elif label_type == 'ctd':
+        fname = 'ctd_dct'
     with open('./data/%s_data/%s.json' % (base_data_type, fname), 'r') as fp:
         label_dct = json.load(fp)
     fp.close()
@@ -107,14 +111,14 @@ def compute_label_enrichments(in_fname, out_fname):
 def main():
     if len(sys.argv) != 5:
         print ('Usage:python %s data_type objective_function run_num '
-            'go/dbgap/gwas' % sys.argv[0])
+            'go/dbgap/gwas/kegg/ctd' % sys.argv[0])
         exit()
     global data_type, objective_function, run_num, label_type
     data_type, objective_function, run_num, label_type = sys.argv[1:]
     assert (objective_function in ['oclode', 'schaeffer', 'wlogv', 'prosnet',
         'wgcna'])
     assert run_num.isdigit()
-    assert label_type in ['go', 'dbgap', 'gwas']
+    assert label_type in ['go', 'dbgap', 'gwas', 'kegg', 'ctd']
 
     if 'prosnet_' in data_type:
         base_data_type = data_type.split('_')[1]
