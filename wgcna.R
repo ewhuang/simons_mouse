@@ -12,16 +12,17 @@ options(stringsAsFactors = FALSE)
 allowWGCNAThreads(nThreads = 16)
 
 # Either 'mouse' or a TCGA cancer.
-for (data_type in c('mouse', 'lung_squamous_cell_carcinoma',
-    'colon_adenocarcinoma', 'brain_lower_grade_glioma',
-    'liver_hepatocellular_carcinoma', 'head_&_neck_squamous_cell_carcinoma',
-    'thyroid_carcinoma', 'glioblastoma_multiforme',
-    'uterine_corpus_endometrioid_carcinoma', 'pheochromocytoma_&_paraganglioma',
-    'ovarian_serous_cystadenocarcinoma', 'kidney_papillary_cell_carcinoma',
-    'prostate_adenocarcinoma', 'cervical_&_endocervical_cancer',
-    'pancreatic_adenocarcinoma', 'sarcoma', 'bladder_urothelial_carcinoma',
-    'kidney_clear_cell_carcinoma', 'breast_invasive_carcinoma',
-    'lung_adenocarcinoma')) {
+# for (data_type in c('mouse', 'lung_squamous_cell_carcinoma',
+#     'colon_adenocarcinoma', 'brain_lower_grade_glioma',
+#     'liver_hepatocellular_carcinoma', 'head_&_neck_squamous_cell_carcinoma',
+#     'thyroid_carcinoma', 'glioblastoma_multiforme',
+#     'uterine_corpus_endometrioid_carcinoma', 'pheochromocytoma_&_paraganglioma',
+#     'ovarian_serous_cystadenocarcinoma', 'kidney_papillary_cell_carcinoma',
+#     'prostate_adenocarcinoma', 'cervical_&_endocervical_cancer',
+#     'pancreatic_adenocarcinoma', 'sarcoma', 'bladder_urothelial_carcinoma',
+#     'kidney_clear_cell_carcinoma', 'breast_invasive_carcinoma',
+#     'lung_adenocarcinoma')) {
+for (data_type in c('tcga')) {
 
     hb_mrsb_cpm = read.table(paste(data_type, "_expr.tsv", sep=""), sep="\t",
         header=T)

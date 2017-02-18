@@ -33,18 +33,17 @@ def get_label_dct(base_data_type):
         label_dct = json.load(fp)
     fp.close()
 
-    # # TODO: This block makes us evaluate on the partial BP terms.
-    # # Get the overlapping MF and BP terms.
-    # overlap_list = file_operations.read_go_overlap(base_data_type)
+    # TODO: This block makes us evaluate on the partial BP terms.
 
-    # if label_type == 'go':
-    #     # Remove the overlapping BP terms.
-    #     overlapping_go_terms = set([tup[0] for tup in overlap_list])
-    #     for overlapping_go in overlapping_go_terms:
-    #         # GO might not be in BP dictionary because we computed overlap using
-    #         # full set of genes, but bp_dct only contains genes in the high_std.
-    #         if overlapping_go in label_dct:
-    #             del label_dct[overlapping_go]
+    if label_type == 'go':
+        overlap_list = file_operations.read_go_overlap(base_data_type)
+        # Remove the overlapping BP terms.
+        overlapping_go_terms = set([tup[0] for tup in overlap_list])
+        for overlapping_go in overlapping_go_terms:
+            # GO might not be in BP dictionary because we computed overlap using
+            # full set of genes, but bp_dct only contains genes in the high_std.
+            if overlapping_go in label_dct:
+                del label_dct[overlapping_go]
 
     return label_dct
 

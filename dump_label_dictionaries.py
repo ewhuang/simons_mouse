@@ -9,12 +9,11 @@ import time
 ### Run time: 50 seconds for mouse, 15 minutes for TCGA. MF GO-GO dictionary
 ### takes 5 seconds. Takes less time for DBGAP dictionaries.
 
-def get_go_dictionaries(folder_name):
+def get_go_dictionaries(gene_type, network_genes):
     '''
-    folder_name is either 'mouse' or a TCGA cancer name.
+    gene_type is either 'mouse' or a TCGA cancer name.
     Reads the file downloaded from biomart, and creates a dictionary mapping
-    GO terms to genes. Only considers genes that have high standard deviations
-    across gene expression values.
+    GO terms to genes. Only considers genes that are in the network.
     '''
     bp_dct, mf_dct = {}, {}
 
@@ -26,7 +25,6 @@ def get_go_dictionaries(folder_name):
         else:
             go_dct[go_term] = [gene]
 
-    high_std_genes = file_operations.get_high_std_genes(folder_name)
     # Open the GO annotation file.
     if gene_type == 'mouse':
         f = open('./data/mouse_data/ensmusg_to_go.txt', 'r')
@@ -42,7 +40,7 @@ def get_go_dictionaries(folder_name):
         ensembl_gene_id, go_term_name, go_domain = line
         # Skip cellular component GO labels.
         if (go_domain == 'cellular_component' or ensembl_gene_id not in
-            high_std_genes):
+            network_genes):
             continue
         go_term_name = '_'.join(go_term_name.split())
         assert 'ENS' in ensembl_gene_id
@@ -54,6 +52,14 @@ def get_go_dictionaries(folder_name):
             assert go_domain == 'molecular_function'
             add_to_dictionary(mf_dct, go_term_name, ensembl_gene_id)
     f.close()
+    # Remove terms that are too large or small from the MF dictionary.
+    bad_mf_terms = []
+    for term in mf_dct:
+        term_size = len(mf_dct[term])
+        if term_size > 1000 or term_size < 10:
+            bad_mf_terms += [term]
+    for term in bad_mf_terms:
+        del mf_dct[term]
     return bp_dct, mf_dct
 
 def get_go_go_edge_dct():
@@ -125,73 +131,40 @@ def get_ensg_to_ensmusg_dct():
     f.close()
     return ensg_to_ensmusg_dct
 
-def read_dbgap_file(folder_name):
-    '''
-    Gets the DBGAP dictionary. Maps a dbgap ID to a list of genes.
-    Key: DBGAP ID -> str
-    Value: list of ENSMUSG IDs -> list(str)
-    '''
-    if folder_name == 'mouse':
-        ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
-    high_std_genes = file_operations.get_high_std_genes(folder_name)
-
-    dbgap_to_gene_dct = {}
-    f = open('./data/dbgap.txt', 'r')
-    for line in f:
-        dbgap_id, ensg_id, bloat_1, bloat_2 = line.split()
-
-        # ENSG values are single genes.
-        ensembl_gene_id_list = [ensg_id]
-        if folder_name == 'mouse':
-            # Convert human to mouse homolog list.
-            ensembl_gene_id_list = []
-            if ensg_id in ensg_to_ensmusg_dct:
-                ensembl_gene_id_list = ensg_to_ensmusg_dct[ensg_id]
-        # Failed to convert to mouse genes.
-        if ensembl_gene_id_list == []:
-            continue
-
-        for ensembl_gene_id in ensembl_gene_id_list:
-            if ensembl_gene_id not in high_std_genes:
-                continue
-            if dbgap_id not in dbgap_to_gene_dct:
-                dbgap_to_gene_dct[dbgap_id] = []
-            if ensembl_gene_id not in dbgap_to_gene_dct[dbgap_id]:
-                dbgap_to_gene_dct[dbgap_id] += [ensembl_gene_id]
-    f.close()
-    return dbgap_to_gene_dct
-
-def get_entrez_to_ensg_dct():
+def get_external_to_ensg_dct(fname):
     '''
     Get the mappings from Entrez Gene identifiers to Ensembl.
     '''
-    entrez_to_ensg_dct = {}
-    f = open('./data/tcga_data/entrez_to_ensg.txt', 'r')
+    external_to_ensg_dct = {}
+    f = open('./data/tcga_data/%s.txt' % fname, 'r')
     for i, line in enumerate(f):
         if i == 0:
             continue
         line = line.split()
         if len(line) != 2:
             continue
-        entrez_id = line[1]
-        if entrez_id not in entrez_to_ensg_dct:
-            entrez_to_ensg_dct[entrez_id] = []
-        entrez_to_ensg_dct[entrez_id] += [line[0]]
+        external_id = line[1]
+        if external_id not in external_to_ensg_dct:
+            external_to_ensg_dct[external_id] = []
+        external_to_ensg_dct[external_id] += [line[0]]
     f.close()
-    return entrez_to_ensg_dct
+    return external_to_ensg_dct
 
-def read_entrez_file(folder_name):
+def read_annotation_file(gene_type, network_genes):
     '''
     Gets the disease annotations from the disgenet website.
     '''
-    if folder_name == 'mouse':
+    if gene_type == 'mouse':
         ensg_to_ensmusg_dct = get_ensg_to_ensmusg_dct()
 
-    entrez_to_ensg_dct = get_entrez_to_ensg_dct()
-    high_std_genes = file_operations.get_high_std_genes(folder_name)
+    # DBGAP uses ENSG IDs already.
+    if label_type == 'nci':
+        external_to_ensg_dct = get_external_to_ensg_dct('ensg_to_hgnc')
+    elif label_type in ['gwas', 'kegg', 'ctd', 'nci']:
+        external_to_ensg_dct = get_external_to_ensg_dct('ensg_to_entrez')
 
     label_to_gene_dct = {}
-    
+
     # TODO: Change the database of associations.
     if label_type == 'gwas':
         f = open('./data/curated_gene_disease_associations.tsv', 'r')
@@ -201,6 +174,10 @@ def read_entrez_file(folder_name):
         f = open('./data/CTD_genes_pathways.tsv', 'r')
     elif label_type == 'ctd':
         f = open('./data/CTD_genes_diseases.tsv', 'r')
+    elif label_type == 'nci':
+        f = open('./data/nci_pathway_hgnc.txt', 'r')
+    elif label_type == 'dbgap':
+        f = open('./data/dbgap.txt', 'r')
     
     for line in f:
         # There are a few header lines.
@@ -210,35 +187,44 @@ def read_entrez_file(folder_name):
             continue
         elif label_type == 'ctd' and 'MESH:' not in line:
             continue
+        elif label_type == 'dbgap' and ('LYMPHOCYTES' in line or 'DNA' in line):
+            continue
         line = line.strip().split('\t')
 
         # TODO: This line is for curated associations.
         if label_type == 'gwas':
-            entrez_id, label, score = line[1], line[5], float(line[2])
+            external_id, label, score = line[1], line[5], float(line[2])
             # This line is for all associations.
-            # entrez_id, label, score = line[0], line[4], float(line[5])
+            # external_id, label, score = line[0], line[4], float(line[5])
             # This line is for SNP associations.
-            # entrez_id, label, score = line[2], line[5], float(line[8])
-        elif label_type == 'kegg':
-            gene_symbol, entrez_id, label, path_id = line
-        elif label_type == 'ctd':
-            entrez_id, label = line[1], line[2]
-
-        assert entrez_id.isdigit()
-
-        if label_type == 'gwas':
+            # external_id, label, score = line[2], line[5], float(line[8])
             # This line is for all/curated associations.
             assert len(line) == 9
             # This line is for SNP associations.
-            # assert entrez_id.isdigit() and len(line) == 15
+            # assert external_id.isdigit() and len(line) == 15
             # TODO: Tune the score < THRESHOLD boolean.
             if score < 0.001:
                 continue
-        if entrez_id not in entrez_to_ensg_dct:
+        elif label_type == 'kegg':
+            gene_symbol, external_id, label, path_id = line
+        elif label_type == 'ctd':
+            external_id, label = line[1], line[2]
+        elif label_type == 'nci':
+            label, external_id = line
+        elif label_type == 'dbgap':
+            label, external_id = line[0], line[1]
+
+        if label_type not in ['nci', 'dbgap']:
+            assert external_id.isdigit()
+
+        if label_type != 'dbgap' and external_id not in external_to_ensg_dct:
             continue
 
-        ensembl_gene_id_list = entrez_to_ensg_dct[entrez_id]
-        if folder_name == 'mouse':
+        if label_type == 'dbgap':
+            ensembl_gene_id_list = [external_id]
+        else:
+            ensembl_gene_id_list = external_to_ensg_dct[external_id]
+        if gene_type == 'mouse':
             # Convert human to mouse homolog list.
             ensmusg_list = []
             for ensg_id in ensembl_gene_id_list:
@@ -250,10 +236,11 @@ def read_entrez_file(folder_name):
             continue
 
         # Replace spaces and tabs with underscores.
-        label = '_'.join(label.split())
+        if label_type != 'dbgap':
+            label = '_'.join(label.split())
 
         for ensembl_gene_id in ensembl_gene_id_list:
-            if ensembl_gene_id not in high_std_genes:
+            if ensembl_gene_id not in network_genes:
                 continue
             if label not in label_to_gene_dct:
                 label_to_gene_dct[label] = []
@@ -269,38 +256,34 @@ def dump_label_dct(file_name, label_dct):
 
 def main():
     if len(sys.argv) != 3:
-        print ('Usage:python %s mouse/tcga/mf_go_go go/dbgap/gwas/kegg/ctd'
-            ) % sys.argv[0]
+        print ('Usage:python %s mouse/tcga/all/mf_go_go go/dbgap/gwas/kegg/ctd'
+            '/nci') % sys.argv[0]
         exit()
-    global gene_type, label_type
-    gene_type, label_type = sys.argv[1:]
-    assert gene_type in ['mouse', 'tcga', 'mf_go_go']
-    assert label_type in ['go', 'dbgap', 'gwas', 'kegg', 'ctd']
+    global label_type
+    data_type, label_type = sys.argv[1:]
+    assert data_type in ['mouse', 'tcga', 'all', 'mf_go_go']
+    assert label_type in ['go', 'dbgap', 'gwas', 'kegg', 'ctd', 'nci']
 
     # Construct just the MF GO-GO edge dictionary.
-    if gene_type == 'mf_go_go':
+    if data_type == 'mf_go_go':
         go_go_edge_dct = get_go_go_edge_dct()
         dump_label_dct('./data/mf_go_go_dct.json', go_go_edge_dct)
     else:
-        # Otherwise, make the normal GO dictionaries.
-        if gene_type == 'mouse':
-            folder_list = ['mouse']
-        else:
+        gene_type_list = [data_type]
+        if data_type == 'all':
             # If TCGA, make a set of GO dictionaries for each cancer type.
-            folder_list = file_operations.get_tcga_disease_list()
+            gene_type_list = file_operations.get_tcga_list()
 
-        for folder_name in folder_list:
-            folder = './data/%s_data/' % folder_name
+        for gene_type in gene_type_list:
+            network_genes = file_operations.get_network_genes(gene_type)
+            folder = './data/%s_data' % gene_type
             if label_type == 'go':
-                bp_dct, mf_dct = get_go_dictionaries(folder_name)
-                dump_label_dct(folder + 'bp_dct.json', bp_dct)
-                dump_label_dct(folder + 'mf_dct.json', mf_dct)
-            elif label_type == 'dbgap':
-                dbgap_dct = read_dbgap_file(folder_name)
-                dump_label_dct(folder + 'dbgap_dct.json', dbgap_dct)
-            elif label_type in ['gwas', 'kegg', 'ctd']:
-                label_dct = read_entrez_file(folder_name)
-                dump_label_dct('%s%s_dct.json' % (folder, label_type),
+                bp_dct, mf_dct = get_go_dictionaries(gene_type, network_genes)
+                dump_label_dct('%s/bp_dct.json' % folder, bp_dct)
+                dump_label_dct('%s/mf_dct.json' % folder, mf_dct)
+            elif label_type in ['gwas', 'kegg', 'ctd', 'nci', 'dbgap']:
+                label_dct = read_annotation_file(gene_type, network_genes)
+                dump_label_dct('%s/%s_dct.json' % (folder, label_type),
                     label_dct)
 
 if __name__ == '__main__':

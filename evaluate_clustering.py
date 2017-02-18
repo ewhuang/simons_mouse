@@ -3,7 +3,6 @@
 import file_operations
 from multiprocessing import Pool
 import os
-import subprocess
 import sys
 import time
 
@@ -17,7 +16,8 @@ def main():
             sys.argv[0])
         exit()
     data_type, objective_function, run_num = sys.argv[1:]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'wgcna']
+    assert objective_function in ('oclode', 'schaeffer', 'wlogv', 'wgcna',
+        'prosnet')
     assert run_num.isdigit()
 
     if data_type.isdigit():

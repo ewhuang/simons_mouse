@@ -6,7 +6,7 @@ import time
 ### Splits up the TCGA expression dataset into its cancer sub-categories. Go to
 ### http://knowcloud.cse.illinois.edu/index.php/s/DSuJffKJR2hIhAa
 ### Download the clinical_data file and the expr_converted.txt file. Rename
-### expr_converted.txt to tcga_expr.txt. Move both files to ./data/tcga_data/
+### expr_converted.txt to expr.tsv. Move both files to ./data/tcga_data/
 ### Run time: 50 seconds.
 
 def read_clinical_data():
@@ -47,7 +47,7 @@ def split_expression_data(disease_to_sample_dct):
     disease_expr_dct, disease_col_idx_dct = {}, {}
 
     # Read the TCGA data.
-    f = open('./data/tcga_data/tcga_expr.txt', 'r')
+    f = open('./data/tcga_data/expr.tsv', 'r')
     for i, line in enumerate(f):
         line = line.split()
 

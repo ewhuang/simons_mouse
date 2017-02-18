@@ -9,7 +9,8 @@ import os
 def get_gene_expression_dct(data_type):
     '''
     Returns dictionary where keys are genes, and values are gene expression
-    vectors. data_type can be either 'mouse' or any on of the TCGA diseases.
+    vectors. data_type can be either 'mouse' or any on of the TCGA diseases, as
+    well as 'tcga'.
     '''
     f = open('./data/%s_data/expr.tsv' % data_type, 'r')
     gene_expression_dct = OrderedDict({})
@@ -194,95 +195,93 @@ def get_network_stats(network_fname):
 # dump_go_dictionary_files.py
 # gene_edge_weights.py
 # compute_go_enrichment.py
-def get_high_std_genes(data_type):
-    '''
-    Retrieves the list of genes that have high standard deviations across their
-    gene expression vectors.
-    '''
-    high_std_genes = []
-    f = open('./data/%s_data/high_std_genes.txt' % data_type, 'r')
+# create_clustering_input.py
+def get_network_genes(data_type):
+    network_genes = set([])
+    f = open('./data/%s_data/network_genes.txt' % data_type, 'r')
     for line in f:
-        gene = line.strip()
-        assert 'ENSMUSG' in gene or 'ENSG' in gene
-        high_std_genes += [gene]
+        network_genes.add(line.strip())
     f.close()
-    return high_std_genes
+    return network_genes
 
 # create_clustering_input.py
-def get_high_std_edge_dct(data_type):
+def get_edge_dct(data_type):
     '''
     Returns edges between high standard deviation genes that have very
     correlated gene expression vectors.
     '''
-    high_std_edge_dct = {}
-    f = open('./data/%s_data/high_std_network.txt' % data_type, 'r')
+    edge_dct = {}
+    f = open('./data/%s_data/coexpression_network.txt' % data_type, 'r')
     for i, line in enumerate(f):
         gene_a, gene_b, pcc = line.split()
-        high_std_edge_dct[(gene_a, gene_b)] = pcc
+        edge_dct[(gene_a, gene_b)] = pcc
     f.close()
-    return high_std_edge_dct
+    return edge_dct
 
 # create_clustering_input.py
 # simulated_annealing.py
-def read_config_file(data_type):
-    '''
-    Returns dictionary. Keys are run_num strings, values are dicts of config
-    options. Each dct has key of subgraph_decimal, temp, min_go_size,
-    max_go_size, pearson/embedding edges, lambda, num_clusters.
-    '''
-    num_options = 6
-    config_dct = {}
+# def read_config_file(data_type):
+#     '''
+#     Returns dictionary. Keys are run_num strings, values are dicts of config
+#     options. Each dct has key of subgraph_decimal, temp, min_go_size,
+#     max_go_size, pearson/embedding edges, lambda, num_clusters.
+#     '''
+#     num_options = 6
+#     config_dct = {}
     
-    # Get the number of clusters from the WGCNA runs.
-    num_clusters = -1
-    try:
-        wgcna_f = open('./results/%s_results/wgcna/clus_info_go/clus_info_go_1'
-            '.tsv' % data_type, 'r')
-        for line in wgcna_f:
-            num_clusters += 1
-        wgcna_f.close()
-    except:
-        pass
+#     if 'prosnet' in data_type:
+#         data_type = '_'.join(data_type.split('_')[1:])
 
-    if 'prosnet' in data_type:
-        data_type = '_'.join(data_type.split('_')[1:])
-    if 'mouse' in data_type:
-        f = open('mouse_config.txt', 'r')
-    else:
-        f = open('tcga_config.txt', 'r')
-    for i, line in enumerate(f):
-        config_num = i % (num_options + 1)
-        if config_num == 0:
-            run_num = line.split(' ')[1].strip()
-            config_dct[run_num] = {}
-        elif config_num == 1:
-            temp = line.split()[2].strip()
-            config_dct[run_num]['temp'] = temp
-        elif config_num == 2:
-            min_go_size = line.split()[2].strip()
-            config_dct[run_num]['min_go_size'] = int(min_go_size)
-        elif config_num == 3:
-            max_go_size = line.split()[2].strip()
-            config_dct[run_num]['max_go_size'] = int(max_go_size)
-        elif config_num == 4:
-            edge_method = line.strip()
-            config_dct[run_num]['edge_method'] = edge_method
-        elif config_num == 5:
-            lamb = line.split()[2].strip()
-            config_dct[run_num]['lamb'] = float(lamb)
-        config_dct[run_num]['num_clusters'] = num_clusters
-    f.close()
-    return config_dct
+#     # Get the number of clusters from the WGCNA runs.
+#     num_clusters = -1
+#     try:
+#         wgcna_f = open('./results/%s_results/wgcna/clus_info_go/clus_info_go_1'
+#             '.tsv' % data_type, 'r')
+#         for line in wgcna_f:
+#             num_clusters += 1
+#         wgcna_f.close()
+#     except:
+#         print 'Warning: no WGCNA cluster file found.'
+#         pass
+
+#     if 'mouse' in data_type:
+#         f = open('mouse_config.txt', 'r')
+#     else:
+#         f = open('tcga_config.txt', 'r')
+#     for i, line in enumerate(f):
+#         config_num = i % (num_options + 1)
+#         if config_num == 0:
+#             run_num = line.split(' ')[1].strip()
+#             config_dct[run_num] = {}
+#         elif config_num == 1:
+#             temp = line.split()[2].strip()
+#             config_dct[run_num]['temp'] = temp
+#         elif config_num == 2:
+#             min_go_size = line.split()[2].strip()
+#             config_dct[run_num]['min_go_size'] = int(min_go_size)
+#         elif config_num == 3:
+#             max_go_size = line.split()[2].strip()
+#             config_dct[run_num]['max_go_size'] = int(max_go_size)
+#         elif config_num == 4:
+#             edge_method = line.strip()
+#             config_dct[run_num]['edge_method'] = edge_method
+#         elif config_num == 5:
+#             lamb = line.split()[2].strip()
+#             config_dct[run_num]['lamb'] = float(lamb)
+#         config_dct[run_num]['num_clusters'] = num_clusters
+#     f.close()
+#     return config_dct
 
 # standard_deviation_hist.py
 # full_pipeline.py
-def get_tcga_disease_list():
+# create_clustering_input.py
+def get_tcga_list():
     '''
     Get the list of valid diseases from the TCGA dataset.
     '''
-    tcga_disease_list = []
+    tcga_list = []
     f = open('./data/tcga_data/tcga_diseases.txt', 'r')
     for line in f:
-        tcga_disease_list += [line.strip()]
+        tcga_list += [line.strip()]
     f.close()
-    return tcga_disease_list
+    return sorted(tcga_list)

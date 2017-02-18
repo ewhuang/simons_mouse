@@ -3,22 +3,20 @@
 import file_operations
 import matplotlib
 import numpy as np
-import operator
 import os
 import sys
 import time
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import pylab
 
 ### This script plots a histogram of the number of genes vs. standard deviation
 ### of their gene expression vectors. It also writes out to file the genes
 ### that have high standard deviation.
 ### Run time: 18 seconds for mouse, 110 seconds for TCGA.
 
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import pylab
-
 # Plotting GO enrichment histograms.
-def plot_histogram(data_type, std_list):
+def plot_histogram(gene_type, std_list):
     # Plot 50 bins.
     bins = np.linspace(0, 5, 51)
     matplotlib.pyplot.hist(std_list, bins, alpha=0.25)
@@ -27,12 +25,12 @@ def plot_histogram(data_type, std_list):
     plt.ylabel('number of genes')
     plt.title('number of genes vs. STD')
     plt.show()
-    pylab.savefig('./data/%s_data/gene_std_histogram.png' % data_type)
+    pylab.savefig('./data/%s_data/gene_std_histogram.png' % gene_type)
     plt.close()
 
 # Writing out genes with high standard deviation.
-def write_genes_to_file(data_type, high_std_genes):
-    folder = './data/%s_data' % data_type
+def write_genes_to_file(gene_type, high_std_genes):
+    folder = './data/%s_data' % gene_type
     if not os.path.exists(folder):
         os.makedirs(folder)
     out = open('%s/high_std_genes.txt' % folder, 'w')
@@ -58,9 +56,9 @@ def get_std_threshold(high_std_gene_dct):
     previous_count = std_range_dct[std_range[0]]
     for std in std_range[1:]:
         # Stop when we have reached a count lower than the previous count, with
-        # at fewer than 2000 genes in the bin.
+        # at > 1000 genes in the bin.
         current_count = std_range_dct[std]
-        if current_count < 2000 and current_count < previous_count:
+        if 1000 < current_count and current_count < previous_count:
             return std
         previous_count = current_count
     exit()
@@ -77,19 +75,18 @@ def cull_low_std_genes(high_std_gene_dct, std_threshold):
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga' % sys.argv[0]
+        print 'Usage:python %s mouse/tcga/all' % sys.argv[0]
         exit()
-    category = sys.argv[1]
-    assert category in ['mouse', 'tcga']
+    data_type = sys.argv[1]
+    assert data_type in ['mouse', 'tcga', 'all']
 
-    if category == 'mouse':
-        data_type_list = ['mouse']
-    elif category == 'tcga':
-        data_type_list = file_operations.get_tcga_disease_list()
+    # Convert 'all' to list of all TCGA sub-cancers.
+    gene_type_list = [data_type]
+    if data_type == 'all':
+        gene_type_list = file_operations.get_tcga_list()
 
-    # data_type can be 'mouse' or any of the TCGA cancers.
-    for data_type in data_type_list:
-        gene_expression_dct = file_operations.get_gene_expression_dct(data_type)
+    for gene_type in gene_type_list:
+        gene_expression_dct = file_operations.get_gene_expression_dct(gene_type)
 
         # Compute standard deviations for each gene.
         std_list, high_std_gene_dct = [], {}
@@ -100,20 +97,26 @@ def main():
             # Compute standard deviation.
             gene_std = np.std(gene_exp_vector)
 
-            # 4.5e-15 happens when the genes have the same expression values for
-            # all samples.
+            # 4.5e-15 happens when we have the same values for all samples.
             if gene_std < 4.5e-15:
                 continue
             std_list += [gene_std]
             high_std_gene_dct[gene] = gene_std
 
         # TODO: automated or hard-coded threshold?
-        # std_threshold = get_std_threshold(high_std_gene_dct)
-        std_threshold = 0.1
+        std_threshold = get_std_threshold(high_std_gene_dct)
+        # if gene_type == 'mouse':
+            # std_threshold = 0.1
+        # elif gene_type == 'tcga':
+            # std_threshold = 0.5
+        # else:
+        #     std_threshold = 0.5
+
         high_std_genes = cull_low_std_genes(high_std_gene_dct, std_threshold)
-        print 'Number of high standard deviation genes: ', len(high_std_genes)
-        write_genes_to_file(data_type, high_std_genes)
-        plot_histogram(data_type, std_list)
+        print 'Number of high standard deviation genes: ', len(high_std_genes),
+        print std_threshold, gene_type
+        write_genes_to_file(gene_type, high_std_genes)
+        plot_histogram(gene_type, std_list)
 
 if __name__ == '__main__':
     start_time = time.time()

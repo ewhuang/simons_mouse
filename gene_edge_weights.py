@@ -74,7 +74,7 @@ def main():
     # Convert 'all' to list of all TCGA sub-cancers.
     gene_type_list = [data_type]
     if data_type == 'all':
-        gene_type_list = file_operations.get_tcga_disease_list()
+        gene_type_list = file_operations.get_tcga_list()
 
     for gene_type in gene_type_list:
         write_edges(gene_type)

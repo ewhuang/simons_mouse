@@ -31,8 +31,7 @@ def read_cheat_evaluation():
     return cheat_eval_dct
 
 def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname, 
-    dbgap_enrich_fname, gwas_enrich_fname, kegg_enrich_fname, ctd_enrich_fname,
-    out_fname):
+    dbgap_enrich_fname, gwas_enrich_fname, out_fname):
     '''
     Reads each of the files, and creates a summary table suitable for reading.
     '''
@@ -48,8 +47,9 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
     dbgap_enrichment_dct = file_operations.get_enrichment_dct(
         dbgap_enrich_fname)
     gwas_enrichment_dct = file_operations.get_enrichment_dct(gwas_enrich_fname)
-    kegg_enrichment_dct = file_operations.get_enrichment_dct(kegg_enrich_fname)
-    ctd_enrichment_dct = file_operations.get_enrichment_dct(ctd_enrich_fname)
+    # TODO. Not adding in KEGG or CTD.
+    # kegg_enrichment_dct = file_operations.get_enrichment_dct(kegg_enrich_fname)
+    # ctd_enrichment_dct = file_operations.get_enrichment_dct(ctd_enrich_fname)
 
     if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
         objective_function != 'wgcna'):
@@ -62,8 +62,10 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
         'Number of genes\t1st GO p-value\t1st GO term\t2nd GO p-value\t'
         '2nd GO term\t3rd GO p-value\t3rd GO term\t4th GO p-value\t4th GO term'
         '\t5th GO p-value\t5th GO term\tTop DBGAP p-value\tTop DBGAP term\t'
-        'Top GWAS p-value\tTop GWAS term\tTop KEGG p-value\tTop KEGG term\t'
-        'Top CTD p-value\tTop CTD term\t')
+        'Top GWAS p-value\tTop GWAS term\t')
+        # TODO: Currently not adding CTD or KEGG terms.
+        # 'Top GWAS p-value\tTop GWAS term\tTop KEGG p-value\tTop KEGG term\t'
+        # 'Top CTD p-value\tTop CTD term\t')
     # If it's a regular run with GO, add in the cheating evaluation.
     if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
         objective_function != 'wgcna'):
@@ -93,17 +95,20 @@ def write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
         best_gwas_p = gwas_enrichment_dct[cid][1][0]
         best_gwas_term = gwas_enrichment_dct[cid][0][0]
 
-        best_kegg_p = kegg_enrichment_dct[cid][1][0]
-        best_kegg_term = kegg_enrichment_dct[cid][0][0]
+        # TODO: Not adding KEGG or CTD.
+        # best_kegg_p = kegg_enrichment_dct[cid][1][0]
+        # best_kegg_term = kegg_enrichment_dct[cid][0][0]
 
-        best_ctd_p = ctd_enrichment_dct[cid][1][0]
-        best_ctd_term = ctd_enrichment_dct[cid][0][0]
+        # best_ctd_p = ctd_enrichment_dct[cid][1][0]
+        # best_ctd_term = ctd_enrichment_dct[cid][0][0]
 
-        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t' % (
+        # TODO: Add in 4 %s to match the missing kegg and CTD strings.
+        out.write('%s\t%g\t%g\t%g\t%d\t%s\t%s\t%s\t%s\t%s\t' % (
             cid, in_dens, out_dens, in_dens / (in_dens + out_dens), num_genes,
             interleaved_terms_and_p, best_dbgap_p, best_dbgap_term, best_gwas_p,
-            best_gwas_term, best_kegg_p, best_kegg_term, best_ctd_p,
-            best_ctd_term))
+            best_gwas_term))
+            # best_gwas_term, best_kegg_p, best_kegg_term, best_ctd_p,
+            # best_ctd_term))
 
         if ('prosnet' not in clus_fname and 'no_go' not in clus_fname and
             objective_function != 'wgcna'):
@@ -150,13 +155,14 @@ def generate_filenames():
         gwas_enrich_fname = ('%s/gwas_enrichment_terms_%s/gwas_enrichment_'
                                 'terms_%s_%s.txt') % format_str
 
-        # KEGG enrichment results filename.
-        kegg_enrich_fname = ('%s/kegg_enrichment_terms_%s/kegg_enrichment_'
-                                'terms_%s_%s.txt') % format_str
+        # TODO: Not using KEGG or CTD.
+        # # KEGG enrichment results filename.
+        # kegg_enrich_fname = ('%s/kegg_enrichment_terms_%s/kegg_enrichment_'
+        #                         'terms_%s_%s.txt') % format_str
 
-        # CTD disease enrichment results filename.
-        ctd_enrich_fname = ('%s/ctd_enrichment_terms_%s/ctd_enrichment_'
-                                'terms_%s_%s.txt') % format_str
+        # # CTD disease enrichment results filename.
+        # ctd_enrich_fname = ('%s/ctd_enrichment_terms_%s/ctd_enrichment_'
+        #                         'terms_%s_%s.txt') % format_str
 
         # Finally, the output filename.
         info_folder = '%s/clus_info_%s' % (results_folder, network_type)
@@ -165,8 +171,9 @@ def generate_filenames():
         out_fname = '%s/clus_info_%s/clus_info_%s_%s.tsv' % format_str
 
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
-            dbgap_enrich_fname, gwas_enrich_fname, kegg_enrich_fname,
-            ctd_enrich_fname, out_fname)
+            dbgap_enrich_fname, gwas_enrich_fname, out_fname)
+            # dbgap_enrich_fname, gwas_enrich_fname, kegg_enrich_fname,
+            # ctd_enrich_fname, out_fname)
         # plots_and_tables filename.
         if objective_function == 'wgcna':
             subfolder_fname = '%s/%s_wgcna.tsv' % (subfolder, data_type)
@@ -174,8 +181,9 @@ def generate_filenames():
             subfolder_fname = '%s/%s_%s.tsv' % (subfolder, data_type,
                 network_type)
         write_summary(clus_fname, net_fname, eval_fname, go_enrich_fname,
-            dbgap_enrich_fname, gwas_enrich_fname, kegg_enrich_fname,
-            ctd_enrich_fname, subfolder_fname)
+            dbgap_enrich_fname, gwas_enrich_fname, subfolder_fname)
+            # dbgap_enrich_fname, gwas_enrich_fname, kegg_enrich_fname,
+            # ctd_enrich_fname, subfolder_fname)
 
 def main():
     if len(sys.argv) != 4:
@@ -184,7 +192,8 @@ def main():
         exit()
     global data_type, objective_function, run_num
     data_type, objective_function, run_num = sys.argv[1:]
-    assert objective_function in ['oclode', 'schaeffer', 'wlogv', 'wgcna']
+    assert objective_function in ('oclode', 'schaeffer', 'wlogv', 'wgcna',
+        'prosnet')
     assert run_num.isdigit()
 
     # Integer data_type means it's a TCGA cancer.

@@ -17,16 +17,18 @@ def generate_directories():
 
 def main():
     if len(sys.argv) != 2:
-        print 'Usage:python %s mouse/tcga' % sys.argv[0]
+        print 'Usage:python %s mouse/all/tcga' % sys.argv[0]
         exit()
     category = sys.argv[1]
-    assert category in ['mouse', 'tcga']
+    assert category in ['mouse', 'all', 'tcga']
 
     generate_directories()
 
     if category == 'mouse':
         data_type_list = ['mouse']
     elif category == 'tcga':
+        data_type_list = ['tcga']
+    else:
         # Pre-processes for all TCGA cancers.
         data_type_list = file_operations.get_tcga_disease_list()
 
@@ -38,6 +40,8 @@ def main():
         for i, line in enumerate(f):
             # Directly write out the header file.
             if i == 0:
+                if 'gene_id' not in line:
+                    out.write('gene_id')
                 out.write(line)
                 continue
             split_line = line.split()

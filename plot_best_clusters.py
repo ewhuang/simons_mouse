@@ -23,9 +23,12 @@ def get_auc(point_list):
     auc_point_list = []
     # Get the sorted p-values in our list of points.
     sorted_point_list = sorted(point_list, key=lambda x: x[0])
+    # TODO: Not considering indensity minimum requirement.
     num_point_list = len(point_list) - len([pt for pt in point_list if pt[1] < indensity_threshold])
+    # num_point_list = len(point_list)
 
     for i, (p_value, density) in enumerate(sorted_point_list):
+        # TODO: Not considering indensity minimum requirement.
         if density < indensity_threshold:
             continue
         num_better = num_point_list - i
@@ -38,13 +41,13 @@ def process_header_file(line):
     '''
     global num_gene_idx, dbgap_enrichment_idx, gwas_enrichment_idx
     global go_enrichment_idx, ratio_idx, t_test_idx, labeled_mean_idx
-    global unlabeled_mean_idx, kegg_enrichment_idx, ctd_enrichment_idx
+    global unlabeled_mean_idx#, kegg_enrichment_idx, ctd_enrichment_idx
     num_gene_idx = line.index('Number of genes')
     dbgap_enrichment_idx = line.index('Top DBGAP p-value')
     gwas_enrichment_idx = line.index('Top GWAS p-value')
-    kegg_enrichment_idx = line.index('Top KEGG p-value')
+    # kegg_enrichment_idx = line.index('Top KEGG p-value')
     go_enrichment_idx = line.index('1st GO p-value')
-    ctd_enrichment_idx = line.index('Top CTD p-value')
+    # ctd_enrichment_idx = line.index('Top CTD p-value')
     ratio_idx = line.index('In/(In+Out)')
     if 't-test p-value' in line:
         t_test_idx = line.index('t-test p-value')
@@ -57,7 +60,8 @@ if __name__ == '__main__':
             ) % sys.argv[0]
         exit()
     data_type, run_num, plot_type = sys.argv[1:]
-    assert (data_type == 'mouse' or data_type.isdigit()) and run_num.isdigit()
+    assert (data_type in ['mouse', 'tcga'] or data_type.isdigit()
+        ) and run_num.isdigit()
     assert plot_type in ('go', 'dbgap', 'go_auc', 'gwas', 'kegg', 'ctd',
         'dbgap_auc', 'gwas_auc', 'kegg_auc', 'ctd_auc')
 
@@ -65,12 +69,15 @@ if __name__ == '__main__':
         data_type = file_operations.get_tcga_disease_list()[int(data_type)]
     print data_type
 
-    colors, mode_marker_list = ['blue', 'red', 'black'], ['<', 'v', 'o']
-
+    colors, mode_marker_list = ['blue', 'red', 'black', 'orange', 'green'], (
+        '<', 'v', 'o', '^', '>')
     highest_p, highest_y = 0, 0
-    for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go']):
-        point_list = []
 
+    for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go',
+        'prosnet_go', 'prosnet_no_go']):
+    # for mode_index, mode in enumerate(['wgcna', 'wlogv_no_go', 'wlogv_go']):
+        
+        point_list = []
         if mode == 'wgcna':
             fname = ('./results/%s_results/wgcna/clus_info_go/clus_info_go_'
                 '%s.tsv' % (data_type, run_num))
@@ -82,6 +89,13 @@ if __name__ == '__main__':
         elif mode == 'wlogv_no_go':
             fname = ('./results/%s_results/wlogv/clus_info_no_go/clus_info_'
                 'no_go_%s.tsv' % (data_type, run_num))
+        # prosnet stuff.
+        elif mode == 'prosnet_go':
+            fname = ('./results/prosnet_%s_results/wlogv/clus_info_go/clus_'
+                'info_go_%s.tsv' % (data_type, run_num))
+        elif mode == 'prosnet_no_go':
+            fname = ('./results/prosnet_%s_results/wlogv/clus_info_no_go/clus_'
+                'info_no_go_%s.tsv' % (data_type, run_num))
 
         f = open(fname, 'r')
         for i, line in enumerate(f):
@@ -127,11 +141,13 @@ if __name__ == '__main__':
             point_list = get_auc(point_list)
 
         # Update the largest y-axis value.
+        if len(point_list) == 0:
+            continue
         highest_p = max(highest_p, max(pt[0] for pt in point_list))
         highest_y = max(highest_y, max(pt[1] for pt in point_list))
         num_high_points = len([p for p in point_list if p[0] >= 10])
-
         mode_label = '%s, %d' % (mode, num_high_points)
+
         if 'auc' in plot_type:
             plt.plot(*zip(*point_list), color=colors[mode_index],
                 label=mode_label)

@@ -40,9 +40,10 @@ Author: Edward Huang
     Go to biomart (as in GO and DBGAP).
     Dataset -> Homo sapiens genes
     Attributes -> Gene ID, uncheck transcript, EntrezGene ID
-    Export, rename to entrez_to_ensg.txt Move to ./data/tcga_data/. Only get
+    Export, rename to ensg_to_entrez.txt Move to ./data/tcga_data/. Only get
     human genes because for mouse, we translate from Entrez->ENSG->ENSMUSG. The
-    direct Entrez-ENSMUSG database is quite sparse.
+    direct Entrez-ENSMUSG database is quite sparse. Get the ensg_to_hgnc.txt
+    file in a similar manner.
 
 4.  Download CTD gene-pathway associations.
     Go to http://ctdbase.org/downloads/, and download the tsv files for different gene associations. Gene-pathway associations are under CTD_genes_pathways.tsv. Move it to ./data/.
@@ -53,31 +54,32 @@ Author: Edward Huang
     Only keeps genes with standard deviation > 0.1.
 
     ```bash
-    $ python standard_deviation_hist.py mouse/tcga
+    $ python standard_deviation_hist.py mouse/all/tcga
     ```
 
-    If command line argument is 'tcga', runs for all TCGA cancer types.
+    If command line argument is 'all', runs for separate TCGA cancer types.
 
-2.  Create GO dictionary JSON files for each gene type. Must run with argument
+2.  Compute Pearson coefficients between gene expression values to find
+    correlated genes. Output file is high_std_network.txt.
+
+    ```bash
+    $ python gene_edge_weights.py mouse/tcga/all
+    ```
+
+3.  Create GO dictionary JSON files for each gene type. Must run with argument
     mf_go_go to create the the MF GO-GO dictionary.
 
     ```bash
-    $ python dump_label_dictionaries.py mouse/tcga/mf_go_go go/dbgap/gwas
+    $ python dump_label_dictionaries.py mouse/all/tcga/mf_go_go go/dbgap/gwas/nci
     ```
-    Last argument doesn't matter if argument is mf_go_go
+    Last argument optional if first argument is mf_go_go
 
-<!-- 3.  Find overlapping BP and MF terms.
+<!-- 4.  Find overlapping BP and MF terms.
 
     ```bash
     $ python find_go_overlaps.py mouse/tcga
     ``` -->
 
-4.  Compute Pearson coefficients between gene expression values to find
-    correlated genes. Output file is high_std_network.txt.
-
-    ```bash
-    $ python gene_edge_weights.py mouse/tcga
-    ```
 
 ## WGCNA Pre-processing
 1.  Must have previously run split_tcga_dataset.py and standard_deviation_hist.py.
@@ -102,7 +104,7 @@ Must have run everything for WGCNA prior to plotting. This is so we have
 something to plot for WGCNA.
 
 ```bash
-$ python full_pipeline.py mouse/tcga_index wlogv/wgcna run_num
+$ python full_pipeline.py mouse/tcga/tcga_idx wlogv/wgcna run_num
 ```
 
 ### Adding GO nodes and formatting for clustering
@@ -117,7 +119,7 @@ $ python full_pipeline.py mouse/tcga_index wlogv/wgcna run_num
         real_network_no_go_RUNNUM.txt
 
     ```bash
-    $ python create_clustering_input.py mouse/tcga_cancers run_num -b<bootstrap-optional>
+    $ python create_clustering_input.py mouse/tcga/tcga_idx run_num -b<bootstrap-optional>
     ```
 
 ### Clustering
@@ -186,41 +188,24 @@ $ python full_pipeline.py mouse/tcga_index wlogv/wgcna run_num
     $ python box_plot_density_and_enrichment.py data_type clustering_method
     ```
 
-## ProSNet
+## Other tries
 
-Must first run create_clustering_input.py, and then let Sheng run.
+### ProSNet 
+
+Must first run create_clustering_input.py. Direclty clustering on ProSNet gives
+poor in-density/out-density results.
 
 1.  Run prosnet on the networks created by create_clustering_input.py
 
     ```bash
-    $ python low_dimensional_nodes_prosnet.py mouse/tcga_cancer run_num
+    $ python low_dimensional_nodes_prosnet.py mouse/tcga_idx run_num
+    $ python prosnet_kmeans.py mouse/tcga_idx run_num
+    $ python evaluate_clustering.py mouse/tcga_idx prosnet run_num
+    $ python compute_label_enrichments.py mouse/tcga_idx prosnet run_num go/dbgap/gwas/kegg/ctd
+    $ python cluster_info_summary.py mouse/tcga_idx prosnet run_num
     ```
 
-2.  Run k-means on low-dimensional vector representations of genes and GO terms.
-
-    ```bash
-    $ python prosnet_kmeans.py mouse/tcga_cancer_index run_num
-    ```
-
-3. Evaluate ProSNet.
-
-    ```bash
-    $ python evaluate_clustering.py mouse/tcga_cancer_index objective_function run_num
-    ```
-
-4. Compute GO enrichment
-
-    ```bash
-    $ python compute_go_enrichment.py mouse/tcga_cancer_index objective_function run_num
-    ```
-
-5. Summarize results.
-
-    ```bash
-    $ python cluster_info_summary.py mouse/tcga_cancer_index objective_function run_num
-    ```
-
-## Cluster-One and MCL
+### Cluster-One and MCL
 
 1.  Runs the full pipeline after Sheng sends clusters in ./Sheng/Module/
     Does not plot.
